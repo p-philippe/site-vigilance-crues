@@ -1,0 +1,9 @@
+# Vigilance 22 — Suivi hydrométrique Côtes-d'Armor
+# Outil personnel basé sur données publiques (Hub'Eau, Vigicrues, SHOM, Open-Meteo)
+
+User-agent: *
+# Autoriser l'indexation (site public)
+Allow: /
+
+# Éviter l'indexation des éventuels fichiers temporaires
+Disallow: /maintenance/
