@@ -1,7 +1,7 @@
-# Vigilance 22 — Guide de déploiement Hostinger
+# Vigilance 22 — Guide de déploiement
 
 Outil de surveillance hydrométrique temps réel des Côtes-d'Armor.  
-Projet personnel basé sur données publiques (Hub'Eau, Vigicrues, SHOM, Open-Meteo).
+Projet personnel basé sur données publiques (Hub'Eau, Vigicrues, Open-Meteo).
 
 ---
 
@@ -10,30 +10,47 @@ Projet personnel basé sur données publiques (Hub'Eau, Vigicrues, SHOM, Open-Me
 ```
 hostinger_deploy/
 ├── public_html/          ← À uploader sur Hostinger (contenu du site)
-│   ├── index.html        ← Application complète (~530 Ko, fichier unique)
+│   ├── index.html        ← Application complète (~510 Ko, fichier unique)
 │   ├── .htaccess         ← Configuration Apache (HTTPS, sécurité, compression)
 │   └── robots.txt        ← Autorisation indexation moteurs de recherche
 └── maintenance/
-    └── update_shom.py    ← Script local de mise à jour des marées
+    └── calibrer_propagation.py  ← Script local de calibration propagation amont-aval
 ```
 
 ---
 
-## Déploiement initial (une seule fois)
+## URLs de production
 
-### Via hPanel File Manager (recommandé)
+| Hébergement | URL | Déploiement |
+|---|---|---|
+| Vercel (recommandé) | https://vigilance-des-crues.vercel.app | CLI `vercel --prod` |
+| Hostinger | https://vigilance22.fr | Upload manuel hPanel |
+
+---
+
+## Déploiement standard (Vercel — recommandé)
+
+```bash
+# Depuis la racine du projet
+python3 build.py
+vercel --prod hostinger_deploy/public_html
+```
+
+C'est tout. Vercel détecte automatiquement les fichiers modifiés.
+
+---
+
+## Déploiement Hostinger (manuel)
+
+### Via hPanel File Manager
 
 1. Connectez-vous sur [hpanel.hostinger.com](https://hpanel.hostinger.com)
 2. **Websites** → votre domaine → **File Manager**
 3. Naviguez dans `public_html/`
-4. Supprimez le fichier `index.html` existant (page par défaut Hostinger)
-5. Uploadez les 3 fichiers du dossier `public_html/` :
-   - `index.html`
-   - `.htaccess`
-   - `robots.txt`
+4. Uploadez `index.html` et `sw.js` (les deux sont modifiés à chaque build)
 
-> ⚠️ Le fichier `.htaccess` commence par un point — il peut être masqué
-> par votre explorateur de fichiers. Sur macOS : `Cmd+Shift+.` pour l'afficher.
+> ⚠️ Le fichier `.htaccess` commence par un point — visible sur macOS avec `Cmd+Shift+.`.
+> À n'uploader qu'une seule fois (lors du déploiement initial).
 
 ### Via FTP (FileZilla)
 
@@ -44,7 +61,7 @@ hostinger_deploy/
 | Mot de passe | Celui défini à la création du compte FTP |
 | Port | 21 |
 
-Copiez les 3 fichiers dans `/public_html/`.
+Copiez `index.html` et `sw.js` dans `/public_html/`.
 
 ---
 
@@ -57,54 +74,20 @@ Ouvrez `https://votre-domaine.fr` et vérifiez :
 | Données Hub'Eau | ✅ | ✅ |
 | Vigicrues officiel | ✅ | ✅ |
 | Météo Open-Meteo | ✅ | ✅ |
-| **Marées SHOM live** | ⚠ Snapshot embarqué | ✅ **Données temps réel** |
 | **Radar Rainviewer** | ⚠ Peut échouer (CORS) | ✅ **Opérationnel** |
 | **Revue de presse** | ⚠ Proxy CORS bloqué | ✅ **Opérationnel** |
 | **Prévisions station** | ⚠ Peut échouer (CORS) | ✅ **Opérationnel** |
 
 ---
 
-## Maintenance — Mise à jour du snapshot SHOM
-
-Le fichier `index.html` embarque un snapshot des marées pour fonctionner
-hors-ligne. Une fois en ligne, les données SHOM sont chargées en temps réel —
-le snapshot sert de **fallback** si l'API SHOM est indisponible.
-
-**Fréquence recommandée** : une fois par semaine.
-
-### Prérequis (une seule fois)
-
-```bash
-pip3 install requests
-```
-
-### Lancer la mise à jour
-
-Depuis le dossier `hostinger_deploy/` :
-
-```bash
-python3 maintenance/update_shom.py
-```
-
-Le script :
-1. Interroge l'API SHOM (coefficients 14 j + horaires 7 j + courbes 2 j)
-2. Met à jour `public_html/index.html`
-3. Affiche un résumé
-
-### Après la mise à jour
-
-Re-uploadez uniquement `public_html/index.html` sur Hostinger
-(le fichier est modifié en local, les deux autres n'ont pas changé).
-
----
-
 ## Mise à jour de l'application
 
-Quand une nouvelle version du fichier HTML est générée avec Claude :
+Workflow complet après modification du code source :
 
-1. Copiez le nouveau fichier dans `public_html/index.html`
-2. Lancez `python3 maintenance/update_shom.py` pour rafraîchir le snapshot
-3. Uploadez `public_html/index.html` sur Hostinger
+```bash
+python3 build.py                              # génère public_html/index.html
+vercel --prod hostinger_deploy/public_html    # déploie sur Vercel
+```
 
 ---
 
@@ -115,13 +98,8 @@ Quand une nouvelle version du fichier HTML est générée avec Claude :
 | [Hub'Eau](https://hubeau.eaufrance.fr) | Données hydrométriques | Non requise |
 | [Vigicrues](https://www.vigicrues.gouv.fr) | Niveaux de vigilance officiels | Non requise |
 | [Open-Meteo](https://open-meteo.com) | Météo et saturation des sols | Non requise |
-| [SHOM](https://services.data.shom.fr) | Marées (horaires + courbes) | Embarquée dans le code |
 | [Rainviewer](https://www.rainviewer.com/api.html) | Radar précipitations | Non requise |
 | [Nominatim](https://nominatim.org) | Géocodage (État-major) | Non requise |
-
-> La clé SHOM (`b2q8lrcdl4s04cbabsj4nhcb`) est une clé de développement publique.
-> En cas d'expiration, générez-en une nouvelle sur [data.shom.fr](https://data.shom.fr)
-> et remplacez-la dans `index.html` (rechercher `SHOM_BASE`).
 
 ---
 
