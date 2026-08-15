@@ -2,7 +2,7 @@
 # ============================================================
 # deploy.sh — Déploiement Vigilance 22 vers VPS Ubuntu
 # À exécuter depuis ta machine locale (Mac)
-# Usage : bash hostinger_deploy/vps/deploy.sh
+# Usage : bash vercel_deploy/vps/deploy.sh
 # ============================================================
 
 set -e
@@ -11,7 +11,7 @@ set -e
 VPS_IP="TON_IP_VPS"              # Ex: 31.220.xx.xx
 VPS_USER="root"                   # ou ton user sudo
 VPS_DIR="/var/www/vigilance22"
-LOCAL_DIR="$(dirname "$0")/.."   # hostinger_deploy/
+LOCAL_DIR="$(dirname "$0")/.."   # vercel_deploy/
 # ──────────────────────────────────────────────────────────
 
 echo "🚀 Déploiement Vigilance 22 → ${VPS_USER}@${VPS_IP}:${VPS_DIR}"

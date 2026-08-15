@@ -8,10 +8,9 @@ Projet personnel basé sur données publiques (Hub'Eau, Vigicrues, Open-Meteo).
 ## Structure du projet
 
 ```
-hostinger_deploy/
-├── public_html/          ← À uploader sur Hostinger (contenu du site)
+vercel_deploy/
+├── public_html/          ← Servi par Vercel (contenu du site)
 │   ├── index.html        ← Application complète (~510 Ko, fichier unique)
-│   ├── .htaccess         ← Configuration Apache (HTTPS, sécurité, compression)
 │   └── robots.txt        ← Autorisation indexation moteurs de recherche
 └── maintenance/
     └── calibrer_propagation.py  ← Script local de calibration propagation amont-aval
@@ -19,55 +18,31 @@ hostinger_deploy/
 
 ---
 
-## URLs de production
+## URL de production
 
 | Hébergement | URL | Déploiement |
 |---|---|---|
-| Vercel (recommandé) | https://vigilance-des-crues.vercel.app | CLI `vercel --prod` |
-| Hostinger | https://vigilance22.fr | Upload manuel hPanel |
+| Vercel (exclusif) | https://vigilance-des-crues.vercel.app | CLI `vercel --prod` |
+
+> Hostinger n'est plus utilisé depuis le 2026-06-30 (voir ROADMAP.md, section Arbitrages). Vercel est l'hébergement unique.
 
 ---
 
-## Déploiement standard (Vercel — recommandé)
+## Déploiement (Vercel)
 
 ```bash
 # Depuis la racine du projet
 python3 build.py
-vercel --prod hostinger_deploy/public_html
+vercel --prod vercel_deploy/public_html
 ```
 
 C'est tout. Vercel détecte automatiquement les fichiers modifiés.
 
 ---
 
-## Déploiement Hostinger (manuel)
-
-### Via hPanel File Manager
-
-1. Connectez-vous sur [hpanel.hostinger.com](https://hpanel.hostinger.com)
-2. **Websites** → votre domaine → **File Manager**
-3. Naviguez dans `public_html/`
-4. Uploadez `index.html` et `sw.js` (les deux sont modifiés à chaque build)
-
-> ⚠️ Le fichier `.htaccess` commence par un point — visible sur macOS avec `Cmd+Shift+.`.
-> À n'uploader qu'une seule fois (lors du déploiement initial).
-
-### Via FTP (FileZilla)
-
-| Paramètre | Où trouver |
-|-----------|-----------|
-| Hôte | hPanel → FTP Accounts → hôte |
-| Identifiant | hPanel → FTP Accounts |
-| Mot de passe | Celui défini à la création du compte FTP |
-| Port | 21 |
-
-Copiez `index.html` et `sw.js` dans `/public_html/`.
-
----
-
 ## Vérification après déploiement
 
-Ouvrez `https://votre-domaine.fr` et vérifiez :
+Ouvrez https://vigilance-des-crues.vercel.app et vérifiez :
 
 | Fonctionnalité | État attendu en local | État attendu en ligne |
 |---|---|---|
@@ -86,7 +61,7 @@ Workflow complet après modification du code source :
 
 ```bash
 python3 build.py                              # génère public_html/index.html
-vercel --prod hostinger_deploy/public_html    # déploie sur Vercel
+vercel --prod vercel_deploy/public_html    # déploie sur Vercel
 ```
 
 ---
