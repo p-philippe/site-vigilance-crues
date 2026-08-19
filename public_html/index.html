@@ -2688,9 +2688,9 @@ function openMod(code) {
   document.getElementById('m-chips').innerHTML = chips.join('');
 
   document.getElementById('m-seuils').innerHTML =
-    `<div class="sli" style="background:${REF_COLORS.s1};color:${REF_TEXT.s1}">S1 — crue historique basse<br><strong>${refValue(code,'s1').toFixed(2)} m</strong><br><span style="font-weight:400;font-size:10px">${escapeHtml(refLabel(code,'s1'))}</span></div>` +
-    `<div class="sli" style="background:${REF_COLORS.s2};color:${REF_TEXT.s2}">S2 — crue historique médiane<br><strong>${refValue(code,'s2').toFixed(2)} m</strong><br><span style="font-weight:400;font-size:10px">${escapeHtml(refLabel(code,'s2'))}</span></div>` +
-    `<div class="sli" style="background:${REF_COLORS.s3};color:${REF_TEXT.s3}">S3 — crue historique haute<br><strong>${refValue(code,'s3').toFixed(2)} m</strong><br><span style="font-weight:400;font-size:10px">${escapeHtml(refLabel(code,'s3'))}</span></div>`;
+    `<div class="sli" style="background:${REF_COLORS.s1};color:${REF_TEXT.s1}">Crue historique basse<br><strong>${refValue(code,'s1').toFixed(2)} m</strong><br><span style="font-weight:400;font-size:10px">${escapeHtml(refLabel(code,'s1'))}</span></div>` +
+    `<div class="sli" style="background:${REF_COLORS.s2};color:${REF_TEXT.s2}">Crue historique médiane<br><strong>${refValue(code,'s2').toFixed(2)} m</strong><br><span style="font-weight:400;font-size:10px">${escapeHtml(refLabel(code,'s2'))}</span></div>` +
+    `<div class="sli" style="background:${REF_COLORS.s3};color:${REF_TEXT.s3}">Crue historique haute<br><strong>${refValue(code,'s3').toFixed(2)} m</strong><br><span style="font-weight:400;font-size:10px">${escapeHtml(refLabel(code,'s3'))}</span></div>`;
 
   document.getElementById('m-crues').innerHTML = st.h.map((c,i) =>
     `<div class="crue-row"><span><span class="crk">#${i+1}</span>${escapeHtml(c.l)}</span><strong style="font-family:var(--mono)">${c.v.toFixed(2)} m</strong></div>`
@@ -2775,7 +2775,7 @@ async function loadTrendChart(code, s) {
       borderColor:'#1a5c2a', backgroundColor:'rgba(26,92,42,.07)',
       fill:true, pointRadius:0, tension:0.3, borderWidth:2, order:1
     }];
-    [{k:'s1',c:REF_COLORS.s1,l:'S1 hist.'},{k:'s2',c:REF_COLORS.s2,l:'S2 hist.'},{k:'s3',c:REF_COLORS.s3,l:'S3 hist.'}].forEach(({k,c,l}) => {
+    [{k:'s1',c:REF_COLORS.s1,l:'Crue basse'},{k:'s2',c:REF_COLORS.s2,l:'Crue médiane'},{k:'s3',c:REF_COLORS.s3,l:'Crue haute'}].forEach(({k,c,l}) => {
       datasets.push({
         label:l, data:Array(vals.length).fill(s[k].v),
         borderColor:c, borderWidth:1.5, borderDash:[5,3],
@@ -2979,7 +2979,7 @@ async function loadVigicruesPrevisions(code) {
           datasetsP.push({label:'Prévi Min',data:valsMin,borderColor:'rgba(230,126,34,0.3)',backgroundColor:'rgba(230,126,34,0.1)',borderDash:[2,4],borderWidth:1,fill:false,pointRadius:0,tension:0.3,spanGaps:false});
           datasetsP.push({label:'Prévi Max',data:valsMax,borderColor:'rgba(230,126,34,0.3)',backgroundColor:'rgba(230,126,34,0.1)',borderDash:[2,4],borderWidth:1,fill:'-1',pointRadius:0,tension:0.3,spanGaps:false});
         }
-        [{k:'s1',c:REF_COLORS.s1,l:'S1'},{k:'s2',c:REF_COLORS.s2,l:'S2'},{k:'s3',c:REF_COLORS.s3,l:'S3'}].forEach(({k,c,l}) => {
+        [{k:'s1',c:REF_COLORS.s1,l:'Crue basse'},{k:'s2',c:REF_COLORS.s2,l:'Crue médiane'},{k:'s3',c:REF_COLORS.s3,l:'Crue haute'}].forEach(({k,c,l}) => {
           datasetsP.push({ label:l, data:Array(allPts.length).fill(refS[k].v), borderColor:c, borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false });
         });
         const Chart = window.Chart;
