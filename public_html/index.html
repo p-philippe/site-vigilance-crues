@@ -3787,7 +3787,7 @@ async function rpGeocode(place) {
     const data = await resp.json();
     // Garder le premier résultat dont le type est commune ou plus précis
     for (const r of data) {
-      if (NOM_ACCEPT.has(r.type) || NOM_ACCEPT.has(r.class)) {
+      if (NOM_ACCEPT.has(r.type) || NOM_ACCEPT.has(r.class) || NOM_ACCEPT.has(r.addresstype)) {
         const addr = r.address || {};
         // Vérifier qu'une commune est identifiée (pas seulement département/région)
         const hasCommune = addr.city || addr.town || addr.village || addr.hamlet || addr.municipality || addr.suburb;
@@ -4770,6 +4770,9 @@ function emHandleMapClick(e) {
     return;
   }
   if (emCurrentTool === 'polyline' || emCurrentTool === 'polygon') {
+    // Un clic qui fait partie d'un double-clic (detail > 1) ne doit pas ajouter de point :
+    // il sera géré par emHandleDblClick, qui termine le tracé.
+    if (e.originalEvent && e.originalEvent.detail > 1) return;
     if (!emDrawing) {
       emDrawing = true; emDrawPoints = [e.latlng]; emShowDrawBar();
     } else {
@@ -4782,7 +4785,6 @@ function emHandleMapClick(e) {
 function emHandleDblClick(e) {
   if (!emDrawing) return;
   if (e && e.originalEvent) window.L.DomEvent.stop(e.originalEvent);
-  if (emDrawPoints.length > 2) emDrawPoints.pop();
   emFinishDraw();
 }
 
