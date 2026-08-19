@@ -221,6 +221,22 @@ tr:hover td{background:var(--accent-light)}
 .bv-prop-icon{margin-right:6px;font-size:13px}
 .bv-speed-badge{font-size:10px;font-family:var(--mono);padding:1px 6px;border-radius:4px;font-weight:600}
 
+/* ─── TAB 12 : PRÉVENTION ─── */
+.t12p{flex:1;overflow:auto;padding:16px 20px}
+.prev-intro{font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.5}
+.prev-group{margin-bottom:22px}
+.prev-group-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.prev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.prev-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;text-decoration:none;color:inherit;transition:border-color .15s}
+.prev-card:hover{border-color:var(--accent)}
+.prev-card-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.prev-card-desc{font-size:11px;color:var(--text3);line-height:1.4}
+.prev-card-link{font-size:11px;color:var(--accent);margin-top:2px}
+.prev-numeros{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.prev-num{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 14px;text-align:center;min-width:90px}
+.prev-num-v{font-size:20px;font-weight:700;font-family:var(--mono);color:#c0392b}
+.prev-num-l{font-size:10px;color:var(--text3)}
+
 /* ─── TAB 6 : MÉTÉO ─── */
 .t6{flex:1;overflow:auto;padding:16px 20px}
 .meteo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:16px}
@@ -777,6 +793,7 @@ tr:hover td{background:var(--accent-light)}
   <div class="tab-group" role="group" aria-label="Suivi et veille">
     <div class="tab" onclick="switchTab(4)" id="tab4" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel4" title="Journal des événements"><span class="tab-ico">📋</span> Journal</div>
     <div class="tab" onclick="switchTab(10)" id="tab10" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel10" title="Revue de presse"><span class="tab-ico">📰</span> Presse</div>
+    <div class="tab" onclick="switchTab(12)" id="tab12" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel12" title="Prévention des inondations — sources officielles"><span class="tab-ico">🛟</span> Prévention</div>
   </div>
 </div>
 </div><!-- /tabs-bar-wrap -->
@@ -1287,6 +1304,85 @@ tr:hover td{background:var(--accent-light)}
 </div>
 </div>
 
+<!-- ═══ TAB 12 : PRÉVENTION ═══ -->
+<div class="panel" id="panel12" role="tabpanel" aria-labelledby="tab12" tabindex="-1">
+<div class="t12p">
+  <div class="prev-intro">
+    <strong>Se préparer et réagir face au risque inondation</strong> — sélection de ressources officielles (État, opérateurs publics, préfecture des Côtes-d'Armor). Cet onglet ne remplace pas les consignes officielles diffusées en cas d'alerte : suivre en priorité les messages de la préfecture et de votre mairie.
+  </div>
+
+  <div class="prev-group">
+    <div class="prev-group-title">🚨 Numéros d'urgence</div>
+    <div class="prev-numeros">
+      <div class="prev-num"><div class="prev-num-v">18</div><div class="prev-num-l">Pompiers</div></div>
+      <div class="prev-num"><div class="prev-num-v">112</div><div class="prev-num-l">Urgence UE</div></div>
+      <div class="prev-num"><div class="prev-num-v">15</div><div class="prev-num-l">SAMU</div></div>
+      <div class="prev-num"><div class="prev-num-v">17</div><div class="prev-num-l">Police / Gendarmerie</div></div>
+    </div>
+  </div>
+
+  <div class="prev-group">
+    <div class="prev-group-title">📡 Vigilance et alertes officielles</div>
+    <div class="prev-grid">
+      <a class="prev-card" href="https://www.vigicrues.gouv.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">🌊 Vigicrues</div>
+        <div class="prev-card-desc">Vigilance crues officielle par tronçon de cours d'eau — source des couleurs affichées dans cette application.</div>
+        <div class="prev-card-link">↗ vigicrues.gouv.fr</div>
+      </a>
+      <a class="prev-card" href="https://vigilance.meteofrance.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">🌦️ Vigilance Météo-France</div>
+        <div class="prev-card-desc">Carte de vigilance météorologique départementale (pluie-inondation, vent, orages...).</div>
+        <div class="prev-card-link">↗ vigilance.meteofrance.fr</div>
+      </a>
+      <a class="prev-card" href="https://www.cotes-darmor.gouv.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">🏛️ Préfecture des Côtes-d'Armor</div>
+        <div class="prev-card-desc">Arrêtés, consignes de sécurité et communiqués en période de crise sur le département.</div>
+        <div class="prev-card-link">↗ cotes-darmor.gouv.fr</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="prev-group">
+    <div class="prev-group-title">📘 Connaître et anticiper le risque</div>
+    <div class="prev-grid">
+      <a class="prev-card" href="https://www.georisques.gouv.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">📍 Géorisques</div>
+        <div class="prev-card-desc">Portail officiel des risques naturels et technologiques — consulter le risque inondation à une adresse précise.</div>
+        <div class="prev-card-link">↗ georisques.gouv.fr</div>
+      </a>
+      <a class="prev-card" href="https://www.service-public.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">📄 Service-public.fr</div>
+        <div class="prev-card-desc">Démarches et fiches pratiques officielles : que faire avant, pendant et après une inondation.</div>
+        <div class="prev-card-link">↗ service-public.fr</div>
+      </a>
+      <a class="prev-card" href="https://hydro.eaufrance.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">💧 HydroPortail</div>
+        <div class="prev-card-desc">Banque nationale des données hydrométriques — historique complet des stations, au-delà des 12h affichées ici.</div>
+        <div class="prev-card-link">↗ hydro.eaufrance.fr</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="prev-group">
+    <div class="prev-group-title">🎒 Bons gestes et plan familial</div>
+    <div class="prev-grid">
+      <a class="prev-card" href="https://www.ecologie.gouv.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">🌱 Ministère de la Transition écologique</div>
+        <div class="prev-card-desc">Dossiers de prévention des risques naturels et politique nationale de gestion du risque inondation.</div>
+        <div class="prev-card-link">↗ ecologie.gouv.fr</div>
+      </a>
+      <a class="prev-card" href="https://www.gouvernement.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">🇫🇷 Info catastrophes naturelles</div>
+        <div class="prev-card-desc">Information gouvernementale en cas de crise majeure et consignes de sécurité civile.</div>
+        <div class="prev-card-link">↗ gouvernement.fr</div>
+      </a>
+    </div>
+  </div>
+
+  <p class="note">Cette liste est une sélection manuelle de portails officiels stables, sans flux automatisé. Suggestions d'ajout bienvenues.</p>
+</div>
+</div>
+
 
 <!-- MODAL STATION -->
 <div class="mbg" id="mbg" onclick="if(event.target===this)closeMod()">
@@ -1338,7 +1434,7 @@ tr:hover td{background:var(--accent-light)}
   </div>
   <div class="msect">Liens officiels</div>
   <div class="mlinks" id="m-links"></div>
-  <div class="mnote">S1/S2/S3 = les trois crues historiques de référence de la station (dégradé bleu clair → violet). Les couleurs vert/jaune/orange/rouge restent celles de la vigilance Vigicrues.</div>
+  <div class="mnote">Les trois crues historiques de référence de la station sont indiquées en dégradé bleu clair → violet (basse → haute). Les couleurs vert/jaune/orange/rouge restent celles de la vigilance Vigicrues.</div>
 </div>
 </div>
 
