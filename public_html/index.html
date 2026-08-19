@@ -3012,6 +3012,27 @@ async function loadVigicruesPrevisions(code) {
 let meteoCharts = [];
 let solCharts = [];
 
+// Trait vertical marquant l'heure actuelle sur les graphiques météo (remplace l'ancien ▼ dans les ticks)
+const nowLinePlugin = {
+  id: 'nowLine',
+  afterDraw(chart) {
+    const idx = chart.$nowIdx;
+    if (idx == null) return;
+    const xScale = chart.scales.x, yScale = chart.scales.y;
+    const x = xScale.getPixelForValue(idx);
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(192,57,43,0.85)';
+    ctx.setLineDash([4,3]);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x, yScale.top);
+    ctx.lineTo(x, yScale.bottom);
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+
 // ── HELPERS PLUIE ──
 function rainClass(mm) {
   if (mm == null || mm === 0) return '';
@@ -3073,10 +3094,8 @@ function renderMeteo() {
     const chartSlice = h.time.slice(Math.max(0, safeNow-12), safeNow+25);
     const chartPrecip = h.precipitation.slice(Math.max(0, safeNow-12), safeNow+25);
     const chartProb = (h.precipitation_probability || []).slice(Math.max(0, safeNow-12), safeNow+25);
-    const chartLabels = chartSlice.map((t,j) => {
-      const hour = t.slice(11,13)+'h';
-      return j === Math.min(12, safeNow) ? '▼'+hour : hour;
-    });
+    const nowChartIdx = Math.min(12, safeNow);
+    const chartLabels = chartSlice.map(t => t.slice(11,13)+'h');
     const skip = Math.max(1, Math.floor(chartLabels.length/8));
     const displayLabels = chartLabels.map((l,j)=>j%skip===0?l:'');
     const barColors = chartSlice.map((t,j) =>
@@ -3154,8 +3173,11 @@ function renderMeteo() {
             x:{ticks:{color:'#8a9b8a',font:{size:8},maxRotation:0}, grid:{color:gc}},
             y:{ticks:{color:'#8a9b8a',font:{size:9},callback:v=>v.toFixed(1)}, grid:{color:gc}, beginAtZero:true}
           }
-        }
+        },
+        plugins: [nowLinePlugin]
       });
+      chart.$nowIdx = nowChartIdx;
+      chart.update('none');
       meteoCharts.push(chart);
     }
   });
