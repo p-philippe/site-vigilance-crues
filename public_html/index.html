@@ -769,7 +769,7 @@ tr:hover td{background:var(--accent-light)}
     <span class="spin" id="spin"></span>
     <span class="ts" id="ts">—</span>
     <span class="ts" id="refresh-countdown" title="Prochain rafraîchissement automatique" style="opacity:.6;font-size:10px"></span>
-    <button class="btn-hdr" id="btnTz" aria-label="Basculer entre UTC et heure locale" onclick="toggleTz()" title="Basculer entre UTC et heure locale">🕐 UTC</button>
+    <button class="btn-hdr" id="btnTz" aria-label="Basculer entre heure Paris et UTC" onclick="toggleTz()" title="Basculer entre heure Paris et UTC">🕐 Heure Paris</button>
     <button class="btn-hdr" id="btnRefresh" aria-label="Actualiser les données" onclick="loadAll()">↺ Actualiser</button>
     <button id="btn-notif" onclick="toggleNotif()" aria-label="Activer ou désactiver les alertes navigateur" title="Activer/désactiver les alertes navigateur" style="background:none;border:1px solid rgba(255,255,255,.35);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:13px;color:#fff;">🔔</button>
     <span id="online-indicator" title="Statut réseau" aria-label="Statut réseau : en ligne" aria-live="polite" style="font-size:14px;cursor:default;">🟢</span>
@@ -1722,7 +1722,7 @@ let envLoadingStarted = false;
 let NOTIF_BATCHING = false;
 let NOTIF_BATCH    = [];
 
-let USE_LOCAL_TZ = false;
+let USE_LOCAL_TZ = true;
 const TZ_LOCAL = 'Europe/Paris';
 
 // Setters (pour mutation depuis d'autres modules)
