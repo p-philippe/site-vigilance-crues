@@ -3183,6 +3183,15 @@ async function loadVigicruesPrevisions(code) {
 let meteoCharts = [];
 let solCharts = [];
 
+/** "Maintenant" formaté comme les séries horaires Open-Meteo (timezone=Europe/Paris, ex: "2026-08-20T20") */
+function nowStrParis() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23'
+  }).formatToParts(new Date());
+  const get = t => parts.find(p => p.type === t).value;
+  return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}`;
+}
+
 // Trait vertical marquant l'heure actuelle sur les graphiques météo (remplace l'ancien ▼ dans les ticks)
 const nowLinePlugin = {
   id: 'nowLine',
@@ -3225,8 +3234,7 @@ function renderMeteo() {
   meteoCharts.forEach(c => { try { c.destroy(); } catch(e){} });
   meteoCharts = [];
 
-  const now = new Date();
-  const nowStr = now.toISOString().slice(0,13);
+  const nowStr = nowStrParis();
 
   let maxCumul48 = 0, alertPoint = '';
   METEO_DATA.forEach((d, i) => {
@@ -3448,7 +3456,7 @@ function renderSol() {
   solCharts.forEach(c => { try { c.destroy(); } catch(e){} });
   solCharts = [];
 
-  const nowStr = new Date().toISOString().slice(0,13);
+  const nowStr = nowStrParis();
 
   const rgrid = document.getElementById('sol-risk-grid');
   if (rgrid) {
@@ -4657,7 +4665,7 @@ let emShowMeteo = false, emShowSol = false, emShowNappes = false;
 
 function emNowIdx(hourly) {
   if (!hourly?.time) return -1;
-  const nowStr = new Date().toISOString().slice(0,13);
+  const nowStr = nowStrParis();
   const i = hourly.time.findIndex(t => t >= nowStr);
   return i >= 0 ? i : hourly.time.length - 1;
 }
@@ -5804,10 +5812,10 @@ function renderFavorites() {
   }).join('');
 }
 
-function environmentStats(now=new Date()) {
+function environmentStats() {
   const stats = {maxPast24:0, maxFut6:0, maxFut24:0, maxSat:0, maxSatNom:''};
   if (METEO_DATA) {
-    const nowStr = now.toISOString().slice(0,13);
+    const nowStr = nowStrParis();
     METEO_DATA.forEach(d => {
       const h = d.hourly;
       if (!h?.time) return;
@@ -5819,7 +5827,7 @@ function environmentStats(now=new Date()) {
     });
   }
   if (SOL_DATA) {
-    const nowStr = now.toISOString().slice(0,13);
+    const nowStr = nowStrParis();
     SOL_DATA.forEach((d, i) => {
       const h = d.hourly;
       if (!h?.time) return;
