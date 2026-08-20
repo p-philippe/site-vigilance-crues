@@ -1749,6 +1749,7 @@ let NAPPES_DATA = null;
 let METEO_DATA  = null;
 let SOL_DATA    = null;
 let MAREE_DATA  = null;
+let COEFF_DATA  = null;
 
 let envLoadingStarted = false;
 
@@ -1773,6 +1774,7 @@ function setNAPPES_DATA(v)      { NAPPES_DATA = v; }
 function setMETEO_DATA(v)       { METEO_DATA = v; }
 function setSOL_DATA(v)         { SOL_DATA = v; }
 function setMAREE_DATA(v)       { MAREE_DATA = v; }
+function setCOEFF_DATA(v)       { COEFF_DATA = v; }
 function setEnvLoadingStarted(v){ envLoadingStarted = v; }
 function setNOTIF_BATCHING(v)   { NOTIF_BATCHING = v; }
 function setNOTIF_BATCH(v)      { NOTIF_BATCH = v; }
@@ -3260,6 +3262,27 @@ function nowStrParis() {
   }).formatToParts(new Date());
   const get = t => parts.find(p => p.type === t).value;
   return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}`;
+}
+
+/**
+ * Dépression atmosphérique en cours sur le département — signal qualitatif de risque de
+ * surcote côtière (effet baromètre inverse : basse pression = niveau de la mer plus élevé).
+ * Ne calcule pas de cote chiffrée (voir historique v6.4/v6.5 — jugé peu fiable), seulement
+ * un niveau de vigilance à croiser avec le coefficient de marée.
+ */
+function pressureAlert() {
+  if (!METEO_DATA) return { min: null, nom: '', level: 'none' };
+  const nowStr = nowStrParis();
+  let min = null, nom = '';
+  METEO_DATA.forEach((d, i) => {
+    const h = d.hourly;
+    if (!h?.time || !h.pressure_msl) return;
+    const idx = h.time.findIndex(t => t >= nowStr);
+    const p = idx >= 0 ? h.pressure_msl[idx] : null;
+    if (p != null && (min == null || p < min)) { min = p; nom = POINTS_22[i]?.nom || ''; }
+  });
+  const level = min == null ? 'none' : min < 990 ? 'strong' : min < 1000 ? 'moderate' : 'none';
+  return { min, nom, level };
 }
 
 // Trait vertical marquant l'heure actuelle sur les graphiques météo (remplace l'ancien ▼ dans les ticks)
@@ -4923,6 +4946,31 @@ function emMareeNow(s) {
   return { h: v0 + (v1 - v0) * frac, rising: v1 > v0 };
 }
 
+// Coefficient de marée officiel SHOM (échelle 20-120) pour une date donnée — voir /api/coefficient.js
+function coeffForDate(d) {
+  if (!COEFF_DATA) return null;
+  const key = d.toISOString().slice(0, 10);
+  return COEFF_DATA.find(c => c.date === key) || null;
+}
+
+function coeffLabel(c) {
+  if (c == null) return '';
+  if (c >= 100) return 'très grande marée';
+  if (c >= 70) return 'vive-eau';
+  if (c >= 40) return 'marée moyenne';
+  return 'morte-eau';
+}
+
+// Coefficient associé à une extremum (PM/BM) : matin ou après-midi selon l'heure locale Paris
+function coeffForExtremum(ext) {
+  if (!ext) return null;
+  const day = coeffForDate(new Date(ext.time));
+  if (!day) return null;
+  const hour = Number(new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', hourCycle: 'h23' }).format(new Date(ext.time)));
+  const v = hour < 13 ? (day.am ?? day.pm) : (day.pm ?? day.am);
+  return v;
+}
+
 function emMareeInfo(i) {
   const s = emMareeSeries(i);
   if (!s) return null;
@@ -4936,27 +4984,46 @@ function emMareeInfo(i) {
   const lastExt = prev[prev.length - 1];
   const nextExt = next[0];
   const marnage = (lastExt && nextExt) ? Math.abs(nextExt.h - lastExt.h) : null;
-  return { nowState, nextPM, nextBM, nextExt, marnage };
+  const coeffNext = coeffForExtremum(nextExt);
+  const coeffToday = coeffForDate(new Date());
+  // Concomitance dépression + grande marée = risque de surcote accru (effet baromètre inverse)
+  const pressure = pressureAlert();
+  const surgeWatch = pressure.level !== 'none' && coeffToday != null && coeffToday.max >= 70;
+  return { nowState, nextPM, nextBM, nextExt, marnage, coeffNext, coeffToday, pressure, surgeWatch };
 }
 
 function emMareePopup(i) {
   const pt = PORTS_22[i];
   const info = emMareeInfo(i);
   if (!info || !info.nowState) return `<strong>${escapeHtml(pt.nom)}</strong><br>Données marée indisponibles`;
-  const { nowState, nextPM, nextBM, marnage } = info;
+  const { nowState, nextPM, nextBM, marnage, coeffToday, pressure, surgeWatch } = info;
   const row = (l, v) => `<div style="display:flex;justify-content:space-between;gap:10px;padding:1px 0"><span style="color:#666">${l}</span><strong>${v}</strong></div>`;
   const dir = nowState.rising
     ? '<span style="color:#2980b9">⇑ montante</span>'
     : '<span style="color:#16a085">⇓ descendante</span>';
+  const coeffRow = coeffToday
+    ? row('Coefficient (auj.)', `${[coeffToday.am, coeffToday.pm].filter(v => v != null).join(' / ')} <span style="font-weight:400;color:#888">— ${coeffLabel(coeffToday.max)}</span>`)
+    : '';
+  const pressureLabel = pressure.level === 'strong' ? 'dépression marquée' : pressure.level === 'moderate' ? 'dépression modérée' : 'normale';
+  const pressureColor = pressure.level === 'strong' ? '#c0392b' : pressure.level === 'moderate' ? '#e67e22' : '#888';
+  const pressureRow = pressure.min != null
+    ? row('Pression atmo.', `${Math.round(pressure.min)} hPa <span style="font-weight:400;color:${pressureColor}">— ${pressureLabel}</span>`)
+    : '';
+  const surgeBanner = surgeWatch
+    ? `<div style="margin-top:6px;padding:5px 7px;background:#fdecea;border:1px solid #c0392b;border-radius:5px;color:#c0392b;font-weight:600;font-size:11px">⚠️ Concomitance dépression + grande marée — risque de surcote côtière accru (effet baromètre inverse)</div>`
+    : '';
   return `<div style="font-family:sans-serif;font-size:12px;min-width:220px">
     <div style="font-weight:700;font-size:13px">🌊 ${escapeHtml(pt.nom)}</div>
-    <div style="color:#666;margin-bottom:6px">Open-Meteo Marine (modèle)</div>
+    <div style="color:#666;margin-bottom:6px">Open-Meteo Marine (modèle) · coefficient SHOM</div>
     ${row('Marée', dir)}
     ${row('Niveau actuel', nowState.h.toFixed(2) + ' m <span style="font-weight:400;color:#888">/ niveau moyen</span>')}
+    ${coeffRow}
+    ${pressureRow}
     ${nextPM ? row('Prochaine PM', `${fmtTime(new Date(nextPM.time))} · ${nextPM.h >= 0 ? '+' : ''}${nextPM.h.toFixed(2)} m`) : ''}
     ${nextBM ? row('Prochaine BM', `${fmtTime(new Date(nextBM.time))} · ${nextBM.h >= 0 ? '+' : ''}${nextBM.h.toFixed(2)} m`) : ''}
     ${marnage != null ? row('Marnage (cycle)', marnage.toFixed(1) + ' m') : ''}
-    <div style="margin-top:6px;font-size:10px;color:#999">Hauteurs par rapport au niveau moyen de la mer (MSL),<br>pas les hauteurs carte marine (CM). Heures ± quelques min.</div>
+    ${surgeBanner}
+    <div style="margin-top:6px;font-size:10px;color:#999">Hauteurs par rapport au niveau moyen de la mer (MSL),<br>pas les hauteurs carte marine (CM). Heures ± quelques min.<br>Coefficient identique sur la façade Côtes-d'Armor (référence commune).<br>Pression = mesure la plus basse relevée sur le département, pas nécessairement au port.</div>
   </div>`;
 }
 
@@ -4968,12 +5035,13 @@ function emBuildMareeLayer() {
     const info = emMareeInfo(i);
     const rising = info?.nowState?.rising;
     const nextExt = info?.nextExt;
-    const bg = rising == null ? '#5a6b7a' : rising ? '#2980b9' : '#16a085';
+    const bg = info?.surgeWatch ? '#c0392b' : rising == null ? '#5a6b7a' : rising ? '#2980b9' : '#16a085';
     const label = nextExt
-      ? `${rising ? '⇑' : '⇓'} ${nextExt.type} ${fmtTime(nextExt.time)}`
+      ? (info.coeffNext != null ? `${rising ? '⇑' : '⇓'} Coef. ${info.coeffNext}` : `${rising ? '⇑' : '⇓'} ${nextExt.type} ${fmtTime(nextExt.time)}`)
       : '—';
+    const prefix = info?.surgeWatch ? '⚠️ ' : '🌊 ';
     const icon = L.divIcon({
-      html: `<div style="background:${bg};color:#fff;border-radius:6px;padding:2px 6px;font-size:11px;font-weight:700;font-family:sans-serif;white-space:nowrap;box-shadow:0 0 0 2px #fff,0 1px 4px rgba(0,0,0,.4)">🌊 ${label}</div>`,
+      html: `<div style="background:${bg};color:#fff;border-radius:6px;padding:2px 6px;font-size:11px;font-weight:700;font-family:sans-serif;white-space:nowrap;box-shadow:0 0 0 2px #fff,0 1px 4px rgba(0,0,0,.4)">${prefix}${label}</div>`,
       className:'', iconSize:null, iconAnchor:[24,10], popupAnchor:[0,-10]
     });
     const m = L.marker([pt.lat, pt.lon], { icon });
@@ -6121,6 +6189,16 @@ async function loadMaree() {
     setMAREE_DATA(resps);
   } catch(e) {
     console.error('[loadMaree]', e);
+  }
+  // Coefficients de marée officiels SHOM — indépendant d'Open-Meteo, ne doit pas bloquer la couche marée si absent
+  try {
+    const r = await fetch('/api/coefficient?days=10');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    setCOEFF_DATA(d.days || null);
+  } catch(e) {
+    console.error('[loadMaree] coefficients indisponibles', e);
+    setCOEFF_DATA(null);
   }
 }
 
