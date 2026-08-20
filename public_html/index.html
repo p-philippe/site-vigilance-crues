@@ -354,6 +354,10 @@ tr:hover td{background:var(--accent-light)}
   position:absolute;top:12px;left:62px;right:228px;z-index:1002;
   display:flex;align-items:center;gap:0;
 }
+#surge-alert{
+  position:absolute;top:60px;left:62px;right:228px;z-index:1001;
+  margin:0;box-shadow:0 2px 8px rgba(0,0,0,.15);
+}
 .em-search-input{
   flex:1;background:rgba(26,35,50,.92);border:1px solid rgba(255,255,255,.25);
   color:#fff;border-radius:7px 0 0 7px;padding:9px 12px;font-size:13px;
@@ -486,6 +490,7 @@ tr:hover td{background:var(--accent-light)}
   .em-search{top:10px;left:54px;width:calc(100% - 64px)}
   .em-search-input{font-size:12px;padding:8px 10px}
   .em-search-btn{padding:8px 10px}
+  #surge-alert{top:56px;left:54px;width:calc(100% - 64px);right:auto;font-size:11px}
 }
 
 /* ─── TAB 3 ─── */
@@ -986,6 +991,10 @@ tr:hover td{background:var(--accent-light)}
 <!-- ═══ CARTE ÉTAT-MAJOR ═══ -->
 <div class="panel" id="panel9" role="tabpanel" aria-labelledby="tab9" tabindex="-1">
   <div class="t-em">
+    <div id="surge-alert" class="meteo-alert-box">
+      <span class="meteo-alert-icon">⚠️</span>
+      <div class="meteo-alert-text" id="surge-alert-text"></div>
+    </div>
     <div id="em-map"></div>
 
     <!-- Barre de recherche géocodage -->
@@ -4961,6 +4970,56 @@ function coeffLabel(c) {
   return 'morte-eau';
 }
 
+// Pression minimale prévue (parmi les 5 points météo) pour une date calendaire donnée (Europe/Paris)
+function minPressureForDate(dateStr) {
+  if (!METEO_DATA) return null;
+  let min = null;
+  METEO_DATA.forEach(d => {
+    const h = d.hourly;
+    if (!h?.time || !h.pressure_msl) return;
+    h.time.forEach((t, idx) => {
+      if (t.slice(0, 10) !== dateStr) return;
+      const p = h.pressure_msl[idx];
+      if (p != null && (min == null || p < min)) min = p;
+    });
+  });
+  return min;
+}
+
+function pressureLevel(min) {
+  if (min == null) return 'none';
+  return min < 990 ? 'strong' : min < 1000 ? 'moderate' : 'none';
+}
+
+/**
+ * Anticipation du risque de surcote sur les prochains jours (limité par l'horizon fiable des
+ * prévisions météo — au-delà de 3 jours la pression prévue devient peu fiable). Croise le
+ * coefficient de marée (SHOM, fiable à 10 jours) avec la dépression prévue (Open-Meteo, 3 jours).
+ */
+function surgeForecastDays(nDays = 3) {
+  if (!COEFF_DATA || !METEO_DATA) return [];
+  return COEFF_DATA.slice(0, nDays).map(c => {
+    const min = minPressureForDate(c.date);
+    const level = pressureLevel(min);
+    return { date: c.date, coeff: c.max, minPressure: min, level, concern: level !== 'none' && c.max != null && c.max >= 70 };
+  });
+}
+
+function emUpdateSurgeAlert() {
+  const box = document.getElementById('surge-alert');
+  const text = document.getElementById('surge-alert-text');
+  if (!box || !text) return;
+  const days = surgeForecastDays(3).filter(d => d.concern);
+  if (!days.length) { box.classList.remove('visible'); return; }
+  const list = days.map(d => {
+    const label = fmtDate(new Date(d.date + 'T12:00:00Z'), { weekday: 'short', day: '2-digit', month: '2-digit' });
+    const dep = d.level === 'strong' ? 'dépression forte' : 'dépression modérée';
+    return `${label} (coef. ${d.coeff}, ${dep})`;
+  }).join(' · ');
+  text.innerHTML = `<strong>Risque de surcote côtière</strong> — concomitance dépression + grande marée prévue : ${list}. Prévision météo peu fiable au-delà de 2-3 jours, à réactualiser à l'approche de l'échéance.`;
+  box.classList.add('visible');
+}
+
 // Coefficient associé à une extremum (PM/BM) : matin ou après-midi selon l'heure locale Paris
 function coeffForExtremum(ext) {
   if (!ext) return null;
@@ -6145,8 +6204,10 @@ async function ensureEnvData() {
   setEnvLoadingStarted(true);
   await Promise.allSettled([
     METEO_DATA ? Promise.resolve() : loadMeteo(),
-    SOL_DATA ? Promise.resolve() : loadSol()
+    SOL_DATA ? Promise.resolve() : loadSol(),
+    COEFF_DATA ? Promise.resolve() : loadCoefficients()
   ]);
+  window.emUpdateSurgeAlert && window.emUpdateSurgeAlert();
 }
 
 // ── MÉTÉO ──
@@ -6190,14 +6251,19 @@ async function loadMaree() {
   } catch(e) {
     console.error('[loadMaree]', e);
   }
-  // Coefficients de marée officiels SHOM — indépendant d'Open-Meteo, ne doit pas bloquer la couche marée si absent
+  if (!COEFF_DATA) await loadCoefficients();
+}
+
+// Coefficients de marée officiels SHOM — chargés proactivement (ensureEnvData) pour permettre
+// le bandeau de risque de surcote sans que l'utilisateur ait à activer la couche marée
+async function loadCoefficients() {
   try {
     const r = await fetch('/api/coefficient?days=10');
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     setCOEFF_DATA(d.days || null);
   } catch(e) {
-    console.error('[loadMaree] coefficients indisponibles', e);
+    console.error('[loadCoefficients] indisponibles', e);
     setCOEFF_DATA(null);
   }
 }
@@ -6379,6 +6445,7 @@ window.emToggleMeteo = emToggleMeteo;
 window.emToggleSol = emToggleSol;
 window.emToggleNappes = emToggleNappes;
 window.emToggleMaree = emToggleMaree;
+window.emUpdateSurgeAlert = emUpdateSurgeAlert;
 window.emToggleSensitive = emToggleSensitive;
 window.emSearchDebounce = emSearchDebounce;
 window.emSearchGo = emSearchGo;
