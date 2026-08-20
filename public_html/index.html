@@ -1723,7 +1723,7 @@ let NOTIF_BATCHING = false;
 let NOTIF_BATCH    = [];
 
 let USE_LOCAL_TZ = false;
-const TZ_LOCAL = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const TZ_LOCAL = 'Europe/Paris';
 
 // Setters (pour mutation depuis d'autres modules)
 function setOBS(v)              { OBS = v; }
@@ -1779,6 +1779,13 @@ function fmtDateTime(isoOrDate) {
   return d.toLocaleString('fr-FR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit', timeZone: tz}) + suffix;
 }
 
+/** Formate une date ISO en date seule (jour de semaine optionnel) selon le fuseau actif */
+function fmtDate(isoOrDate, opts = {}) {
+  const d = typeof isoOrDate === 'string' ? new Date(isoOrDate) : isoOrDate;
+  const tz = USE_LOCAL_TZ ? TZ_LOCAL : 'UTC';
+  return d.toLocaleDateString('fr-FR', {...opts, timeZone: tz});
+}
+
 function toast(msg, dur = 3000) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -1802,14 +1809,14 @@ function badge(v, full) {
 function toggleTz() {
   setUSE_LOCAL_TZ(!USE_LOCAL_TZ);
   const btn = document.getElementById('btnTz');
-  if (btn) btn.textContent = USE_LOCAL_TZ ? '🕐 Heure locale' : '🕐 UTC';
+  if (btn) btn.textContent = USE_LOCAL_TZ ? '🕐 Heure Paris' : '🕐 UTC';
   // Ces fonctions seront disponibles via window après globals.js
   if (typeof window.renderHist === 'function') window.renderHist();
   if (document.getElementById('panel4')?.classList.contains('active'))
     if (typeof window.renderJournal === 'function') window.renderJournal();
   if (document.getElementById('panel5')?.classList.contains('active'))
     if (typeof window.renderBassins === 'function') window.renderBassins();
-  toast(USE_LOCAL_TZ ? `Heure locale (${TZ_LOCAL})` : 'Heure UTC');
+  toast(USE_LOCAL_TZ ? `Heure Paris (${TZ_LOCAL})` : 'Heure UTC');
 }
 
 function updateOnlineStatus() {
@@ -2264,7 +2271,7 @@ function renderJournal() {
 
   const byDay = {};
   for (const ev of items) {
-    const day = new Date(ev.date).toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric',timeZone:'UTC'});
+    const day = fmtDate(ev.date,{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
     if (!byDay[day]) byDay[day] = [];
     byDay[day].push(ev);
   }
@@ -3066,7 +3073,7 @@ async function loadVigicruesPrevisions(code) {
       return `<div style="background:${bg};${brd}border-radius:8px;padding:8px 10px;text-align:center">
         <div style="font-size:10px;color:${txt};opacity:.8;margin-bottom:4px">${label}</div>
         <div style="font-size:18px;font-weight:700;font-family:var(--mono);color:${txt}">${v.toFixed(2)}m</div>
-        <div style="font-size:9px;color:${txt};opacity:.7;margin-top:2px">${p.t.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'UTC'})} UTC</div>
+        <div style="font-size:9px;color:${txt};opacity:.7;margin-top:2px">${fmtTime(p.t)}</div>
         ${rangeHtml}
       </div>`;
     }
@@ -3075,7 +3082,7 @@ async function loadVigicruesPrevisions(code) {
     const step = Math.max(1, Math.floor(futurePts.length / 10));
     const sampled = futurePts.filter((_, i) => i % step === 0).slice(0, 12);
     const rows = sampled.map(p => {
-      const hLabel = p.t.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}) + ' ' + p.t.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'UTC'});
+      const hLabel = fmtDate(p.t,{day:'2-digit',month:'2-digit'}) + ' ' + fmtTime(p.t);
       const bc = 'transparent';
       const bt = 'inherit';
       const brd2 = '';
@@ -3100,7 +3107,7 @@ async function loadVigicruesPrevisions(code) {
       ${rows ? `<div style="overflow-x:auto;border:1px solid var(--border);border-radius:6px;background:var(--bg3);margin-bottom:8px">
         <table style="border-collapse:collapse;width:100%;font-size:11px">
           <thead><tr>
-            <th style="padding:4px 8px;border-bottom:1px solid var(--border);font-size:10px;color:var(--text3);text-align:left;background:var(--bg)">Date / Heure UTC</th>
+            <th style="padding:4px 8px;border-bottom:1px solid var(--border);font-size:10px;color:var(--text3);text-align:left;background:var(--bg)">Date / Heure</th>
             <th style="padding:4px 8px;border-bottom:1px solid var(--border);font-size:10px;color:var(--text3);text-align:right;background:var(--bg)">Hauteur prévue [Min–Max]</th>
           </tr></thead><tbody>${rows}</tbody></table></div>` : ''}
       <a class="mlink" href="https://www.vigicrues.gouv.fr/station/${code}" target="_blank">↗ Vigicrues</a>`;
@@ -3114,7 +3121,7 @@ async function loadVigicruesPrevisions(code) {
         prevChartWrap.style.display = 'block';
         if (chartPrevInst) { chartPrevInst.destroy(); chartPrevInst = null; }
         const tc = '#8a9b8a', gc = 'rgba(0,0,0,.06)';
-        const labelsP = allPts.map(p => p.t.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'UTC'}));
+        const labelsP = allPts.map(p => fmtTime(p.t));
         const isPast = allPts.map(p => p.t.getTime() <= now);
         const valsPast   = allPts.map((p, i) => isPast[i]  ? p.v : null);
         const valsFuture = allPts.map((p, i) => !isPast[i] ? p.v : null);
@@ -3367,7 +3374,7 @@ function renderDailyMeteo() {
       if (prob > maxProb) maxProb = prob;
     });
     const dateObj = new Date(day + 'T12:00:00Z');
-    const dayLabel = dateObj.toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'short',timeZone:'UTC'});
+    const dayLabel = fmtDate(dateObj,{weekday:'short',day:'2-digit',month:'short'});
     const rc = rainClass(maxRain);
     const icon = maxRain >= 20 ? '⛈️' : maxRain >= 10 ? '🌧️' : maxRain >= 3 ? '🌦️' : maxRain > 0 ? '🌤️' : '☀️';
     const card = document.createElement('div');
@@ -4885,7 +4892,7 @@ function emBuildMareeLayer() {
     const nextExt = info?.nextExt;
     const bg = rising == null ? '#5a6b7a' : rising ? '#2980b9' : '#16a085';
     const label = nextExt
-      ? `${rising ? '⇑' : '⇓'} ${nextExt.type} ${new Date(nextExt.time).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'UTC'})}`
+      ? `${rising ? '⇑' : '⇓'} ${nextExt.type} ${fmtTime(nextExt.time)}`
       : '—';
     const icon = L.divIcon({
       html: `<div style="background:${bg};color:#fff;border-radius:6px;padding:2px 6px;font-size:11px;font-weight:700;font-family:sans-serif;white-space:nowrap;box-shadow:0 0 0 2px #fff,0 1px 4px rgba(0,0,0,.4)">🌊 ${label}</div>`,
@@ -5161,8 +5168,8 @@ function emClearConfirm() {
 
 function emAddTimestamp() {
   const L = window.L;
-  const now = new Date().toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'UTC'});
-  const txt = `Situation du ${now} UTC`;
+  const now = new Date();
+  const txt = `Situation du ${fmtDate(now,{day:'2-digit',month:'2-digit',year:'numeric'})} ${fmtTime(now)}`;
   const center = emMap.getCenter();
   const icon = L.divIcon({
     html:`<div style="background:rgba(26,35,50,0.85);color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;font-family:sans-serif;border:1px solid rgba(255,255,255,.3)">${txt}</div>`,
