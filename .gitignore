@@ -1,4 +1,5 @@
 .DS_Store
+.fuse_hidden*
 .claude/
 __pycache__/
 *.pyc
