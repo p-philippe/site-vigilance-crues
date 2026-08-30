@@ -44,6 +44,25 @@ quelqu'un ayant édité le bundle à la main. Si le contrôle 9 échoue, ne
 reconstruisez pas : les modifications seraient perdues. Rapatriez-les d'abord
 dans `src/`.
 
+## Un seul agent à la fois
+
+Trois agents différents ont travaillé sur ce dépôt le 2026-08-30, et deux
+incidents en ont découlé : un agent modifiant le fichier généré faute de voir
+les sources, puis un commit fait depuis une copie de travail périmée, dont le
+message décrivait un travail qu'il ne contenait pas.
+
+Avant de commencer une session :
+
+```bash
+git pull --ff-only && python3 tests/check.py
+```
+
+Si le contrôle 9 échoue, la production a été modifiée sans les sources :
+**ne reconstruisez pas**, rapatriez d'abord les changements dans `src/`.
+
+Avant de committer, relisez `git status` et `git diff --stat` : un commit dont
+le contenu ne correspond pas à son message coûte plus cher qu'un commit absent.
+
 ## Contexte
 
 Jusqu'au 2026-08-30, le dépôt ne contenait **que** le fichier généré : les
