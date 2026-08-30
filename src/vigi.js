@@ -9,12 +9,18 @@ import { fetchJson } from './utils.js';
 const VIGI_GEO_TTL = 5 * 60 * 1000;
 let _vigiGeo = null;
 let _vigiGeoAt = 0;
+let _vigiGeoEnVol = null;
 
 export async function fetchVigicruesGeoJSON({ force = false } = {}) {
-  if (!force && _vigiGeo && Date.now() - _vigiGeoAt < VIGI_GEO_TTL) return _vigiGeo;
-  _vigiGeo = await fetchJson(VIGICRUES_GEOJSON);
-  _vigiGeoAt = Date.now();
-  return _vigiGeo;
+  const frais = _vigiGeo && Date.now() - _vigiGeoAt < VIGI_GEO_TTL;
+  if (!force && frais) return _vigiGeo;
+  // Les deux consommateurs démarrent en parallèle au chargement : mémoïser la
+  // promesse, et pas seulement le résultat, sinon les deux ratent le cache vide.
+  if (_vigiGeoEnVol) return _vigiGeoEnVol;
+  _vigiGeoEnVol = fetchJson(VIGICRUES_GEOJSON)
+    .then(geo => { _vigiGeo = geo; _vigiGeoAt = Date.now(); return geo; })
+    .finally(() => { _vigiGeoEnVol = null; });
+  return _vigiGeoEnVol;
 }
 
 export function officialVigiLevel(raw) {
