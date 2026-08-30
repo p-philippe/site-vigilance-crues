@@ -5737,8 +5737,7 @@ function synthMapInit() {
   if (synthMap) return;
   if (!document.getElementById('synth-map')) return;
   synthMap = L.map('synth-map', {zoomControl:true, attributionControl:false}).setView([48.42, -2.72], 8);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {maxZoom:19, subdomains:'abcd'}).addTo(synthMap);
-  L.control.attribution({prefix:'© CartoDB · OSM'}).addTo(synthMap);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap', maxZoom:19}).addTo(synthMap);
   synthMarkersLayer = L.layerGroup().addTo(synthMap);
 
   window.synthMap = synthMap;
