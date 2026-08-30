@@ -179,21 +179,24 @@ def test_build_is_current():
     else:
         err('Build : production désynchronisée — lancer python3 build.py')
 
-# ── 10. Résilience réseau et proxy RSS ────────────────────────────────────
+# ── 10. Résilience réseau ─────────────────────────────────────────────────
 def test_network_hygiene():
     data = (SRC / 'data.js').read_text(encoding='utf-8')
     utils = (SRC / 'utils.js').read_text(encoding='utf-8')
-    rp = (SRC / 'rp.js').read_text(encoding='utf-8')
-    html = (ROOT / 'index.html').read_text(encoding='utf-8')
     if 'export async function fetchJson' in utils and data.count('fetchJson(') >= 8:
         ok('Réseau : données critiques avec timeout, HTTP check et retry')
     else:
         err('Réseau : fetchJson non appliqué aux chargements de données critiques')
+    # Aucun proxy CORS public tiers, où que ce soit dans les sources
+    sources = {f.name: f.read_text(encoding='utf-8') for f in SRC.glob('*.js')}
+    sources['index.html'] = (ROOT / 'index.html').read_text(encoding='utf-8')
     public_proxies = ('api.allorigins.win', 'corsproxy.io', 'api.codetabs.com')
-    if all(proxy not in rp and proxy not in html for proxy in public_proxies):
-        ok('RSS : aucun proxy CORS public tiers')
+    fautifs = [f'{proxy} ({nom})' for nom, txt in sources.items()
+               for proxy in public_proxies if proxy in txt]
+    if fautifs:
+        err(f'Proxy CORS public tiers référencé : {fautifs}')
     else:
-        err('RSS : proxy CORS public tiers encore référencé')
+        ok(f'Réseau : aucun proxy CORS public tiers ({len(sources)} fichiers vérifiés)')
 
 # ── 10b. sw.js — CACHE_NAME présent ───────────────────────────────────────
 def test_sw_cache_name():

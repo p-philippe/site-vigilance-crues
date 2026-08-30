@@ -17,11 +17,6 @@ import {
   emFinishDraw, emCancelDraw, emClearConfirm, emAddTimestamp, emPrint, emExportGeoJSON, emImportGeoJSON,
   emSaveLocal, emUpdateSurgeAlert
 } from './em-map.js';
-import {
-  rpFetchAll, rpRender, rpValidateCandidates,
-  rpSelectAllCandidates, rpDeleteArticle, rpToggleForm, rpSubmitForm,
-  rpExport, rpImport, rpToggleSIG, rpGeocodeForm
-} from './rp.js';
 
 // Onglets
 window.switchTab = switchTab;
@@ -85,17 +80,4 @@ window.emPrint = emPrint;
 window.emExportGeoJSON = emExportGeoJSON;
 window.emImportGeoJSON = emImportGeoJSON;
 window.emSaveLocal = emSaveLocal;
-
-// Revue de presse
-window.rpFetchAll = rpFetchAll;
-window.rpRender = rpRender;
-window.rpValidateCandidates = rpValidateCandidates;
-window.rpSelectAllCandidates = rpSelectAllCandidates;
-window.rpDeleteArticle = rpDeleteArticle;
-window.rpToggleForm = rpToggleForm;
-window.rpSubmitForm = rpSubmitForm;
-window.rpExport = rpExport;
-window.rpImport = rpImport;
-window.rpToggleSIG = rpToggleSIG;
-window.rpGeocodeForm = rpGeocodeForm;
 

@@ -38,7 +38,7 @@
 <!-- Google Fonts via <link> (plus rapide qu'@import) -->
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: https://tilecache.rainviewer.com; connect-src 'self' https://hubeau.eaufrance.fr https://api.open-meteo.com https://marine-api.open-meteo.com https://www.vigicrues.gouv.fr https://nominatim.openstreetmap.org https://news.google.com https://tilecache.rainviewer.com https://api.rainviewer.com; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: https://tilecache.rainviewer.com; connect-src 'self' https://hubeau.eaufrance.fr https://api.open-meteo.com https://marine-api.open-meteo.com https://www.vigicrues.gouv.fr https://nominatim.openstreetmap.org https://tilecache.rainviewer.com https://api.rainviewer.com; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
 <meta name="description" content="Vigilance 22 : suivi hydrométrique temps réel des stations des Côtes-d'Armor, avec carte, synthèse, météo, sols et état-major.">
 <meta name="theme-color" content="#1a5c2a">
 <title>Vigilance 22 — Suivi hydrométrique des Côtes-d'Armor</title>
@@ -566,85 +566,6 @@ tr:hover td{background:var(--accent-light)}
 .ibtn:hover{background:var(--accent-light);border-color:#b0d0b8;color:var(--accent)}
 
 
-/* ─── TAB 10 : REVUE DE PRESSE ─── */
-.t10{flex:1;overflow:auto;padding:16px 20px}
-.rp-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-.rp-bar h3{font-size:14px;font-weight:600;flex:1;color:var(--text)}
-.rp-fetch-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px}
-.rp-fetch-box.ok{background:#f0faf0;border-color:#86efac;color:#166534}
-.rp-fetch-box.err{background:#fff5f5;border-color:#fca5a5;color:#c0392b}
-.rp-fetch-box.loading{color:var(--text3);font-style:italic}
-.rp-candidates{background:var(--bg3);border:1px solid #f0d060;border-radius:10px;margin-bottom:14px;overflow:hidden;display:none}
-.rp-cand-hdr{padding:10px 14px;background:#fffbe6;border-bottom:1px solid #f0d060;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.rp-cand-hdr-title{font-size:13px;font-weight:600;color:#7a5800;display:flex;align-items:center;gap:6px}
-.rp-cand-sub{font-size:11px;color:#a07030;margin-top:1px}
-.rp-cand-item{display:flex;align-items:flex-start;gap:10px;padding:9px 14px;border-bottom:.5px solid var(--bg2)}
-.rp-cand-item:last-child{border-bottom:none}
-.rp-cand-check{flex-shrink:0;margin-top:3px;width:15px;height:15px;cursor:pointer;accent-color:var(--accent)}
-.rp-cand-body{flex:1;min-width:0}
-.rp-cand-link{font-size:12px;font-weight:500;color:var(--text);text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rp-cand-link:hover{color:var(--accent);text-decoration:underline}
-.rp-cand-meta{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px}
-.rp-cand-ext{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rp-btn-validate{background:#f0c040;color:#7a5800;border:1px solid #d0a020;border-radius:6px;padding:5px 12px;font-size:12px;font-family:var(--sans);cursor:pointer;font-weight:500}
-.rp-btn-validate:hover{background:#d0a020;color:#fff}
-.rp-form-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden}
-.rp-form-hdr{padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
-.rp-form-hdr-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
-.rp-form-body{padding:12px 14px;display:none}
-.rp-form-body.open{display:block}
-.rp-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.rp-form-field{display:flex;flex-direction:column;gap:3px}
-.rp-form-field.full{grid-column:1/-1}
-.rp-flabel{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
-.rp-input{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;background:var(--bg3);color:var(--text);font-family:var(--sans);width:100%;box-sizing:border-box}
-.rp-input:focus{outline:none;border-color:#b0d0b8}
-.rp-textarea{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;background:var(--bg3);color:var(--text);font-family:var(--sans);width:100%;resize:vertical;min-height:60px;box-sizing:border-box}
-.rp-textarea:focus{outline:none;border-color:#b0d0b8}
-.rp-bassin-checkboxes{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:4px}
-.rp-bassin-lbl{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);cursor:pointer}
-.rp-bassin-lbl input{accent-color:var(--accent);width:14px;height:14px}
-.rp-form-actions{display:flex;gap:8px;margin-top:10px}
-.rp-filters{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
-.rp-filters input,.rp-filters select{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;background:var(--bg3);color:var(--text);font-family:var(--sans)}
-.rp-filters input{flex:1;min-width:150px;max-width:220px}
-.rp-count{font-size:11px;color:var(--text3);margin-left:auto}
-.rp-articles{display:flex;flex-direction:column;gap:8px}
-.rp-article{background:var(--bg3);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:8px;padding:11px 14px;display:flex;gap:12px;align-items:flex-start}
-.rp-article.niv-info{border-left-color:#2980b9}
-.rp-article.niv-vigilance{border-left-color:#c8b800}
-.rp-article.niv-alerte{border-left-color:#FF7F00}
-.rp-article.niv-crise{border-left-color:#FF0000}
-.rp-article-body{flex:1;min-width:0}
-.rp-article-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:3px;flex-wrap:wrap}
-.rp-article-title{font-size:13px;font-weight:500;color:var(--text);text-decoration:none;flex:1;min-width:0;line-height:1.4}
-.rp-article-title:hover{color:var(--accent);text-decoration:underline}
-.rp-niv-badge{display:inline-block;padding:1px 8px;border-radius:99px;font-size:10px;font-weight:600;white-space:nowrap;flex-shrink:0}
-.rp-niv-info{background:#dbeafe;color:#1d4ed8}
-.rp-niv-vigilance{background:#fef9c3;color:#854d0e}
-.rp-niv-alerte{background:#ffedd5;color:#9a3412}
-.rp-niv-crise{background:#fee2e2;color:#991b1b}
-.rp-article-meta{font-size:11px;color:var(--text3);margin-bottom:5px;font-family:var(--mono)}
-.rp-source-badge{font-size:10px;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-family:var(--mono);color:var(--text2);margin-right:4px}
-.rp-article-extract{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rp-article-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.rp-bassin-tag{font-size:10px;background:var(--accent-light);color:var(--accent);border:1px solid #b0d0b8;border-radius:99px;padding:1px 7px;font-family:var(--mono)}
-.rp-rss-badge{font-size:9px;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:var(--text3);font-family:var(--mono)}
-.rp-del{background:transparent;border:1px solid transparent;border-radius:5px;width:22px;height:22px;cursor:pointer;color:var(--text3);font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;padding:0}
-.rp-del:hover{background:#fff5f5;border-color:#fca5a5;color:#c0392b}
-.rp-empty{text-align:center;padding:3rem;color:var(--text3);font-size:13px;font-style:italic}
-.rp-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
-.rp-sig-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden}
-.rp-sig-hdr{padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
-.rp-sig-map-wrap{display:flex;justify-content:center;padding:12px}
-#rp-sig-map{height:360px;width:66.66%;border-radius:8px;overflow:hidden}
-.rp-geo-tag{font-size:10px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:99px;padding:1px 7px;font-family:var(--mono)}
-.rp-coord-row{display:flex;gap:6px;align-items:center}
-.rp-coord-row input{flex:1}
-.rp-stat{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;text-align:center}
-.rp-stat-v{font-size:20px;font-weight:700;font-family:var(--mono);color:var(--text)}
-.rp-stat-l{font-size:10px;color:var(--text3);margin-top:2px}
-
 /* ─── DARK MODE OVERRIDES ─── */
 @media(prefers-color-scheme:dark){
   .mdl{box-shadow:0 8px 40px rgba(0,0,0,.6)}
@@ -652,12 +573,6 @@ tr:hover td{background:var(--accent-light)}
   th{background:var(--bg2)}
   .meteo-alert-box{background:#2a2200;border-color:#7a5800}
   .meteo-alert-text{color:#f0c84a}
-  .rp-fetch-box.ok{background:#0d2a14;border-color:#2a7a3a;color:#6adf8a}
-  .rp-fetch-box.err{background:#2a0d0d;border-color:#7a2a2a;color:#f08080}
-  .rp-candidates{border-color:#7a5800}
-  .rp-cand-hdr{background:#2a2200;border-color:#7a5800}
-  .rp-cand-hdr-title{color:#f0c84a}
-  .rp-cand-sub{color:#c09040}
   .conv-item.ci-warn{background:#2a2200;border-left-color:#c8a000}
   .conv-item.ci-danger{background:#2a1400;border-left-color:#c06000}
   .conv-item.ci-high{background:#2a0a0a;border-left-color:#c03030}
@@ -684,20 +599,18 @@ tr:hover td{background:var(--accent-light)}
   /* Grilles rigides → 2 colonnes sur mobile */
   .metrics{grid-template-columns:repeat(2,1fr)}
   .sol-risk-grid{grid-template-columns:repeat(2,1fr)}
-  .rp-stats{grid-template-columns:repeat(2,1fr)}
 
   /* Panneaux avec padding réduit */
-  .t1,.t3,.t4,.t5,.t6,.t7,.t8,.t9,.t10{padding:10px 12px}
+  .t1,.t3,.t4,.t5,.t6,.t7,.t8,.t9{padding:10px 12px}
 
   /* Tableaux : réduire les colonnes secondaires */
   .ce,.ce2,.ref-chip,.ext{display:none}
   td,th{padding:6px 8px}
 
   /* Filtres en colonne */
-  .filters,.j-filters,.rp-filters{flex-direction:column;gap:6px}
+  .filters,.j-filters{flex-direction:column;gap:6px}
   .filters input,.filters select{max-width:100%;width:100%}
-  .rp-filters input,.rp-filters select,.j-filters select,.j-filters input{width:100%}
-  .cnt,.j-cnt,.rp-count{margin-left:0}
+  .cnt,.j-cnt{margin-left:0}
 
   /* Modal plein écran */
   .mdl{width:100%;max-width:100vw;max-height:92vh;border-radius:10px 10px 0 0;position:fixed;bottom:0;left:0;top:auto;margin:0}
@@ -720,7 +633,6 @@ tr:hover td{background:var(--accent-light)}
   .bv-h{min-width:55px}
 
   /* Revue presse */
-  .rp-form-grid{grid-template-columns:1fr}
 
   /* Carte : chrome au-dessus des tuiles, panneau droit replié */
   .em-search{top:8px;left:108px;right:8px;width:auto}
@@ -780,7 +692,6 @@ tr:hover td{background:var(--accent-light)}
     "./src/data.js": "./src/data.js?v=13",
     "./src/em-map.js": "./src/em-map.js?v=13",
     "./src/pdf.js": "./src/pdf.js?v=13",
-    "./src/rp.js": "./src/rp.js?v=13",
     "./src/globals.js": "./src/globals.js?v=13"
   }
 }
@@ -830,7 +741,6 @@ tr:hover td{background:var(--accent-light)}
   </div>
   <div class="tab-group" role="group" aria-label="Suivi et veille">
     <div class="tab" onclick="switchTab(4)" id="tab4" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel4" title="Journal des événements"><span class="tab-ico">📋</span> Journal</div>
-    <div class="tab" onclick="switchTab(10)" id="tab10" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel10" title="Revue de presse"><span class="tab-ico">📰</span> Presse</div>
     <div class="tab" onclick="switchTab(12)" id="tab12" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel12" title="Prévention des inondations — sources officielles"><span class="tab-ico">🛟</span> Prévention</div>
     <div class="tab" onclick="switchTab(13)" id="tab13" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel13" title="Webcams en direct — littoral des Côtes-d'Armor"><span class="tab-ico">📷</span> Webcams</div>
   </div>
@@ -1130,205 +1040,6 @@ tr:hover td{background:var(--accent-light)}
   </div>
 </div>
 
-<!-- ═══ TAB 10 : REVUE DE PRESSE ═══ -->
-<div class="panel" id="panel10" role="tabpanel" aria-labelledby="tab10" tabindex="-1">
-<div class="t10">
-
-  <!-- Barre d'actions -->
-  <div class="rp-bar">
-    <h3>📰 Revue de presse — Inondations Côtes-d'Armor</h3>
-    <button aria-label="Rechercher des articles de presse" class="btn-hdr" style="background:var(--accent)" onclick="rpFetchAll()">↺ Actualiser RSS</button>
-    <button aria-label="Exporter la revue de presse" class="btn-hdr" style="background:#2980b9" onclick="rpExport()">📤 Exporter JSON</button>
-    <label class="btn-hdr" style="background:#6c3483;cursor:pointer">
-      📥 Importer JSON
-      <input type="file" accept=".json" onchange="rpImport(event)" style="display:none">
-    </label>
-  </div>
-
-  <!-- Statut fetch -->
-  <div class="rp-fetch-box" id="rp-fetch-box">
-    Cliquez sur <strong>Actualiser RSS</strong> pour récupérer les derniers articles de Google News.
-    Le formulaire ci-dessous permet d'ajouter des articles manuellement.
-  </div>
-
-  <!-- Statistiques -->
-  <div class="rp-stats" id="rp-stats" style="display:none">
-    <div class="rp-stat"><div class="rp-stat-v" id="rps-total">0</div><div class="rp-stat-l">Articles</div></div>
-    <div class="rp-stat"><div class="rp-stat-v" id="rps-crise" style="color:#FF0000">0</div><div class="rp-stat-l">Crise</div></div>
-    <div class="rp-stat"><div class="rp-stat-v" id="rps-alerte" style="color:#FF7F00">0</div><div class="rp-stat-l">Alerte</div></div>
-    <div class="rp-stat"><div class="rp-stat-v" id="rps-7j">0</div><div class="rp-stat-l">7 derniers jours</div></div>
-    <div class="rp-stat"><div class="rp-stat-v" id="rps-geo" style="color:#2e7d32">0</div><div class="rp-stat-l">📍 Localisés</div></div>
-  </div>
-
-  <!-- Carte SIG -->
-  <div class="rp-sig-wrap">
-    <div class="rp-sig-hdr" onclick="rpToggleSIG()">
-      <span style="font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px">
-        🗺 Carte SIG — Événements inondation
-        <span id="rp-sig-count" style="font-size:11px;font-weight:400;color:var(--text3)"></span>
-      </span>
-      <span id="rp-sig-toggle" style="font-size:12px;color:var(--text3)">▼</span>
-    </div>
-    <div id="rp-sig-body" style="display:none">
-      <div class="rp-sig-map-wrap">
-        <div id="rp-sig-map"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Candidats RSS à valider -->
-  <div class="rp-candidates" id="rp-candidates">
-    <div class="rp-cand-hdr">
-      <div>
-        <div class="rp-cand-hdr-title">⏳ Articles trouvés — à valider</div>
-        <div class="rp-cand-sub" id="rp-cand-sub">Sélectionnez les articles pertinents puis validez</div>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <button class="rp-btn-secondary btn-export" style="font-size:11px;padding:4px 10px" aria-label="Sélectionner tous les articles" onclick="rpSelectAllCandidates(true)">Tout cocher</button>
-        <button class="rp-btn-secondary btn-export" style="font-size:11px;padding:4px 10px;background:transparent;color:var(--text2);border:1px solid var(--border)" aria-label="Désélectionner tous les articles" onclick="rpSelectAllCandidates(false)">Tout décocher</button>
-        <button aria-label="Valider les articles sélectionnés" class="rp-btn-validate" onclick="rpValidateCandidates()">✓ Valider la sélection</button>
-      </div>
-    </div>
-    <div id="rp-cand-list"></div>
-  </div>
-
-  <!-- Formulaire ajout manuel -->
-  <div class="rp-form-wrap">
-    <div class="rp-form-hdr" onclick="rpToggleForm()">
-      <span class="rp-form-hdr-title">✏️ Ajouter un article manuellement</span>
-      <span id="rp-form-toggle" style="font-size:12px;color:var(--text3)">▼</span>
-    </div>
-    <div class="rp-form-body" id="rp-form-body">
-      <div class="rp-form-grid">
-        <div class="rp-form-field full">
-          <span class="rp-flabel">URL de l'article</span>
-          <input class="rp-input" id="rpf-url" type="url" placeholder="https://…">
-        </div>
-        <div class="rp-form-field full">
-          <span class="rp-flabel">Titre</span>
-          <input class="rp-input" id="rpf-title" type="text" placeholder="Titre de l'article">
-        </div>
-        <div class="rp-form-field">
-          <span class="rp-flabel">Source</span>
-          <select class="rp-input" id="rpf-source">
-            <option value="Ouest-France">Ouest-France</option>
-            <option value="Le Télégramme">Le Télégramme</option>
-            <option value="Actu.fr">Actu.fr / Le Penthièvre</option>
-            <option value="France Bleu">France Bleu Armorique</option>
-            <option value="Préfecture 22">Préfecture 22</option>
-            <option value="Vigicrues">Vigicrues / DREAL</option>
-            <option value="Météo-France">Météo-France</option>
-            <option value="Autre">Autre</option>
-          </select>
-        </div>
-        <div class="rp-form-field">
-          <span class="rp-flabel">Date de publication</span>
-          <input class="rp-input" id="rpf-date" type="date">
-        </div>
-        <div class="rp-form-field full">
-          <span class="rp-flabel">Commune touchée</span>
-          <div style="display:flex;gap:6px">
-            <input class="rp-input" id="rpf-commune" type="text" placeholder="Ex: Guingamp, Lannion, Saint-Brieuc…" style="flex:1">
-            <button class="btn-export" onclick="rpGeocodeForm()" style="white-space:nowrap;padding:6px 10px;font-size:11px;flex-shrink:0" title="Géocoder la commune via Nominatim">📍 Localiser</button>
-          </div>
-        </div>
-        <div class="rp-form-field">
-          <span class="rp-flabel">Latitude</span>
-          <input class="rp-input" id="rpf-lat" type="number" step="0.00001" placeholder="48.56…">
-        </div>
-        <div class="rp-form-field">
-          <span class="rp-flabel">Longitude</span>
-          <input class="rp-input" id="rpf-lon" type="number" step="0.00001" placeholder="-3.15…">
-        </div>
-        <div class="rp-form-field full">
-          <span class="rp-flabel">Extrait / résumé</span>
-          <textarea class="rp-textarea" id="rpf-extract" placeholder="Premier paragraphe ou résumé de l'article…"></textarea>
-        </div>
-        <div class="rp-form-field full">
-          <span class="rp-flabel">Bassins versants concernés</span>
-          <div class="rp-bassin-checkboxes" id="rpf-bassins-wrap"></div>
-        </div>
-        <div class="rp-form-field">
-          <span class="rp-flabel">Niveau de gravité</span>
-          <select class="rp-input" id="rpf-niveau">
-            <option value="info">Information</option>
-            <option value="vigilance">Vigilance</option>
-            <option value="alerte">Alerte</option>
-            <option value="crise">Crise</option>
-          </select>
-        </div>
-      </div>
-      <div class="rp-form-actions">
-        <button aria-label="Ajouter l'article" class="btn-export" onclick="rpSubmitForm()">+ Ajouter</button>
-        <button aria-label="Afficher/masquer le formulaire d'ajout" class="btn-clr" onclick="rpToggleForm()">Annuler</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Filtres -->
-  <div class="rp-filters">
-    <input type="text" id="rp-search" placeholder="Titre, source, extrait…" oninput="rpRender()">
-    <select id="rp-fperiod" onchange="rpRender()">
-      <option value="">Toute période</option>
-      <option value="1">Aujourd'hui</option>
-      <option value="7">7 derniers jours</option>
-      <option value="30">30 derniers jours</option>
-    </select>
-    <select id="rp-fsource" onchange="rpRender()">
-      <option value="">Toutes sources</option>
-      <option>Ouest-France</option>
-      <option>Le Télégramme</option>
-      <option>Actu.fr</option>
-      <option>France Bleu</option>
-      <option>Préfecture 22</option>
-      <option>Vigicrues</option>
-      <option>Météo-France</option>
-      <option>Autre</option>
-    </select>
-    <select id="rp-fbassin" onchange="rpRender()">
-      <option value="">Tous bassins</option>
-      <option>Rance</option>
-      <option>Frémur</option>
-      <option>Arguenon</option>
-      <option>Quiloury</option>
-      <option>Rosette</option>
-      <option>Gouessant</option>
-      <option>Evron</option>
-      <option>Urne</option>
-      <option>Gouët</option>
-      <option>Ic</option>
-      <option>Trieux</option>
-      <option>Leff</option>
-      <option>Jaudy / Guindy</option>
-      <option>Léguer</option>
-      <option>Hyère</option>
-      <option>Blavet</option>
-      <option>Sulon</option>
-      <option>Oust</option>
-      <option>Lié</option>
-    </select>
-    <select id="rp-fniveau" onchange="rpRender()">
-      <option value="">Tous niveaux</option>
-      <option value="info">Information</option>
-      <option value="vigilance">Vigilance</option>
-      <option value="alerte">Alerte</option>
-      <option value="crise">Crise</option>
-    </select>
-    <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer;white-space:nowrap">
-      <input type="checkbox" id="rp-fgeo" onchange="rpRender()" style="accent-color:var(--accent);width:14px;height:14px"> 📍 Localisés
-    </label>
-    <span class="rp-count" id="rp-count"></span>
-  </div>
-
-  <!-- Liste articles -->
-  <div id="rp-list" class="rp-articles">
-    <div class="rp-empty">Aucun article enregistré. Actualisez via RSS ou ajoutez manuellement.</div>
-  </div>
-
-  <p class="note" style="margin-top:10px">Sources RSS : Google News (requêtes « inondation côtes-d'armor », « crue côtes-d'armor ») via proxy CORS. Les articles récupérés automatiquement sont à valider avant enregistrement. Les données sont stockées dans le navigateur (localStorage) ; utilisez Exporter JSON pour sauvegarder entre sessions.</p>
-
-</div>
-</div>
 
 <!-- ═══ TAB 11 : NAPPES PHRÉATIQUES ═══ -->
 <div class="panel" id="panel11" role="tabpanel" aria-labelledby="tab11" tabindex="-1">

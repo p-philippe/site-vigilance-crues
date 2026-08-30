@@ -5,7 +5,6 @@ import './globals.js';
 import { loadAll } from './data.js';
 import { cacheRestore } from './cache.js';
 import { journalLoad } from './journal.js';
-import { rpInit } from './rp.js';
 import { emSetColor } from './em-map.js';
 import { initMap } from './map.js';
 import { restoreTab, initTabKeyboard } from './tabs.js';
@@ -52,9 +51,6 @@ window.PROP_DATA = [
   try {
   // 1. Journal d'événements
   journalLoad();
-
-  // 2. Revue de presse
-  rpInit();
 
   // 3. Carte principale (optionnelle — le div#map n'existe pas dans tous les layouts)
   try { initMap(); } catch(e) { console.warn('[map] initMap ignorée:', e.message); }

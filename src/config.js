@@ -151,19 +151,6 @@ export const WEATHER_ICONS = {
   95:'⛈️', 96:'⛈️', 99:'⛈️'
 };
 
-export const RP_BASSINS = [
-  'Rance','Frémur','Arguenon','Quiloury','Rosette','Gouessant','Evron','Urne',
-  'Gouët','Ic','Trieux','Leff','Jaudy / Guindy','Léguer','Hyère',
-  'Blavet','Sulon','Oust','Lié'
-];
-
-export const RP_NIV = {
-  info:      { label:'Information', cls:'rp-niv-info',      art:'niv-info'      },
-  vigilance: { label:'Vigilance',   cls:'rp-niv-vigilance', art:'niv-vigilance' },
-  alerte:    { label:'Alerte',      cls:'rp-niv-alerte',    art:'niv-alerte'    },
-  crise:     { label:'Crise',       cls:'rp-niv-crise',     art:'niv-crise'     },
-};
-
 export const EM_SENSITIVE_META = {
   school: { label:'Écoles / Collèges / Lycées', icon:'🏫', color:'#2980b9' },
   health: { label:'Santé',                       icon:'🏥', color:'#c0392b' },

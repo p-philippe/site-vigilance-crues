@@ -38,7 +38,7 @@
 <!-- Google Fonts via <link> (plus rapide qu'@import) -->
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: https://tilecache.rainviewer.com; connect-src 'self' https://hubeau.eaufrance.fr https://api.open-meteo.com https://marine-api.open-meteo.com https://www.vigicrues.gouv.fr https://nominatim.openstreetmap.org https://news.google.com https://tilecache.rainviewer.com https://api.rainviewer.com; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: https://tilecache.rainviewer.com; connect-src 'self' https://hubeau.eaufrance.fr https://api.open-meteo.com https://marine-api.open-meteo.com https://www.vigicrues.gouv.fr https://nominatim.openstreetmap.org https://tilecache.rainviewer.com https://api.rainviewer.com; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
 <meta name="description" content="Vigilance 22 : suivi hydrométrique temps réel des stations des Côtes-d'Armor, avec carte, synthèse, météo, sols et état-major.">
 <meta name="theme-color" content="#1a5c2a">
 <title>Vigilance 22 — Suivi hydrométrique des Côtes-d'Armor</title>
@@ -566,85 +566,6 @@ tr:hover td{background:var(--accent-light)}
 .ibtn:hover{background:var(--accent-light);border-color:#b0d0b8;color:var(--accent)}
 
 
-/* ─── TAB 10 : REVUE DE PRESSE ─── */
-.t10{flex:1;overflow:auto;padding:16px 20px}
-.rp-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-.rp-bar h3{font-size:14px;font-weight:600;flex:1;color:var(--text)}
-.rp-fetch-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px}
-.rp-fetch-box.ok{background:#f0faf0;border-color:#86efac;color:#166534}
-.rp-fetch-box.err{background:#fff5f5;border-color:#fca5a5;color:#c0392b}
-.rp-fetch-box.loading{color:var(--text3);font-style:italic}
-.rp-candidates{background:var(--bg3);border:1px solid #f0d060;border-radius:10px;margin-bottom:14px;overflow:hidden;display:none}
-.rp-cand-hdr{padding:10px 14px;background:#fffbe6;border-bottom:1px solid #f0d060;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.rp-cand-hdr-title{font-size:13px;font-weight:600;color:#7a5800;display:flex;align-items:center;gap:6px}
-.rp-cand-sub{font-size:11px;color:#a07030;margin-top:1px}
-.rp-cand-item{display:flex;align-items:flex-start;gap:10px;padding:9px 14px;border-bottom:.5px solid var(--bg2)}
-.rp-cand-item:last-child{border-bottom:none}
-.rp-cand-check{flex-shrink:0;margin-top:3px;width:15px;height:15px;cursor:pointer;accent-color:var(--accent)}
-.rp-cand-body{flex:1;min-width:0}
-.rp-cand-link{font-size:12px;font-weight:500;color:var(--text);text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rp-cand-link:hover{color:var(--accent);text-decoration:underline}
-.rp-cand-meta{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px}
-.rp-cand-ext{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rp-btn-validate{background:#f0c040;color:#7a5800;border:1px solid #d0a020;border-radius:6px;padding:5px 12px;font-size:12px;font-family:var(--sans);cursor:pointer;font-weight:500}
-.rp-btn-validate:hover{background:#d0a020;color:#fff}
-.rp-form-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden}
-.rp-form-hdr{padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
-.rp-form-hdr-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
-.rp-form-body{padding:12px 14px;display:none}
-.rp-form-body.open{display:block}
-.rp-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.rp-form-field{display:flex;flex-direction:column;gap:3px}
-.rp-form-field.full{grid-column:1/-1}
-.rp-flabel{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
-.rp-input{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;background:var(--bg3);color:var(--text);font-family:var(--sans);width:100%;box-sizing:border-box}
-.rp-input:focus{outline:none;border-color:#b0d0b8}
-.rp-textarea{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;background:var(--bg3);color:var(--text);font-family:var(--sans);width:100%;resize:vertical;min-height:60px;box-sizing:border-box}
-.rp-textarea:focus{outline:none;border-color:#b0d0b8}
-.rp-bassin-checkboxes{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:4px}
-.rp-bassin-lbl{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);cursor:pointer}
-.rp-bassin-lbl input{accent-color:var(--accent);width:14px;height:14px}
-.rp-form-actions{display:flex;gap:8px;margin-top:10px}
-.rp-filters{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
-.rp-filters input,.rp-filters select{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;background:var(--bg3);color:var(--text);font-family:var(--sans)}
-.rp-filters input{flex:1;min-width:150px;max-width:220px}
-.rp-count{font-size:11px;color:var(--text3);margin-left:auto}
-.rp-articles{display:flex;flex-direction:column;gap:8px}
-.rp-article{background:var(--bg3);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:8px;padding:11px 14px;display:flex;gap:12px;align-items:flex-start}
-.rp-article.niv-info{border-left-color:#2980b9}
-.rp-article.niv-vigilance{border-left-color:#c8b800}
-.rp-article.niv-alerte{border-left-color:#FF7F00}
-.rp-article.niv-crise{border-left-color:#FF0000}
-.rp-article-body{flex:1;min-width:0}
-.rp-article-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:3px;flex-wrap:wrap}
-.rp-article-title{font-size:13px;font-weight:500;color:var(--text);text-decoration:none;flex:1;min-width:0;line-height:1.4}
-.rp-article-title:hover{color:var(--accent);text-decoration:underline}
-.rp-niv-badge{display:inline-block;padding:1px 8px;border-radius:99px;font-size:10px;font-weight:600;white-space:nowrap;flex-shrink:0}
-.rp-niv-info{background:#dbeafe;color:#1d4ed8}
-.rp-niv-vigilance{background:#fef9c3;color:#854d0e}
-.rp-niv-alerte{background:#ffedd5;color:#9a3412}
-.rp-niv-crise{background:#fee2e2;color:#991b1b}
-.rp-article-meta{font-size:11px;color:var(--text3);margin-bottom:5px;font-family:var(--mono)}
-.rp-source-badge{font-size:10px;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-family:var(--mono);color:var(--text2);margin-right:4px}
-.rp-article-extract{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rp-article-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.rp-bassin-tag{font-size:10px;background:var(--accent-light);color:var(--accent);border:1px solid #b0d0b8;border-radius:99px;padding:1px 7px;font-family:var(--mono)}
-.rp-rss-badge{font-size:9px;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:var(--text3);font-family:var(--mono)}
-.rp-del{background:transparent;border:1px solid transparent;border-radius:5px;width:22px;height:22px;cursor:pointer;color:var(--text3);font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;padding:0}
-.rp-del:hover{background:#fff5f5;border-color:#fca5a5;color:#c0392b}
-.rp-empty{text-align:center;padding:3rem;color:var(--text3);font-size:13px;font-style:italic}
-.rp-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
-.rp-sig-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden}
-.rp-sig-hdr{padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
-.rp-sig-map-wrap{display:flex;justify-content:center;padding:12px}
-#rp-sig-map{height:360px;width:66.66%;border-radius:8px;overflow:hidden}
-.rp-geo-tag{font-size:10px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:99px;padding:1px 7px;font-family:var(--mono)}
-.rp-coord-row{display:flex;gap:6px;align-items:center}
-.rp-coord-row input{flex:1}
-.rp-stat{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;text-align:center}
-.rp-stat-v{font-size:20px;font-weight:700;font-family:var(--mono);color:var(--text)}
-.rp-stat-l{font-size:10px;color:var(--text3);margin-top:2px}
-
 /* ─── DARK MODE OVERRIDES ─── */
 @media(prefers-color-scheme:dark){
   .mdl{box-shadow:0 8px 40px rgba(0,0,0,.6)}
@@ -652,12 +573,6 @@ tr:hover td{background:var(--accent-light)}
   th{background:var(--bg2)}
   .meteo-alert-box{background:#2a2200;border-color:#7a5800}
   .meteo-alert-text{color:#f0c84a}
-  .rp-fetch-box.ok{background:#0d2a14;border-color:#2a7a3a;color:#6adf8a}
-  .rp-fetch-box.err{background:#2a0d0d;border-color:#7a2a2a;color:#f08080}
-  .rp-candidates{border-color:#7a5800}
-  .rp-cand-hdr{background:#2a2200;border-color:#7a5800}
-  .rp-cand-hdr-title{color:#f0c84a}
-  .rp-cand-sub{color:#c09040}
   .conv-item.ci-warn{background:#2a2200;border-left-color:#c8a000}
   .conv-item.ci-danger{background:#2a1400;border-left-color:#c06000}
   .conv-item.ci-high{background:#2a0a0a;border-left-color:#c03030}
@@ -684,20 +599,18 @@ tr:hover td{background:var(--accent-light)}
   /* Grilles rigides → 2 colonnes sur mobile */
   .metrics{grid-template-columns:repeat(2,1fr)}
   .sol-risk-grid{grid-template-columns:repeat(2,1fr)}
-  .rp-stats{grid-template-columns:repeat(2,1fr)}
 
   /* Panneaux avec padding réduit */
-  .t1,.t3,.t4,.t5,.t6,.t7,.t8,.t9,.t10{padding:10px 12px}
+  .t1,.t3,.t4,.t5,.t6,.t7,.t8,.t9{padding:10px 12px}
 
   /* Tableaux : réduire les colonnes secondaires */
   .ce,.ce2,.ref-chip,.ext{display:none}
   td,th{padding:6px 8px}
 
   /* Filtres en colonne */
-  .filters,.j-filters,.rp-filters{flex-direction:column;gap:6px}
+  .filters,.j-filters{flex-direction:column;gap:6px}
   .filters input,.filters select{max-width:100%;width:100%}
-  .rp-filters input,.rp-filters select,.j-filters select,.j-filters input{width:100%}
-  .cnt,.j-cnt,.rp-count{margin-left:0}
+  .cnt,.j-cnt{margin-left:0}
 
   /* Modal plein écran */
   .mdl{width:100%;max-width:100vw;max-height:92vh;border-radius:10px 10px 0 0;position:fixed;bottom:0;left:0;top:auto;margin:0}
@@ -720,7 +633,6 @@ tr:hover td{background:var(--accent-light)}
   .bv-h{min-width:55px}
 
   /* Revue presse */
-  .rp-form-grid{grid-template-columns:1fr}
 
   /* Carte : chrome au-dessus des tuiles, panneau droit replié */
   .em-search{top:8px;left:108px;right:8px;width:auto}
@@ -780,7 +692,6 @@ tr:hover td{background:var(--accent-light)}
     "./src/data.js": "./src/data.js?v=13",
     "./src/em-map.js": "./src/em-map.js?v=13",
     "./src/pdf.js": "./src/pdf.js?v=13",
-    "./src/rp.js": "./src/rp.js?v=13",
     "./src/globals.js": "./src/globals.js?v=13"
   }
 }
@@ -830,7 +741,6 @@ tr:hover td{background:var(--accent-light)}
   </div>
   <div class="tab-group" role="group" aria-label="Suivi et veille">
     <div class="tab" onclick="switchTab(4)" id="tab4" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel4" title="Journal des événements"><span class="tab-ico">📋</span> Journal</div>
-    <div class="tab" onclick="switchTab(10)" id="tab10" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel10" title="Revue de presse"><span class="tab-ico">📰</span> Presse</div>
     <div class="tab" onclick="switchTab(12)" id="tab12" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel12" title="Prévention des inondations — sources officielles"><span class="tab-ico">🛟</span> Prévention</div>
     <div class="tab" onclick="switchTab(13)" id="tab13" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel13" title="Webcams en direct — littoral des Côtes-d'Armor"><span class="tab-ico">📷</span> Webcams</div>
   </div>
@@ -1130,205 +1040,6 @@ tr:hover td{background:var(--accent-light)}
   </div>
 </div>
 
-<!-- ═══ TAB 10 : REVUE DE PRESSE ═══ -->
-<div class="panel" id="panel10" role="tabpanel" aria-labelledby="tab10" tabindex="-1">
-<div class="t10">
-
-  <!-- Barre d'actions -->
-  <div class="rp-bar">
-    <h3>📰 Revue de presse — Inondations Côtes-d'Armor</h3>
-    <button aria-label="Rechercher des articles de presse" class="btn-hdr" style="background:var(--accent)" onclick="rpFetchAll()">↺ Actualiser RSS</button>
-    <button aria-label="Exporter la revue de presse" class="btn-hdr" style="background:#2980b9" onclick="rpExport()">📤 Exporter JSON</button>
-    <label class="btn-hdr" style="background:#6c3483;cursor:pointer">
-      📥 Importer JSON
-      <input type="file" accept=".json" onchange="rpImport(event)" style="display:none">
-    </label>
-  </div>
-
-  <!-- Statut fetch -->
-  <div class="rp-fetch-box" id="rp-fetch-box">
-    Cliquez sur <strong>Actualiser RSS</strong> pour récupérer les derniers articles de Google News.
-    Le formulaire ci-dessous permet d'ajouter des articles manuellement.
-  </div>
-
-  <!-- Statistiques -->
-  <div class="rp-stats" id="rp-stats" style="display:none">
-    <div class="rp-stat"><div class="rp-stat-v" id="rps-total">0</div><div class="rp-stat-l">Articles</div></div>
-    <div class="rp-stat"><div class="rp-stat-v" id="rps-crise" style="color:#FF0000">0</div><div class="rp-stat-l">Crise</div></div>
-    <div class="rp-stat"><div class="rp-stat-v" id="rps-alerte" style="color:#FF7F00">0</div><div class="rp-stat-l">Alerte</div></div>
-    <div class="rp-stat"><div class="rp-stat-v" id="rps-7j">0</div><div class="rp-stat-l">7 derniers jours</div></div>
-    <div class="rp-stat"><div class="rp-stat-v" id="rps-geo" style="color:#2e7d32">0</div><div class="rp-stat-l">📍 Localisés</div></div>
-  </div>
-
-  <!-- Carte SIG -->
-  <div class="rp-sig-wrap">
-    <div class="rp-sig-hdr" onclick="rpToggleSIG()">
-      <span style="font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px">
-        🗺 Carte SIG — Événements inondation
-        <span id="rp-sig-count" style="font-size:11px;font-weight:400;color:var(--text3)"></span>
-      </span>
-      <span id="rp-sig-toggle" style="font-size:12px;color:var(--text3)">▼</span>
-    </div>
-    <div id="rp-sig-body" style="display:none">
-      <div class="rp-sig-map-wrap">
-        <div id="rp-sig-map"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Candidats RSS à valider -->
-  <div class="rp-candidates" id="rp-candidates">
-    <div class="rp-cand-hdr">
-      <div>
-        <div class="rp-cand-hdr-title">⏳ Articles trouvés — à valider</div>
-        <div class="rp-cand-sub" id="rp-cand-sub">Sélectionnez les articles pertinents puis validez</div>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <button class="rp-btn-secondary btn-export" style="font-size:11px;padding:4px 10px" aria-label="Sélectionner tous les articles" onclick="rpSelectAllCandidates(true)">Tout cocher</button>
-        <button class="rp-btn-secondary btn-export" style="font-size:11px;padding:4px 10px;background:transparent;color:var(--text2);border:1px solid var(--border)" aria-label="Désélectionner tous les articles" onclick="rpSelectAllCandidates(false)">Tout décocher</button>
-        <button aria-label="Valider les articles sélectionnés" class="rp-btn-validate" onclick="rpValidateCandidates()">✓ Valider la sélection</button>
-      </div>
-    </div>
-    <div id="rp-cand-list"></div>
-  </div>
-
-  <!-- Formulaire ajout manuel -->
-  <div class="rp-form-wrap">
-    <div class="rp-form-hdr" onclick="rpToggleForm()">
-      <span class="rp-form-hdr-title">✏️ Ajouter un article manuellement</span>
-      <span id="rp-form-toggle" style="font-size:12px;color:var(--text3)">▼</span>
-    </div>
-    <div class="rp-form-body" id="rp-form-body">
-      <div class="rp-form-grid">
-        <div class="rp-form-field full">
-          <span class="rp-flabel">URL de l'article</span>
-          <input class="rp-input" id="rpf-url" type="url" placeholder="https://…">
-        </div>
-        <div class="rp-form-field full">
-          <span class="rp-flabel">Titre</span>
-          <input class="rp-input" id="rpf-title" type="text" placeholder="Titre de l'article">
-        </div>
-        <div class="rp-form-field">
-          <span class="rp-flabel">Source</span>
-          <select class="rp-input" id="rpf-source">
-            <option value="Ouest-France">Ouest-France</option>
-            <option value="Le Télégramme">Le Télégramme</option>
-            <option value="Actu.fr">Actu.fr / Le Penthièvre</option>
-            <option value="France Bleu">France Bleu Armorique</option>
-            <option value="Préfecture 22">Préfecture 22</option>
-            <option value="Vigicrues">Vigicrues / DREAL</option>
-            <option value="Météo-France">Météo-France</option>
-            <option value="Autre">Autre</option>
-          </select>
-        </div>
-        <div class="rp-form-field">
-          <span class="rp-flabel">Date de publication</span>
-          <input class="rp-input" id="rpf-date" type="date">
-        </div>
-        <div class="rp-form-field full">
-          <span class="rp-flabel">Commune touchée</span>
-          <div style="display:flex;gap:6px">
-            <input class="rp-input" id="rpf-commune" type="text" placeholder="Ex: Guingamp, Lannion, Saint-Brieuc…" style="flex:1">
-            <button class="btn-export" onclick="rpGeocodeForm()" style="white-space:nowrap;padding:6px 10px;font-size:11px;flex-shrink:0" title="Géocoder la commune via Nominatim">📍 Localiser</button>
-          </div>
-        </div>
-        <div class="rp-form-field">
-          <span class="rp-flabel">Latitude</span>
-          <input class="rp-input" id="rpf-lat" type="number" step="0.00001" placeholder="48.56…">
-        </div>
-        <div class="rp-form-field">
-          <span class="rp-flabel">Longitude</span>
-          <input class="rp-input" id="rpf-lon" type="number" step="0.00001" placeholder="-3.15…">
-        </div>
-        <div class="rp-form-field full">
-          <span class="rp-flabel">Extrait / résumé</span>
-          <textarea class="rp-textarea" id="rpf-extract" placeholder="Premier paragraphe ou résumé de l'article…"></textarea>
-        </div>
-        <div class="rp-form-field full">
-          <span class="rp-flabel">Bassins versants concernés</span>
-          <div class="rp-bassin-checkboxes" id="rpf-bassins-wrap"></div>
-        </div>
-        <div class="rp-form-field">
-          <span class="rp-flabel">Niveau de gravité</span>
-          <select class="rp-input" id="rpf-niveau">
-            <option value="info">Information</option>
-            <option value="vigilance">Vigilance</option>
-            <option value="alerte">Alerte</option>
-            <option value="crise">Crise</option>
-          </select>
-        </div>
-      </div>
-      <div class="rp-form-actions">
-        <button aria-label="Ajouter l'article" class="btn-export" onclick="rpSubmitForm()">+ Ajouter</button>
-        <button aria-label="Afficher/masquer le formulaire d'ajout" class="btn-clr" onclick="rpToggleForm()">Annuler</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Filtres -->
-  <div class="rp-filters">
-    <input type="text" id="rp-search" placeholder="Titre, source, extrait…" oninput="rpRender()">
-    <select id="rp-fperiod" onchange="rpRender()">
-      <option value="">Toute période</option>
-      <option value="1">Aujourd'hui</option>
-      <option value="7">7 derniers jours</option>
-      <option value="30">30 derniers jours</option>
-    </select>
-    <select id="rp-fsource" onchange="rpRender()">
-      <option value="">Toutes sources</option>
-      <option>Ouest-France</option>
-      <option>Le Télégramme</option>
-      <option>Actu.fr</option>
-      <option>France Bleu</option>
-      <option>Préfecture 22</option>
-      <option>Vigicrues</option>
-      <option>Météo-France</option>
-      <option>Autre</option>
-    </select>
-    <select id="rp-fbassin" onchange="rpRender()">
-      <option value="">Tous bassins</option>
-      <option>Rance</option>
-      <option>Frémur</option>
-      <option>Arguenon</option>
-      <option>Quiloury</option>
-      <option>Rosette</option>
-      <option>Gouessant</option>
-      <option>Evron</option>
-      <option>Urne</option>
-      <option>Gouët</option>
-      <option>Ic</option>
-      <option>Trieux</option>
-      <option>Leff</option>
-      <option>Jaudy / Guindy</option>
-      <option>Léguer</option>
-      <option>Hyère</option>
-      <option>Blavet</option>
-      <option>Sulon</option>
-      <option>Oust</option>
-      <option>Lié</option>
-    </select>
-    <select id="rp-fniveau" onchange="rpRender()">
-      <option value="">Tous niveaux</option>
-      <option value="info">Information</option>
-      <option value="vigilance">Vigilance</option>
-      <option value="alerte">Alerte</option>
-      <option value="crise">Crise</option>
-    </select>
-    <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer;white-space:nowrap">
-      <input type="checkbox" id="rp-fgeo" onchange="rpRender()" style="accent-color:var(--accent);width:14px;height:14px"> 📍 Localisés
-    </label>
-    <span class="rp-count" id="rp-count"></span>
-  </div>
-
-  <!-- Liste articles -->
-  <div id="rp-list" class="rp-articles">
-    <div class="rp-empty">Aucun article enregistré. Actualisez via RSS ou ajoutez manuellement.</div>
-  </div>
-
-  <p class="note" style="margin-top:10px">Sources RSS : Google News (requêtes « inondation côtes-d'armor », « crue côtes-d'armor ») via proxy CORS. Les articles récupérés automatiquement sont à valider avant enregistrement. Les données sont stockées dans le navigateur (localStorage) ; utilisez Exporter JSON pour sauvegarder entre sessions.</p>
-
-</div>
-</div>
 
 <!-- ═══ TAB 11 : NAPPES PHRÉATIQUES ═══ -->
 <div class="panel" id="panel11" role="tabpanel" aria-labelledby="tab11" tabindex="-1">
@@ -1722,19 +1433,6 @@ const WEATHER_ICONS = {
   71:'❄️', 73:'❄️', 75:'❄️',
   80:'🌦️', 81:'🌧️', 82:'⛈️',
   95:'⛈️', 96:'⛈️', 99:'⛈️'
-};
-
-const RP_BASSINS = [
-  'Rance','Frémur','Arguenon','Quiloury','Rosette','Gouessant','Evron','Urne',
-  'Gouët','Ic','Trieux','Leff','Jaudy / Guindy','Léguer','Hyère',
-  'Blavet','Sulon','Oust','Lié'
-];
-
-const RP_NIV = {
-  info:      { label:'Information', cls:'rp-niv-info',      art:'niv-info'      },
-  vigilance: { label:'Vigilance',   cls:'rp-niv-vigilance', art:'niv-vigilance' },
-  alerte:    { label:'Alerte',      cls:'rp-niv-alerte',    art:'niv-alerte'    },
-  crise:     { label:'Crise',       cls:'rp-niv-crise',     art:'niv-crise'     },
 };
 
 const EM_SENSITIVE_META = {
@@ -3820,520 +3518,6 @@ function exportCSV() {
 }
 
 
-// ═══ rp.js ═══
-// ── RP — Revue de presse inondations + SIG ────────────────────────────────
-
-
-const RP_LS_KEY = 'vigicrues22_rp_v1';
-
-let RP_DB = { articles: [], meta: { created: null, updated: null } };
-let RP_CANDIDATES = [];
-let RP_SIG_MAP = null;
-let RP_SIG_MARKERS = [];
-
-// Mots-clés inondation — seuls articles les contenant sont retenus depuis RSS
-const FLOOD_KEYWORDS = [
-  'inondation','inondé','inondée','inondées','inondés',
-  'crue','crues','débordement','déborde','débordé','débordements',
-  'submersion','submergé','submergée','submersions',
-  'montée des eaux','hausse des eaux',
-  'vigicrues','vigilance crue','vigilance inondation',
-  'ruissellement torrentiel','rivière déborde','fleuve déborde',
-  'zone inondable','plan d\'inondation','ppri',
-];
-
-const RP_RSS_QUERIES = [
-  'inondation Côtes-d\'Armor',
-  'crue Bretagne Côtes-d\'Armor',
-  'submersion Côtes-d\'Armor',
-  'vigicrues 22 crue',
-  'débordement rivière Côtes-d\'Armor',
-];
-
-// Le proxy Vercel contrôle le domaine amont et évite de transmettre les requêtes
-// vers des proxys CORS publics tiers.
-const RP_CORS_PROXIES = [url => `/api/rss?url=${encodeURIComponent(url)}`];
-
-// Couleurs par niveau pour la carte SIG
-const SIG_COLORS = {
-  info:      '#2980b9',
-  vigilance: '#c8b800',
-  alerte:    '#FF7F00',
-  crise:     '#FF0000',
-};
-
-function rpUUID() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-}
-
-function rpIsFlood(item) {
-  const hay = (item.title + ' ' + item.extract).toLowerCase();
-  return FLOOD_KEYWORDS.some(kw => hay.includes(kw));
-}
-
-// Liste des 344 communes des Côtes-d'Armor (source : geo.api.gouv.fr)
-const COMMUNES_22 = ["Allineuc","Andel","Aucaleuc","Beaussais-sur-Mer","Belle-Isle-en-Terre","Berhet","Binic-Étables-sur-Mer","Bobital","Bon Repos sur Blavet","Boqueho","Bourbriac","Bourseul","Bringolo","Broons","Brusvily","Bréhand","Brélidy","Bulat-Pestivien","Bégard","Calanhel","Callac","Calorguen","Camlez","Canihuel","Caouënnec-Lanvézéac","Carnoët","Caulnes","Caurel","Cavan","Châtelaudren-Plouagat","Coadout","Coatascorn","Coatréven","Cohiniac","Corlay","Corseul","Coëtmieux","Créhen","Dinan","Duault","Erquy","Fréhel","Gausson","Glomel","Gomené","Gommenec'h","Gouarec","Goudelin","Grâce-Uzel","Grâces","Guenroc","Guerlédan","Guingamp","Guitté","Gurunhuel","Hillion","Hémonstoir","Hénanbihen","Hénansal","Hénon","Illifaut","Jugon-les-Lacs","Kerbors","Kerfot","Kergrist-Moëlou","Kerien","Kermaria-Sulard","Kermoroc'h","Kerpert","La Bouillie","La Chapelle-Blanche","La Chapelle-Neuve","La Chèze","La Harmoye","La Landec","La Malhoure","La Motte","La Méaugon","La Prénessaye","La Roche-Jaudy","La Vicomté-sur-Rance","Lamballe-Armor","Lancieux","Landebaëron","Landébia","Landéhen","Lanfains","Langoat","Langrolay-sur-Rance","Languenan","Langueux","Languédias","Lanleff","Lanloup","Lanmodez","Lanmérin","Lannebert","Lannion","Lanrelas","Lanrivain","Lanrodec","Lantic","Lanvallay","Lanvellec","Lanvollon","Laurenan","Le Bodéo","Le Faouët","Le Fœil","Le Haut-Corlay","Le Hinglé","Le Leslay","Le Mené","Le Merzer","Le Moustoir","Le Quillio","Le Quiou","Le Vieux-Bourg","Le Vieux-Marché","Les Champs-Géraux","Lescouët-Gouarec","Loc-Envel","Locarn","Loguivy-Plougras","Lohuec","Loscouët-sur-Meu","Louannec","Louargat","Loudéac","Lézardrieux","Magoar","Mantallot","Matignon","Maël-Carhaix","Maël-Pestivien","Mellionnec","Merdrignac","Merléac","Minihy-Tréguier","Moncontour","Moustéru","Mégrit","Mérillac","Noyal","Pabu","Paimpol","Paule","Penguily","Penvénan","Perros-Guirec","Peumerit-Quintin","Plaine-Haute","Plaintel","Plancoët","Plerneuf","Pleslin-Trigavou","Plestan","Plestin-les-Grèves","Pleubian","Pleudaniel","Pleudihen-sur-Rance","Pleumeur-Bodou","Pleumeur-Gautier","Plorec-sur-Arguenon","Plouaret","Plouasne","Ploubazlanec","Ploubezre","Ploufragan","Plougonver","Plougras","Plougrescant","Plouguenast-Langast","Plouguernével","Plouguiel","Plouha","Plouisy","Ploulec'h","Ploumagoar","Ploumilliau","Plounérin","Plounévez-Moëdec","Plounévez-Quintin","Plourac'h","Plourhan","Plourivo","Plouvara","Plouzélambre","Plouézec","Plouëc-du-Trieux","Plouër-sur-Rance","Ploëzal","Pludual","Plufur","Plumaudan","Plumaugat","Plumieux","Plurien","Plusquellec","Plussulien","Pluzunet","Pléboulle","Plédran","Plédéliac","Pléguien","Pléhédel","Plélan-le-Petit","Plélauff","Plélo","Plémet","Plémy","Pléneuf-Val-André","Plénée-Jugon","Plérin","Plésidy","Plévenon","Plévin","Plœuc-L'Hermitage","Pommeret","Pommerit-le-Vicomte","Pont-Melvez","Pontrieux","Pordic","Prat","Pédernec","Quemper-Guézennec","Quemperven","Quessoy","Quintenic","Quintin","Quévert","Rospez","Rostrenen","Rouillac","Ruca","Runan","Saint-Adrien","Saint-Agathon","Saint-Alban","Saint-André-des-Eaux","Saint-Barnabé","Saint-Bihy","Saint-Brandan","Saint-Brieuc","Saint-Caradec","Saint-Carné","Saint-Carreuc","Saint-Cast-le-Guildo","Saint-Clet","Saint-Connan","Saint-Connec","Saint-Denoual","Saint-Donan","Saint-Fiacre","Saint-Gildas","Saint-Gilles-Pligeaux","Saint-Gilles-Vieux-Marché","Saint-Gilles-les-Bois","Saint-Glen","Saint-Hervé","Saint-Hélen","Saint-Igeaux","Saint-Jacut-de-la-Mer","Saint-Jean-Kerdaniel","Saint-Jouan-de-l'Isle","Saint-Judoce","Saint-Julien","Saint-Juvat","Saint-Laurent","Saint-Lormel","Saint-Maden","Saint-Martin-des-Prés","Saint-Maudan","Saint-Maudez","Saint-Mayeux","Saint-Michel-de-Plélan","Saint-Michel-en-Grève","Saint-Méloir-des-Bois","Saint-Nicodème","Saint-Nicolas-du-Pélem","Saint-Péver","Saint-Pôtan","Saint-Quay-Perros","Saint-Quay-Portrieux","Saint-Rieul","Saint-Samson-sur-Rance","Saint-Servais","Saint-Thélo","Saint-Trimoël","Saint-Vran","Saint-Étienne-du-Gué-de-l'Isle","Sainte-Tréphine","Senven-Léhart","Squiffiec","Sévignac","Taden","Tonquédec","Tramain","Treffrin","Tressignaux","Troguéry","Trébeurden","Trébrivan","Trébry","Trébédan","Trédaniel","Trédarzec","Trédias","Trédrez-Locquémeau","Tréduder","Tréfumel","Trégastel","Tréglamus","Trégomeur","Trégonneau","Trégrom","Trégueux","Tréguidel","Tréguier","Trélivan","Trélévern","Trémargat","Trémel","Trémeur","Trémorel","Trémuson","Tréméreuc","Tréméven","Tréogan","Tréveneuc","Trévou-Tréguignec","Trévron","Trévé","Trévérec","Trézény","Uzel","Val-d'Arguenon","Vildé-Guingalan","Yffiniac","Yvias","Yvignac-la-Tour","Éréac","Évran","Île-de-Bréhat"];
-
-function rpNorm(s) {
-  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[-']/g,' ');
-}
-
-// Triées par longueur décroissante pour matcher "Plestin-les-Grèves" avant "Plestan"
-const COMMUNES_22_IDX = COMMUNES_22
-  .map(c => ({ orig: c, norm: rpNorm(c) }))
-  .sort((a, b) => b.norm.length - a.norm.length);
-
-function rpAutoCommune(text) {
-  const hay = rpNorm(text);
-  for (const { orig, norm } of COMMUNES_22_IDX) {
-    const re = new RegExp('(?:^|[\\s,;.!?:\'"-])' + norm.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '(?=$|[\\s,;.!?:\'"-])');
-    if (re.test(hay)) return orig;
-  }
-  return '';
-}
-
-function rpLoad() {
-  try {
-    const s = localStorage.getItem(RP_LS_KEY);
-    if (s) RP_DB = JSON.parse(s);
-  } catch(e) {}
-}
-
-function rpSave() {
-  try { localStorage.setItem(RP_LS_KEY, JSON.stringify(RP_DB)); } catch(e) {}
-}
-
-function rpInit() {
-  rpLoad();
-  const wrap = document.getElementById('rpf-bassins-wrap');
-  if (wrap) {
-    wrap.innerHTML = RP_BASSINS.map(b =>
-      `<label class="rp-bassin-lbl"><input type="checkbox" class="rp-bassin-chk" value="${escapeHtml(b)}"> ${escapeHtml(b)}</label>`
-    ).join('');
-  }
-  const dateEl = document.getElementById('rpf-date');
-  if (dateEl) dateEl.value = new Date().toISOString().slice(0,10);
-  rpRender();
-  rpRenderStats();
-  // Carte SIG — initialiser après le premier affichage du panel
-  const tab10 = document.getElementById('tab10');
-  if (tab10) tab10.addEventListener('click', () => { setTimeout(rpInitSIG, 100); }, { once: true });
-}
-
-// ── Géocodage Nominatim ──────────────────────────────────────────────────
-
-// Niveaux Nominatim acceptés : adresse → rue → quartier → commune (jamais département/région)
-const NOM_ACCEPT = new Set([
-  'house','building','amenity','tourism','shop','office','place_of_worship',
-  'road','pedestrian','footway','path','residential','living_street','unclassified',
-  'suburb','quarter','neighbourhood','city_block','hamlet','isolated_dwelling','farm',
-  'village','town','city','municipality',
-]);
-
-async function rpGeocode(place) {
-  if (!place) return null;
-  try {
-    const q = encodeURIComponent(place + ', Côtes-d\'Armor, France');
-    const url = `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=5&addressdetails=1&countrycodes=fr&bounded=1&viewbox=-4.1,48.0,-1.4,48.95`;
-    const resp = await fetch(url, { headers: { 'Accept-Language': 'fr' } });
-    if (!resp.ok) return null;
-    const data = await resp.json();
-    // Garder le premier résultat dont le type est commune ou plus précis
-    for (const r of data) {
-      if (NOM_ACCEPT.has(r.type) || NOM_ACCEPT.has(r.class) || NOM_ACCEPT.has(r.addresstype)) {
-        const addr = r.address || {};
-        // Vérifier qu'une commune est identifiée (pas seulement département/région)
-        const hasCommune = addr.city || addr.town || addr.village || addr.hamlet || addr.municipality || addr.suburb;
-        if (!hasCommune) continue;
-        return { lat: parseFloat(r.lat), lon: parseFloat(r.lon), display: r.display_name };
-      }
-    }
-    return null;
-  } catch(e) { return null; }
-}
-
-async function rpGeocodeForm() {
-  const communeEl = document.getElementById('rpf-commune');
-  if (!communeEl) return;
-  const commune = communeEl.value.trim();
-  if (!commune) { toast('Entrez une commune'); return; }
-  const btn = document.querySelector('[onclick="rpGeocodeForm()"]');
-  if (btn) btn.textContent = '⏳';
-  const result = await rpGeocode(commune);
-  if (btn) btn.textContent = '📍 Localiser';
-  if (!result) { toast('Commune introuvable — vérifiez le nom'); return; }
-  document.getElementById('rpf-lat').value = result.lat.toFixed(5);
-  document.getElementById('rpf-lon').value = result.lon.toFixed(5);
-  toast(`✓ Localisé : ${result.lat.toFixed(4)}, ${result.lon.toFixed(4)}`);
-}
-
-// ── Fetch RSS ─────────────────────────────────────────────────────────────
-
-async function rpFetchAll() {
-  const box = document.getElementById('rp-fetch-box');
-  if (box) { box.className='rp-fetch-box loading'; box.innerHTML='⏳ Recherche en cours sur Google News…'; }
-
-  const existingUrls = new Set(RP_DB.articles.map(a => a.url));
-  const allCandidates = [];
-  const seenUrls = new Set();
-  let fetchOk = false;
-
-  for (const query of RP_RSS_QUERIES) {
-    const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=fr&gl=FR&ceid=FR:fr`;
-    for (const proxyFn of RP_CORS_PROXIES) {
-      try {
-        const proxyUrl = proxyFn(rssUrl);
-        const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 9000);
-        const resp = await fetch(proxyUrl, { signal: ctrl.signal });
-        clearTimeout(tid);
-        if (!resp.ok) continue;
-        let text;
-        if (proxyUrl.includes('allorigins')) {
-          const contentType = resp.headers.get('content-type')||'';
-          if (contentType.includes('json')) {
-            const j = await resp.json(); text = j.contents || j.data || '';
-          } else { text = await resp.text(); }
-        } else { text = await resp.text(); }
-        const items = rpParseRSS(text);
-        for (const item of items) {
-          if (!existingUrls.has(item.url) && !seenUrls.has(item.url)) {
-            // Filtrer : garder uniquement les articles inondation
-            if (rpIsFlood(item)) {
-              seenUrls.add(item.url);
-              // Tenter détection auto de commune
-              if (!item.commune) item.commune = rpAutoCommune(item.title + ' ' + item.extract);
-              allCandidates.push(item);
-            }
-          }
-        }
-        fetchOk = true;
-        break;
-      } catch(e) { continue; }
-    }
-  }
-
-  RP_CANDIDATES = allCandidates.slice(0, 40);
-
-  if (box) {
-    if (RP_CANDIDATES.length > 0) {
-      box.className='rp-fetch-box ok';
-      box.innerHTML=`✓ <strong>${RP_CANDIDATES.length} article${RP_CANDIDATES.length>1?'s':''}</strong> inondation trouvé${RP_CANDIDATES.length>1?'s':''} — vérifiez et validez la sélection ci-dessous`;
-    } else if (fetchOk) {
-      box.className='rp-fetch-box ok';
-      box.innerHTML='✓ Aucun article inondation nouveau trouvé — votre base est à jour.';
-    } else {
-      box.className='rp-fetch-box err';
-      box.innerHTML='⚠ Proxy CORS indisponible. Essayez plus tard ou ajoutez les articles manuellement.';
-    }
-  }
-  rpRenderCandidates();
-}
-
-function rpParseRSS(xmlText) {
-  const items = [];
-  try {
-    const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
-    for (const item of doc.querySelectorAll('item')) {
-      const title = item.querySelector('title')?.textContent?.trim() || '';
-      let link = item.querySelector('link')?.nextSibling?.nodeValue?.trim()
-               || item.querySelector('link')?.textContent?.trim()
-               || item.querySelector('guid')?.textContent?.trim() || '';
-      const pubDate = item.querySelector('pubDate')?.textContent?.trim() || '';
-      const desc = (item.querySelector('description')?.textContent||'').replace(/<[^>]*>/g,'').slice(0,280);
-      const srcEl = item.querySelector('source');
-      const srcText = srcEl?.textContent?.trim() || '';
-      if (!title || !link) continue;
-      let date = '';
-      try { const d=new Date(pubDate); if(!isNaN(d)) date=d.toISOString().slice(0,10); } catch(e){}
-      let source = 'Autre';
-      const haystack = (link+title+srcText).toLowerCase();
-      if (haystack.includes('ouest-france'))       source='Ouest-France';
-      else if (haystack.includes('letelegramme') || haystack.includes('télégramme')) source='Le Télégramme';
-      else if (haystack.includes('actu.fr'))       source='Actu.fr';
-      else if (haystack.includes('francebleu') || haystack.includes('france bleu')) source='France Bleu';
-      else if (haystack.includes('vigicrues'))     source='Vigicrues';
-      else if (haystack.includes('meteofrance') || haystack.includes('météo-france')) source='Météo-France';
-      else if (srcText) source = srcText.replace(/\.(fr|com|net|org).*/,'');
-      items.push({ url:link, title, source, date, extract:desc, commune:'', lat:null, lon:null });
-    }
-  } catch(e) {}
-  return items;
-}
-
-function rpRenderCandidates() {
-  const wrap = document.getElementById('rp-candidates');
-  const list = document.getElementById('rp-cand-list');
-  const sub  = document.getElementById('rp-cand-sub');
-  if (!wrap || !list) return;
-  if (!RP_CANDIDATES.length) { wrap.style.display='none'; return; }
-  wrap.style.display='block';
-  if (sub) sub.textContent = `${RP_CANDIDATES.length} article${RP_CANDIDATES.length>1?'s':''} inondation — sélectionnez les pertinents`;
-  list.innerHTML = RP_CANDIDATES.map((c,i) => `
-    <div class="rp-cand-item">
-      <input type="checkbox" class="rp-cand-check" data-idx="${i}" checked>
-      <div class="rp-cand-body">
-        <a class="rp-cand-link" href="${escapeHtml(c.url)}" target="_blank" rel="noopener">${escapeHtml(c.title)}</a>
-        <div class="rp-cand-meta">${escapeHtml(c.source)} · ${c.date||'—'}${c.commune?' · 📍 '+escapeHtml(c.commune):''}</div>
-        ${c.extract?`<div class="rp-cand-ext">${escapeHtml(c.extract)}</div>`:''}
-      </div>
-    </div>`).join('');
-}
-
-function rpSelectAllCandidates(checked) {
-  document.querySelectorAll('.rp-cand-check').forEach(el => el.checked=checked);
-}
-
-function rpValidateCandidates() {
-  const checked = [...document.querySelectorAll('.rp-cand-check:checked')];
-  if (!checked.length) { toast('Sélectionnez au moins un article'); return; }
-  const idxs = new Set(checked.map(el => +el.dataset.idx));
-  let added = 0;
-  const geoPromises = [];
-  for (const i of idxs) {
-    const c = RP_CANDIDATES[i];
-    if (!c) continue;
-    const art = {...c, auto:true};
-    // Géocodage auto si commune détectée mais pas encore de coordonnées
-    if (art.commune && art.lat == null) {
-      geoPromises.push(
-        rpGeocode(art.commune).then(geo => {
-          if (geo) { art.lat = geo.lat; art.lon = geo.lon; }
-          rpAddArticle(art);
-        })
-      );
-    } else {
-      rpAddArticle(art);
-    }
-    added++;
-  }
-  Promise.all(geoPromises).then(() => {
-    rpSave(); rpRender(); rpRenderStats(); rpRenderSIG();
-  });
-  RP_CANDIDATES = RP_CANDIDATES.filter((_,i) => !idxs.has(i));
-  rpRenderCandidates();
-  if (!geoPromises.length) { rpRender(); rpRenderStats(); rpRenderSIG(); }
-  toast(`✓ ${added} article${added>1?'s':''} ajouté${added>1?'s':''}`);
-}
-
-function rpAddArticle(art) {
-  const a = {
-    id:      rpUUID(),
-    url:     art.url     || '',
-    title:   art.title   || '',
-    source:  art.source  || 'Autre',
-    date:    art.date    || new Date().toISOString().slice(0,10),
-    extract: art.extract || '',
-    commune: art.commune || '',
-    lat:     art.lat     != null ? +art.lat : null,
-    lon:     art.lon     != null ? +art.lon : null,
-    bassins: art.bassins || [],
-    niveau:  art.niveau  || 'info',
-    added:   new Date().toISOString(),
-    auto:    !!art.auto,
-  };
-  RP_DB.articles.unshift(a);
-  RP_DB.meta.updated = a.added;
-  if (!RP_DB.meta.created) RP_DB.meta.created = a.added;
-  rpSave();
-}
-
-function rpDeleteArticle(id) {
-  if (!confirm('Supprimer cet article ?')) return;
-  RP_DB.articles = RP_DB.articles.filter(a => a.id !== id);
-  rpSave(); rpRender(); rpRenderStats(); rpRenderSIG();
-}
-
-function rpToggleForm() {
-  const body = document.getElementById('rp-form-body');
-  const tog  = document.getElementById('rp-form-toggle');
-  if (!body) return;
-  body.classList.toggle('open');
-  if (tog) tog.textContent = body.classList.contains('open') ? '▲' : '▼';
-}
-
-function rpToggleSIG() {
-  const body = document.getElementById('rp-sig-body');
-  const tog  = document.getElementById('rp-sig-toggle');
-  if (!body) return;
-  body.style.display = body.style.display === 'none' ? '' : 'none';
-  if (tog) tog.textContent = body.style.display === 'none' ? '▼' : '▲';
-  if (body.style.display !== 'none') {
-    rpInitSIG();
-    if (RP_SIG_MAP) setTimeout(() => RP_SIG_MAP.invalidateSize(), 50);
-  }
-}
-
-function rpSubmitForm() {
-  const g = id => document.getElementById(id)?.value?.trim()||'';
-  const url   = g('rpf-url');
-  const title = g('rpf-title');
-  if (!url && !title) { toast('URL ou titre requis'); return; }
-  const bassins = [...document.querySelectorAll('.rp-bassin-chk:checked')].map(el=>el.value);
-  const lat = parseFloat(g('rpf-lat')) || null;
-  const lon = parseFloat(g('rpf-lon')) || null;
-  rpAddArticle({ url, title, source:g('rpf-source'), date:g('rpf-date'), extract:g('rpf-extract'),
-    commune:g('rpf-commune'), lat, lon, bassins, niveau:g('rpf-niveau'), auto:false });
-  ['rpf-url','rpf-title','rpf-extract','rpf-commune','rpf-lat','rpf-lon'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.querySelectorAll('.rp-bassin-chk').forEach(el=>el.checked=false);
-  const niv = document.getElementById('rpf-niveau'); if (niv) niv.value='info';
-  rpRender(); rpRenderStats(); rpRenderSIG();
-  toast('Article ajouté');
-}
-
-function rpExport() {
-  const blob = new Blob([JSON.stringify(RP_DB, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href=url; a.download=`revue-presse-22-${new Date().toISOString().slice(0,10)}.json`; a.click();
-  URL.revokeObjectURL(url);
-  toast(`📤 ${RP_DB.articles.length} articles exportés`);
-}
-
-function rpImport(ev) {
-  const file = ev.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const db = JSON.parse(e.target.result);
-      if (!Array.isArray(db.articles)) throw new Error('Format invalide');
-      const existing = new Set(RP_DB.articles.map(a=>a.url));
-      let added=0;
-      for (const a of [...db.articles].reverse()) {
-        if (!existing.has(a.url)) { RP_DB.articles.unshift(a); added++; }
-      }
-      RP_DB.meta.updated = new Date().toISOString();
-      rpSave(); rpRender(); rpRenderStats(); rpRenderSIG();
-      toast(`📥 ${added} articles importés (${db.articles.length-added} déjà présents)`);
-    } catch(err) { toast('Erreur import : '+err.message, 5000); }
-  };
-  reader.readAsText(file);
-  ev.target.value='';
-}
-
-function rpRenderStats() {
-  const statBox = document.getElementById('rp-stats');
-  if (!statBox) return;
-  const n = RP_DB.articles.length;
-  if (!n) { statBox.style.display='none'; return; }
-  statBox.style.display='grid';
-  const cutoff7 = new Date(); cutoff7.setDate(cutoff7.getDate()-7);
-  const t = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-  t('rps-total', n);
-  t('rps-crise', RP_DB.articles.filter(a=>a.niveau==='crise').length);
-  t('rps-alerte', RP_DB.articles.filter(a=>a.niveau==='alerte').length);
-  t('rps-7j', RP_DB.articles.filter(a=>new Date(a.date)>=cutoff7).length);
-  t('rps-geo', RP_DB.articles.filter(a=>a.lat!=null).length);
-}
-
-// ── Carte SIG ─────────────────────────────────────────────────────────────
-
-function rpInitSIG() {
-  const el = document.getElementById('rp-sig-map');
-  if (!el || RP_SIG_MAP) return;
-  if (typeof L === 'undefined') return;
-  RP_SIG_MAP = L.map('rp-sig-map', { zoomControl: true }).setView([48.47, -2.75], 9);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap',
-    maxZoom: 18,
-  }).addTo(RP_SIG_MAP);
-  rpRenderSIG();
-}
-
-function rpRenderSIG() {
-  if (!RP_SIG_MAP) return;
-  // Supprimer les anciens marqueurs
-  RP_SIG_MARKERS.forEach(m => m.remove());
-  RP_SIG_MARKERS = [];
-  const geoArts = RP_DB.articles.filter(a => a.lat != null && a.lon != null);
-  for (const a of geoArts) {
-    const color = SIG_COLORS[a.niveau] || SIG_COLORS.info;
-    const niv = RP_NIV[a.niveau] || RP_NIV.info;
-    const marker = L.circleMarker([a.lat, a.lon], {
-      radius: 8,
-      fillColor: color,
-      color: '#fff',
-      weight: 2,
-      opacity: 1,
-      fillOpacity: 0.85,
-    });
-    const popupHtml = `
-      <div style="max-width:240px;font-size:12px">
-        <div style="font-weight:600;margin-bottom:4px;line-height:1.4">
-          ${a.url ? `<a href="${escapeHtml(a.url)}" target="_blank" rel="noopener" style="color:#2980b9;text-decoration:none">${escapeHtml(a.title||'(sans titre)')}</a>` : escapeHtml(a.title||'(sans titre)')}
-        </div>
-        <div style="color:#888;margin-bottom:4px">${escapeHtml(a.source)} · ${a.date||'—'}${a.commune?' · 📍 '+escapeHtml(a.commune):''}</div>
-        <span style="display:inline-block;padding:1px 8px;border-radius:99px;font-size:10px;font-weight:600;background:${color};color:#fff">${niv.label}</span>
-      </div>`;
-    marker.bindPopup(popupHtml);
-    marker.addTo(RP_SIG_MAP);
-    RP_SIG_MARKERS.push(marker);
-  }
-  // Mettre à jour le compteur SIG
-  const cntEl = document.getElementById('rp-sig-count');
-  if (cntEl) cntEl.textContent = `${geoArts.length} événement${geoArts.length!==1?'s':''} localisé${geoArts.length!==1?'s':''}`;
-}
-
-// ── Rendu liste articles ──────────────────────────────────────────────────
-
-function rpRender() {
-  const q    = document.getElementById('rp-search')?.value?.toLowerCase()||'';
-  const fSrc = document.getElementById('rp-fsource')?.value||'';
-  const fBas = document.getElementById('rp-fbassin')?.value||'';
-  const fNiv = document.getElementById('rp-fniveau')?.value||'';
-  const fPer = document.getElementById('rp-fperiod')?.value||'';
-  const fGeo = document.getElementById('rp-fgeo')?.checked || false;
-
-  let arts = RP_DB.articles;
-  if (q)    arts = arts.filter(a => (a.title+a.source+a.extract+(a.commune||'')).toLowerCase().includes(q));
-  if (fSrc) arts = arts.filter(a => a.source===fSrc);
-  if (fBas) arts = arts.filter(a => (a.bassins||[]).includes(fBas));
-  if (fNiv) arts = arts.filter(a => a.niveau===fNiv);
-  if (fGeo) arts = arts.filter(a => a.lat != null);
-  if (fPer) {
-    const cut=new Date();
-    if(fPer==='1') cut.setDate(cut.getDate()-1);
-    else if(fPer==='7') cut.setDate(cut.getDate()-7);
-    else if(fPer==='30') cut.setDate(cut.getDate()-30);
-    arts=arts.filter(a=>new Date(a.date)>=cut);
-  }
-
-  const cnt = document.getElementById('rp-count');
-  if (cnt) cnt.textContent = arts.length+' article'+(arts.length!==1?'s':'');
-
-  const list = document.getElementById('rp-list');
-  if (!list) return;
-
-  if (!arts.length) {
-    list.innerHTML = `<div class="rp-empty">${RP_DB.articles.length?'Aucun article ne correspond aux filtres.':'Aucun article enregistré — actualisez via RSS ou ajoutez manuellement.'}</div>`;
-    return;
-  }
-
-  list.innerHTML = arts.map(a => {
-    const niv = RP_NIV[a.niveau] || RP_NIV.info;
-    const tags = (a.bassins||[]).map(b=>`<span class="rp-bassin-tag">${escapeHtml(b)}</span>`).join('');
-    const geoTag = a.lat != null
-      ? `<span class="rp-geo-tag" title="${a.lat.toFixed(4)}, ${a.lon.toFixed(4)}">📍 ${escapeHtml(a.commune||'Localisé')}</span>`
-      : '';
-    return `<div class="rp-article ${niv.art}">
-      <div class="rp-article-body">
-        <div class="rp-article-top">
-          <a class="rp-article-title" href="${escapeHtml(a.url||'#')}" target="_blank" rel="noopener">${escapeHtml(a.title||'(sans titre)')}</a>
-          <span class="rp-niv-badge ${niv.cls}">${niv.label}</span>
-          ${a.auto?'<span class="rp-rss-badge">RSS</span>':''}
-        </div>
-        <div class="rp-article-meta">
-          <span class="rp-source-badge">${escapeHtml(a.source)}</span>${a.date||'—'}
-        </div>
-        ${a.extract?`<div class="rp-article-extract">${escapeHtml(a.extract)}</div>`:''}
-        <div class="rp-article-footer">${geoTag}${tags}</div>
-      </div>
-      <button aria-label="Supprimer l'article" class="rp-del" onclick="rpDeleteArticle('${escapeHtml(a.id)}')" title="Supprimer">✕</button>
-    </div>`;
-  }).join('');
-}
-
-
 // ═══ tabs.js ═══
 // ── TABS — Navigation onglets ─────────────────────────────────────────────
 
@@ -5945,19 +5129,6 @@ window.emExportGeoJSON = emExportGeoJSON;
 window.emImportGeoJSON = emImportGeoJSON;
 window.emSaveLocal = emSaveLocal;
 
-// Revue de presse
-window.rpFetchAll = rpFetchAll;
-window.rpRender = rpRender;
-window.rpValidateCandidates = rpValidateCandidates;
-window.rpSelectAllCandidates = rpSelectAllCandidates;
-window.rpDeleteArticle = rpDeleteArticle;
-window.rpToggleForm = rpToggleForm;
-window.rpSubmitForm = rpSubmitForm;
-window.rpExport = rpExport;
-window.rpImport = rpImport;
-window.rpToggleSIG = rpToggleSIG;
-window.rpGeocodeForm = rpGeocodeForm;
-
 
 
 // ═══ init.js ═══
@@ -6005,9 +5176,6 @@ window.PROP_DATA = [
   try {
   // 1. Journal d'événements
   journalLoad();
-
-  // 2. Revue de presse
-  rpInit();
 
   // 3. Carte principale (optionnelle — le div#map n'existe pas dans tous les layouts)
   try { initMap(); } catch(e) { console.warn('[map] initMap ignorée:', e.message); }

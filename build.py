@@ -31,7 +31,6 @@ MODULE_ORDER = [
     'modal.js',
     'meteo.js',
     'pdf.js',
-    'rp.js',
     'tabs.js',
     'em-map.js',
     'data.js',
