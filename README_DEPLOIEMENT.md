@@ -33,7 +33,7 @@ vercel_deploy/
 ```bash
 # Depuis la racine du projet
 python3 build.py
-vercel --prod vercel_deploy/public_html
+(cd vercel_deploy && vercel --prod)
 ```
 
 C'est tout. Vercel détecte automatiquement les fichiers modifiés.
@@ -61,7 +61,7 @@ Workflow complet après modification du code source :
 
 ```bash
 python3 build.py                              # génère public_html/index.html
-vercel --prod vercel_deploy/public_html    # déploie sur Vercel
+(cd vercel_deploy && vercel --prod)           # déploie sur Vercel
 ```
 
 ---
