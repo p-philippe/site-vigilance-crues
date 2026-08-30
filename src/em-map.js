@@ -222,7 +222,7 @@ function emMeteoPopup(i) {
     ${row('Rafales', Math.round(h.wind_gusts_10m?.[idx]??0) + ' km/h')}
     ${row('Humidité', (h.relative_humidity_2m?.[idx]??'—') + ' %')}
     ${row('Pression', Math.round(h.pressure_msl?.[idx]??0) + ' hPa')}
-    <div style="margin-top:6px;font-size:10px;color:#999">Détails et graphiques : onglet Météo</div>
+    <div style="margin-top:6px;font-size:10px;color:#999">Détails et graphiques : onglet Contexte</div>
   </div>`;
 }
 

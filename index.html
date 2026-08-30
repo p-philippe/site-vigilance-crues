@@ -538,6 +538,9 @@ tr:hover td{background:var(--accent-light)}
 /* ─── MODAL STATION ─── */
 .mbg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:9000}
 .mbg.open{display:flex}
+.sect-sep{margin:28px 0 12px;padding-top:18px;border-top:2px solid var(--border);font-size:15px;font-weight:700;color:var(--text)}
+.sect-sep:first-child{margin-top:0;padding-top:0;border-top:none}
+.mdl-wide{width:880px}
 .mdl{background:var(--bg3);border-radius:10px;border:1px solid var(--border);padding:1.25rem;width:520px;max-width:95vw;max-height:84vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.18)}
 .mhdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem}
 .mt{font-size:14px;font-weight:600;color:var(--text)}
@@ -721,29 +724,17 @@ tr:hover td{background:var(--accent-light)}
     <button class="btn-hdr" id="btnTz" aria-label="Basculer entre heure Paris et UTC" onclick="toggleTz()" title="Basculer entre heure Paris et UTC">🕐 Heure Paris</button>
     <button class="btn-hdr" id="btnRefresh" aria-label="Actualiser les données" onclick="loadAll()">↺ Actualiser</button>
     <button id="btn-notif" onclick="toggleNotif()" aria-label="Activer ou désactiver les alertes navigateur" title="Activer/désactiver les alertes navigateur" style="background:none;border:1px solid rgba(255,255,255,.35);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:13px;color:#fff;">🔔</button>
+    <button class="btn-hdr" onclick="openRessources()" aria-label="Ressources : numéros d'urgence, portails officiels, webcams" title="Numéros d'urgence, portails officiels et webcams">ℹ️ Ressources</button>
     <span id="online-indicator" title="Statut réseau" aria-label="Statut réseau : en ligne" aria-live="polite" style="font-size:14px;cursor:default;">🟢</span>
   </div>
 </header>
 
 <div class="tabs-bar-wrap">
 <div class="tabs-bar" role="tablist" aria-label="Sections de surveillance">
-  <div class="tab-group" role="group" aria-label="Pilotage">
-    <div class="tab active" onclick="switchTab(9)" id="tab9" role="tab" tabindex="0" aria-selected="true" aria-controls="panel9" title="Carte état-major — outils de tracé opérationnels"><span class="tab-ico">🗺️</span> Carte</div>
-  </div>
-  <div class="tab-group" role="group" aria-label="Cartes et réseau">
-    <div class="tab" onclick="switchTab(5)" id="tab5" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel5" title="Bassins versants et stations"><span class="tab-ico">🏞️</span> Bassins &amp; stations</div>
-    <div class="tab" onclick="switchTab(3)" id="tab3" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel3" title="Historique des hauteurs sur 12 h"><span class="tab-ico">📈</span> Historique</div>
-  </div>
-  <div class="tab-group" role="group" aria-label="Facteurs aggravants">
-    <div class="tab" onclick="switchTab(6)" id="tab6" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel6" title="Météo et précipitations"><span class="tab-ico">🌧️</span> Météo</div>
-    <div class="tab" onclick="switchTab(7)" id="tab7" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel7" title="Saturation des sols"><span class="tab-ico">🌱</span> Sols</div>
-    <div class="tab" onclick="switchTab(11)" id="tab11" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel11" title="Nappes phréatiques"><span class="tab-ico">💧</span> Nappes</div>
-  </div>
-  <div class="tab-group" role="group" aria-label="Suivi et veille">
-    <div class="tab" onclick="switchTab(4)" id="tab4" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel4" title="Journal des événements"><span class="tab-ico">📋</span> Journal</div>
-    <div class="tab" onclick="switchTab(12)" id="tab12" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel12" title="Prévention des inondations — sources officielles"><span class="tab-ico">🛟</span> Prévention</div>
-    <div class="tab" onclick="switchTab(13)" id="tab13" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel13" title="Webcams en direct — littoral des Côtes-d'Armor"><span class="tab-ico">📷</span> Webcams</div>
-  </div>
+  <div class="tab active" onclick="switchTab(9)" id="tab9" role="tab" tabindex="0" aria-selected="true" aria-controls="panel9" title="Carte état-major — outils de tracé opérationnels"><span class="tab-ico">🗺️</span> Carte</div>
+  <div class="tab" onclick="switchTab(5)" id="tab5" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel5" title="Bassins versants, stations et historique 12 h"><span class="tab-ico">🏞️</span> Stations</div>
+  <div class="tab" onclick="switchTab(6)" id="tab6" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel6" title="Facteurs aggravants — météo, sols, nappes"><span class="tab-ico">🌧️</span> Contexte</div>
+  <div class="tab" onclick="switchTab(4)" id="tab4" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel4" title="Journal des événements"><span class="tab-ico">📋</span> Journal</div>
 </div>
 </div><!-- /tabs-bar-wrap -->
 
@@ -757,18 +748,6 @@ tr:hover td{background:var(--accent-light)}
 <div class="panels" id="main-content" role="region" aria-label="Contenu principal">
 
 <!-- ═══ TAB 3 ═══ -->
-<div class="panel" id="panel3" role="tabpanel" aria-labelledby="tab3" tabindex="-1">
-<div class="t3">
-  <div class="t3-bar">
-    <h3>Hauteurs d'eau (m) — relevés horaires sur 12h</h3>
-    <button class="btn-export" id="btnCsv" aria-label="Exporter l'historique en CSV" onclick="exportCSV()" disabled>⬇ Télécharger CSV</button>
-  </div>
-  <div class="t12-wrap">
-    <table class="t12" id="t12"><tr><td style="padding:2rem;color:#8a9b8a;font-style:italic">Chargement…</td></tr></table>
-  </div>
-  <p class="note">Données Hub'Eau — obs. la plus proche du top de chaque heure. « — » = données non disponibles. Coloration selon seuils estimés.</p>
-</div>
-</div>
 
 <!-- ═══ TAB 4 : JOURNAL ═══ -->
 <div class="panel" id="panel4" role="tabpanel" aria-labelledby="tab4" tabindex="-1">
@@ -831,6 +810,17 @@ tr:hover td{background:var(--accent-light)}
   <div class="bv-grid" id="bv-grid">
     <div style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Chargement…</div>
   </div>
+
+  <!-- ═══ Historique 12 h (ex-onglet 3, fusionné en 9.5) ═══ -->
+  <h3 class="sect-sep">📈 Historique — hauteurs d'eau sur 12 h</h3>
+  <div class="t3-bar">
+    <h3>Hauteurs d'eau (m) — relevés horaires sur 12h</h3>
+    <button class="btn-export" id="btnCsv" aria-label="Exporter l'historique en CSV" onclick="exportCSV()" disabled>⬇ Télécharger CSV</button>
+  </div>
+  <div class="t12-wrap">
+    <table class="t12" id="t12"><tr><td style="padding:2rem;color:#8a9b8a;font-style:italic">Chargement…</td></tr></table>
+  </div>
+  <p class="note">Données Hub'Eau — obs. la plus proche du top de chaque heure. « — » = données non disponibles. Coloration selon seuils estimés.</p>
 </div>
 </div>
 
@@ -854,12 +844,9 @@ tr:hover td{background:var(--accent-light)}
     </div>
   </div>
   <div class="meteo-source">Source : Open-Meteo — modèle Météo-France AROME (résolution 1.3 km) · Données horaires · CORS libre</div>
-</div>
-</div>
 
-<!-- ═══ TAB 7 : SATURATION DES SOLS ═══ -->
-<div class="panel" id="panel7" role="tabpanel" aria-labelledby="tab7" tabindex="-1">
-<div class="t7">
+  <!-- ═══ Saturation des sols (ex-onglet 7, fusionné en 9.5) ═══ -->
+  <h3 class="sect-sep">🌱 Saturation des sols</h3>
   <div class="sol-intro">
     <strong>Indice de saturation des sols</strong> — Un sol saturé transforme une pluie ordinaire en crue : l'eau ne s'infiltre plus et ruisselle directement vers les cours d'eau. Cet outil calcule l'humidité volumétrique par couche (0–81 cm) et la compare aux seuils de référence des sols argileux-limoneux bretons (θ<sub>wp</sub>=0,10 · θ<sub>fc</sub>=0,28 · θ<sub>sat</sub>=0,44 m³/m³).
   </div>
@@ -908,8 +895,25 @@ tr:hover td{background:var(--accent-light)}
       Données de calcul : Open-Meteo ERA5-Land / ECMWF — humidité volumétrique par couche · Référence sols INRAE/BDAT (limon-argile Bretagne) · θ<sub>wp</sub>=0,10 · θ<sub>fc</sub>=0,28 · θ<sub>sat</sub>=0,44 m³/m³
     </div>
   </div>
+
+  <!-- ═══ Nappes phréatiques (ex-onglet 11, fusionné en 9.5) ═══ -->
+  <h3 class="sect-sep">💧 Nappes phréatiques</h3>
+  <div class="sol-intro">
+    <strong>Nappes — le signal crue, pas la cote en mètres.</strong>
+    −7 m à Ploufragan n'est pas comparable à −18 m à Collinée : chaque forage a sa propre profondeur. Pour savoir si c'est <em>critique</em>, on classe le niveau actuel dans l'historique du <strong>même mois</strong> (percentile BRGM). Au-dessus du 90ᵉ centile = nappe très haute pour la saison = plus de capacité d'absorption, crues amplifiées, risque de remontée de nappe.
+  </div>
+  <div class="sol-risk-panel">
+    <div class="sol-risk-title">💧 Synthèse départementale — nappes</div>
+    <div id="nappes-synth" style="font-size:12px;color:var(--text3);font-style:italic;padding:8px 0">Chargement…</div>
+  </div>
+  <div class="sol-grid" id="nappes-grid">
+    <div style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Chargement des données Hub'Eau ADES…</div>
+  </div>
+  <div class="sol-source" style="margin-top:10px">Source : Hub'Eau — API Niveaux des nappes d'eau souterraine · BRGM/OFB · Réseau piézométrique ADES</div>
 </div>
 </div>
+
+<!-- ═══ TAB 7 : SATURATION DES SOLS ═══ -->
 
 <!-- ═══ SYNTHÈSE ═══ -->
 
@@ -1042,28 +1046,21 @@ tr:hover td{background:var(--accent-light)}
 
 
 <!-- ═══ TAB 11 : NAPPES PHRÉATIQUES ═══ -->
-<div class="panel" id="panel11" role="tabpanel" aria-labelledby="tab11" tabindex="-1">
-<div class="t7">
-  <div class="sol-intro">
-    <strong>Nappes — le signal crue, pas la cote en mètres.</strong>
-    −7 m à Ploufragan n'est pas comparable à −18 m à Collinée : chaque forage a sa propre profondeur. Pour savoir si c'est <em>critique</em>, on classe le niveau actuel dans l'historique du <strong>même mois</strong> (percentile BRGM). Au-dessus du 90ᵉ centile = nappe très haute pour la saison = plus de capacité d'absorption, crues amplifiées, risque de remontée de nappe.
-  </div>
-  <div class="sol-risk-panel">
-    <div class="sol-risk-title">💧 Synthèse départementale — nappes</div>
-    <div id="nappes-synth" style="font-size:12px;color:var(--text3);font-style:italic;padding:8px 0">Chargement…</div>
-  </div>
-  <div class="sol-grid" id="nappes-grid">
-    <div style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Chargement des données Hub'Eau ADES…</div>
-  </div>
-  <div class="sol-source" style="margin-top:10px">Source : Hub'Eau — API Niveaux des nappes d'eau souterraine · BRGM/OFB · Réseau piézométrique ADES</div>
-</div>
-</div>
 
 <!-- ═══ TAB 12 : PRÉVENTION ═══ -->
-<div class="panel" id="panel12" role="tabpanel" aria-labelledby="tab12" tabindex="-1">
-<div class="t12p">
+
+<!-- ═══ TAB 13 : WEBCAMS ═══ -->
+
+
+<!-- MODALE RESSOURCES (ex-onglets 12 et 13, fusionnés en 9.5) -->
+<div class="mbg" id="ressources-bg" onclick="if(event.target===this)closeRessources()">
+<div class="mdl mdl-wide" role="dialog" aria-modal="true" aria-label="Ressources">
+  <div class="mhdr">
+    <div><div class="mt">ℹ️ Ressources</div><div class="ms">Numéros d'urgence, portails officiels et webcams du littoral</div></div>
+    <button class="xbtn" onclick="closeRessources()" aria-label="Fermer">×</button>
+  </div>
   <div class="prev-intro">
-    <strong>Se préparer et réagir face au risque inondation</strong> — sélection de ressources officielles (État, opérateurs publics, préfecture des Côtes-d'Armor). Cet onglet ne remplace pas les consignes officielles diffusées en cas d'alerte : suivre en priorité les messages de la préfecture et de votre mairie.
+    <strong>Se préparer et réagir face au risque inondation</strong> — sélection de ressources officielles (État, opérateurs publics, préfecture des Côtes-d'Armor). Ces ressources ne remplacent pas les consignes officielles diffusées en cas d'alerte : suivre en priorité les messages de la préfecture et de votre mairie.
   </div>
 
   <div class="prev-group">
@@ -1156,12 +1153,7 @@ tr:hover td{background:var(--accent-light)}
       </a>
     </div>
   </div>
-</div>
-</div>
 
-<!-- ═══ TAB 13 : WEBCAMS ═══ -->
-<div class="panel" id="panel13" role="tabpanel" aria-labelledby="tab13" tabindex="-1">
-<div class="t12p">
   <div class="prev-intro">
     <strong>Webcams du littoral des Côtes-d'Armor</strong> — vues en direct sur les ports et plages du département, de Perros-Guirec à Lancieux, gérées par les offices de tourisme et mairies. Utile pour visualiser l'état de la mer et les conditions locales en complément des données hydrométriques.
     <br><a class="prev-card-link" href="https://www.cotesdarmor.com/infos-pratiques/webcams-et-meteo/" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px">↗ Portail officiel — Comité départemental du tourisme des Côtes-d'Armor</a>
@@ -1220,8 +1212,6 @@ tr:hover td{background:var(--accent-light)}
   <p class="note">Liens vers des sites tiers (offices de tourisme, mairies) — disponibilité et horaires de diffusion non garantis par cette application. Source : portail webcams du Comité départemental du tourisme des Côtes-d'Armor.</p>
 </div>
 </div>
-
-
 <!-- MODAL STATION -->
 <div class="mbg" id="mbg" onclick="if(event.target===this)closeMod()">
 <div class="mdl">

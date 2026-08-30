@@ -17,11 +17,20 @@ export function switchTab(n) {
     p.classList.toggle('active', p.id === 'panel'+n);
   });
   if (n===4) window.renderJournal && window.renderJournal();
-  if (n===5) window.renderBassins && window.renderBassins();
-  if (n===6 && !METEO_DATA) window.loadMeteo && window.loadMeteo();
-  else if (n===6) window.renderMeteo && window.renderMeteo();
-  if (n===7 && !SOL_DATA) window.loadSol && window.loadSol();
-  else if (n===7) window.renderSol && window.renderSol();
+  // Onglet 5 « Stations » : bassins + historique 12 h (ex-onglet 3)
+  if (n===5) {
+    window.renderBassins && window.renderBassins();
+    window.renderHist && window.renderHist();
+  }
+  // Onglet 6 « Contexte » : météo + sols + nappes (ex-onglets 6, 7 et 11)
+  if (n===6) {
+    if (!METEO_DATA) window.loadMeteo && window.loadMeteo();
+    else window.renderMeteo && window.renderMeteo();
+    if (!SOL_DATA) window.loadSol && window.loadSol();
+    else window.renderSol && window.renderSol();
+    if (!NAPPES_DATA) window.loadNappes && window.loadNappes();
+    else window.renderNappes && window.renderNappes();
+  }
   if (n===9) {
     if (!window.emMap) {
       window.emInitMap && window.emInitMap();
@@ -30,8 +39,6 @@ export function switchTab(n) {
     }
     setTimeout(() => window.emMap?.invalidateSize(), 200);
   }
-  if (n===11 && !NAPPES_DATA) window.loadNappes && window.loadNappes();
-  else if (n===11) window.renderNappes && window.renderNappes();
 }
 
 export function restoreTab() {

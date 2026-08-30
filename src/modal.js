@@ -96,6 +96,14 @@ export function openMod(code) {
   loadTrendChart(code, refCrues(code));
 }
 
+export function openRessources() {
+  document.getElementById('ressources-bg')?.classList.add('open');
+}
+
+export function closeRessources() {
+  document.getElementById('ressources-bg')?.classList.remove('open');
+}
+
 export function closeMod() {
   document.getElementById('mbg').classList.remove('open');
 }

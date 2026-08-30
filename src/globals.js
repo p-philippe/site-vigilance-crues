@@ -5,7 +5,7 @@ import { loadAll, loadMeteo, loadSol, loadNappes, loadMaree } from './data.js';
 import { renderBassins, renderHist, toggleBV } from './render.js';
 import { renderJournal, clearJournal, exportJournalCSV } from './journal.js';
 import { renderMeteo, renderDailyMeteo, renderSol, renderNappes } from './meteo.js';
-import { openMod, closeMod } from './modal.js';
+import { openMod, closeMod, openRessources, closeRessources } from './modal.js';
 import { toggleRadar } from './map.js';
 import { toggleNotif } from './notif.js';
 import { toggleTz } from './utils.js';
@@ -45,6 +45,8 @@ window.renderNappes = renderNappes;
 // Modale station
 window.openMod = openMod;
 window.closeMod = closeMod;
+window.openRessources = openRessources;
+window.closeRessources = closeRessources;
 
 // Radar
 window.toggleRadar = toggleRadar;
