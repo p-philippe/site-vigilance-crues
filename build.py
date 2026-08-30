@@ -82,26 +82,30 @@ def strip_exports(src: str) -> str:
     return src
 
 
-def inline_em_sensitive() -> str:
-    """Retourne la déclaration JS du JSON établissements sensibles (232 Ko)."""
-    json_path = SRC / 'em-sensitive-inline.json'
-    if not json_path.exists():
-        print('  ⚠ em-sensitive-inline.json introuvable — fetch conservé')
-        return ''
-    data = json_path.read_text(encoding='utf-8').strip()
-    return f'// em-sensitive-inline.json inliné par build.py\nconst _EM_SENSITIVE_BLOB = {data};\n'
+def copy_em_sensitive() -> None:
+    """Copie le JSON des établissements sensibles à côté de l'app (chargé à la demande).
+
+    Ce fichier pèse ~227 Ko. L'inliner dans le bundle le faisait payer à chaque
+    visiteur, y compris ceux qui n'ouvrent jamais la couche. Il est désormais
+    servi en fichier séparé et récupéré au premier affichage de la couche, puis
+    mis en cache par le service worker (item 8.5).
+    """
+    src = SRC / 'em-sensitive-inline.json'
+    if not src.exists():
+        print('  ⚠ em-sensitive-inline.json introuvable')
+        return
+    dst = PROD.parent / 'em-sensitive.json'
+    dst.write_text(src.read_text(encoding='utf-8'), encoding='utf-8')
+    print(f'  Asset    : em-sensitive.json copié ({dst.stat().st_size / 1024:.0f} Ko)')
 
 
 def patch_em_map(src: str) -> str:
-    """Remplace le fetch dynamique par la constante inlinée."""
-    return src.replace(
-        "const r = await fetch('./src/em-sensitive-inline.json');\n  EM_SENSITIVE_INLINE = await r.json();",
-        "EM_SENSITIVE_INLINE = _EM_SENSITIVE_BLOB;"
-    )
+    """Adapte le chemin du JSON : ./src/... en dev, ./ à la racine servie en prod."""
+    return src.replace("fetch('./src/em-sensitive-inline.json')",
+                       "fetch('./em-sensitive.json')")
 
 
 def bundle_modules() -> str:
-    em_blob = inline_em_sensitive()
     parts = []
     for name in MODULE_ORDER:
         path = SRC / name
@@ -111,8 +115,7 @@ def bundle_modules() -> str:
         raw = path.read_text(encoding='utf-8')
         processed = strip_imports(raw)
         processed = strip_exports(processed)
-        if name == 'em-map.js' and em_blob:
-            parts.append(f'\n// ═══ em-sensitive-inline.json ═══\n{em_blob}')
+        if name == 'em-map.js':
             processed = patch_em_map(processed)
         parts.append(f'\n// ═══ {name} ═══\n{processed}')
     return '\n'.join(parts)
@@ -157,6 +160,7 @@ def build(check=False):
         return
 
     PROD.write_text(prod_html, encoding='utf-8')
+    copy_em_sensitive()
 
     # Bump CACHE_NAME dans sw.js pour invalider le cache PWA après chaque build
     import datetime as _dt

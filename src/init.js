@@ -7,7 +7,7 @@ import { cacheRestore } from './cache.js';
 import { journalLoad } from './journal.js';
 import { emSetColor } from './em-map.js';
 import { initMap } from './map.js';
-import { restoreTab, initTabKeyboard } from './tabs.js';
+import { restoreTab, initTabs } from './tabs.js';
 import { updateOnlineStatus } from './utils.js';
 import { renderBassins, renderHist } from './render.js';
 
@@ -95,7 +95,7 @@ window.PROP_DATA = [
   restoreTab();
 
   // 12. Navigation clavier onglets
-  initTabKeyboard();
+  initTabs();
 
   // 13. Connectivité
   updateOnlineStatus();

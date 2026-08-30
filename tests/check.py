@@ -137,22 +137,31 @@ def test_build_size():
         warn('Fichier prod introuvable — test ignoré')
         return
     size_kb = PROD.stat().st_size / 1024
-    limit_kb = 900
+    limit_kb = 400
     if size_kb > limit_kb:
         err(f'Build trop lourd : {size_kb:.0f} Ko > {limit_kb} Ko')
     else:
         ok(f'Build taille : {size_kb:.0f} Ko (limite {limit_kb} Ko)')
 
-# ── 8. Build output — JSON établissements sensibles inliné ────────────────
-def test_build_em_sensitive_inlined():
+# ── 8. Build output — JSON établissements sensibles chargé à la demande ───
+def test_build_em_sensitive_lazy():
+    """Le JSON (~227 Ko) doit rester hors du bundle et être servi à part (8.5)."""
     if not PROD.exists():
         warn('Fichier prod introuvable — test ignoré')
         return
     prod = PROD.read_text(encoding='utf-8')
+    asset = PROD.parent / 'em-sensitive.json'
     if '_EM_SENSITIVE_BLOB' in prod:
-        ok('Build : em-sensitive-inline.json correctement inliné')
-    else:
-        err('Build : _EM_SENSITIVE_BLOB absent — em-sensitive-inline.json non inliné')
+        err('Build : JSON établissements sensibles ré-inliné — il doit rester différé')
+        return
+    if not asset.exists():
+        err('Build : em-sensitive.json absent de public_html/ — la couche ne chargera pas')
+        return
+    if "fetch('./em-sensitive.json')" not in prod:
+        err("Build : le bundle ne pointe pas vers ./em-sensitive.json")
+        return
+    ko = asset.stat().st_size / 1024
+    ok(f'Build : établissements sensibles différés ({ko:.0f} Ko hors bundle)')
 
 # ── 9. Build output — strictement synchronisé avec les sources ───────────
 def test_build_is_current():
@@ -230,7 +239,7 @@ TESTS = [
     test_bassins_codes,
     test_build_output_clean,
     test_build_size,
-    test_build_em_sensitive_inlined,
+    test_build_em_sensitive_lazy,
     test_build_is_current,
     test_sw_cache_name,
     test_network_hygiene,
