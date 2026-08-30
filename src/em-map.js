@@ -72,7 +72,8 @@ export function emInitMap() {
   emAnnotations = L.featureGroup();
   emStationsLayer = L.featureGroup();
 
-  emMap = L.map('em-map', {zoomControl:true, attributionControl:true}).setView([48.42, -2.95], 9);
+  emMap = L.map('em-map', {zoomControl:false, attributionControl:true}).setView([48.42, -2.95], 9);
+  L.control.zoom({position:'bottomright'}).addTo(emMap);
   emBaseLayers.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap', maxZoom:19});
   emBaseLayers.topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {attribution:'© OpenTopoMap', maxZoom:17});
   emBaseLayers.osm.addTo(emMap);

@@ -4,7 +4,7 @@ import { switchTab, restoreTab } from './tabs.js';
 import { loadAll, ensureEnvData, loadMeteo, loadSol, loadNappes, loadMaree } from './data.js';
 import { renderBassins, renderHist, toggleBV, toggleFav, toggleFavorite } from './render.js';
 import { renderJournal, clearJournal, exportJournalCSV } from './journal.js';
-import { renderMeteo, renderDailyMeteo, renderSol, renderNappes } from './meteo.js';
+import { renderMeteo, renderDailyMeteo, renderSol, renderNappes, nappeFloodHint } from './meteo.js';
 import { openMod, closeMod } from './modal.js';
 import { toggleRadar } from './map.js';
 import { toggleNotif } from './notif.js';
@@ -48,6 +48,7 @@ window.renderMeteo = renderMeteo;
 window.renderDailyMeteo = renderDailyMeteo;
 window.renderSol = renderSol;
 window.renderNappes = renderNappes;
+window.nappeFloodHint = nappeFloodHint;
 
 // Modale station
 window.openMod = openMod;

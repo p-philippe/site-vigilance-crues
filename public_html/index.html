@@ -344,6 +344,22 @@ tr:hover td{background:var(--accent-light)}
 .sol-legend-item{display:flex;align-items:center;gap:4px}
 .sol-legend-dot{width:10px;height:10px;border-radius:50%}
 .sol-source{font-size:10px;color:var(--text3);text-align:right;margin-top:8px}
+.nappe-verdict{border-radius:10px;padding:14px 16px;margin-bottom:4px;border:1px solid var(--border)}
+.nappe-verdict.ok{background:#f0faf0;border-color:#b7e0b7}
+.nappe-verdict.warn{background:#fff6e8;border-color:#f0c98a}
+.nappe-verdict.crit{background:#fdecea;border-color:#f0a8a0}
+.nappe-verdict-kicker{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;opacity:.75}
+.nappe-verdict-title{font-size:16px;font-weight:700;line-height:1.25}
+.nappe-verdict-sub{font-size:12px;color:var(--text2);margin-top:6px;line-height:1.45}
+.nappe-verdict-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.sol-card.nappe-crit{border-left:4px solid #c0392b}
+.sol-card.nappe-warn{border-left:4px solid #e67e22}
+.sol-card.nappe-ok{border-left:4px solid #27ae60}
+.sol-card.nappe-low{border-left:4px solid #5dade2}
+.nappe-status{font-size:22px;font-weight:700;line-height:1.1}
+.nappe-status-hint{font-size:11px;color:var(--text2);margin-top:4px;line-height:1.35}
+.nappe-abs{font-size:10px;color:var(--text3);margin-top:8px;line-height:1.4;font-family:var(--sans)}
+
 
 
 /* ─── CARTE ÉTAT-MAJOR ─── */
@@ -351,11 +367,11 @@ tr:hover td{background:var(--accent-light)}
 #em-map{flex:1;z-index:1}
 /* Barre de recherche géocodage */
 .em-search{
-  position:absolute;top:12px;left:62px;right:228px;z-index:1002;
+  position:absolute;top:12px;left:116px;right:228px;z-index:1202;
   display:flex;align-items:center;gap:0;
 }
 #surge-alert{
-  position:absolute;top:60px;left:62px;right:228px;z-index:1001;
+  position:absolute;top:60px;left:116px;right:228px;z-index:1201;
   margin:0;box-shadow:0 2px 8px rgba(0,0,0,.15);
 }
 .em-search-input{
@@ -382,15 +398,17 @@ tr:hover td{background:var(--accent-light)}
 .em-search-loading{padding:8px 12px;font-size:12px;color:rgba(255,255,255,.5);font-family:var(--sans)}
 /* Barre d'outils */
 .em-toolbar{
-  position:absolute;top:12px;left:12px;z-index:1000;
+  position:absolute;top:12px;left:12px;z-index:1200;
   background:#1a2332;border-radius:10px;
   box-shadow:0 4px 20px rgba(0,0,0,.4);
   display:flex;flex-direction:column;gap:2px;
-  padding:6px;min-width:44px;
-  max-height:calc(100vh - 120px);overflow-y:auto;
+  padding:6px;min-width:44px;width:92px;
+  max-height:calc(100% - 24px);overflow-y:auto;overflow-x:hidden;
+  overscroll-behavior:contain;scrollbar-width:thin;
+  pointer-events:auto;
 }
 .em-section{
-  display:flex;flex-direction:column;gap:2px;
+  display:grid;grid-template-columns:1fr 1fr;gap:2px;
   padding:4px 0;border-bottom:1px solid rgba(255,255,255,.1);
 }
 .em-section:last-child{border-bottom:none}
@@ -403,7 +421,7 @@ tr:hover td{background:var(--accent-light)}
 .em-btn:hover{background:rgba(255,255,255,.12);color:#fff}
 .em-btn.active{background:rgba(255,255,255,.2);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)}
 .em-btn[title]:hover::after{
-  content:attr(title);position:absolute;left:44px;top:50%;transform:translateY(-50%);
+  content:attr(title);position:absolute;left:50px;top:50%;transform:translateY(-50%);z-index:1300;
   background:#1a2332;color:#fff;font-size:11px;white-space:nowrap;
   padding:4px 8px;border-radius:5px;pointer-events:none;font-family:var(--sans);
   box-shadow:0 2px 8px rgba(0,0,0,.3);
@@ -417,7 +435,7 @@ tr:hover td{background:var(--accent-light)}
 .em-color-btn:hover{transform:scale(1.1)}
 /* Panneau info / propriétés */
 .em-info{
-  position:absolute;top:12px;right:12px;z-index:1000;
+  position:absolute;top:12px;right:12px;z-index:1200;
   background:#1a2332;border-radius:10px;
   box-shadow:0 4px 20px rgba(0,0,0,.4);
   color:#fff;padding:10px 12px;width:200px;font-size:12px;
@@ -487,7 +505,7 @@ tr:hover td{background:var(--accent-light)}
   }
 }
 @media(max-width:640px){
-  .em-search{top:10px;left:54px;width:calc(100% - 64px)}
+  .em-search{top:10px;left:108px;right:12px;width:auto}
   .em-search-input{font-size:12px;padding:8px 10px}
   .em-search-btn{padding:8px 10px}
   #surge-alert{top:56px;left:54px;width:calc(100% - 64px);right:auto;font-size:11px}
@@ -705,9 +723,11 @@ tr:hover td{background:var(--accent-light)}
   /* Revue presse */
   .rp-form-grid{grid-template-columns:1fr}
 
-  /* Carte état-major : barre de recherche full-width */
-  .em-search{top:8px;left:8px;width:calc(100% - 16px)}
-  .em-info{width:160px;font-size:11px}
+  /* Carte : chrome au-dessus des tuiles, panneau droit replié */
+  .em-search{top:8px;left:108px;right:8px;width:auto}
+  .em-info{display:none}
+  .em-toolbar{width:92px}
+  .leaflet-bottom.leaflet-left{display:none}
 }
 
 @media(max-width:480px){
@@ -730,8 +750,8 @@ tr:hover td{background:var(--accent-light)}
   .slg{grid-template-columns:1fr 1fr}
   /* Grille seuils popup carte : 2 colonnes */
   .pu-seuils{grid-template-columns:1fr 1fr}
-  /* Barre outils carte état-major : icônes plus grandes pour le tactile */
-  .em-btn{width:40px;height:40px;font-size:16px}
+  .em-btn{width:38px;height:38px;font-size:15px}
+  .em-toolbar{width:92px}
   /* Bouton mobile-home : visible sur mobile */
   #btn-mobile-home{display:flex !important;align-items:center;justify-content:center}
 }
@@ -740,8 +760,6 @@ tr:hover td{background:var(--accent-light)}
   .t-em,#em-map{min-height:220px}
   /* Modal station : padding réduit */
   .mdl{padding:.75rem}
-  /* Barre outils carte état-major : masquer les sections secondaires */
-  .em-section+.em-section+.em-section{display:none}
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
@@ -1318,7 +1336,8 @@ tr:hover td{background:var(--accent-light)}
 <div class="panel" id="panel11" role="tabpanel" aria-labelledby="tab11" tabindex="-1">
 <div class="t7">
   <div class="sol-intro">
-    <strong>Nappes phréatiques — Côtes-d'Armor (22)</strong> — Chaque piézomètre est comparé à <strong>sa propre chronique historique pour le même mois</strong> (percentile, approche BRGM) : une nappe au 90ᵉ centile est exceptionnellement haute pour la saison, quelle que soit sa profondeur absolue. Nappe très haute = bassin sans capacité d'absorption, crues amplifiées et risque de remontée de nappe. Source : Hub'Eau API v1 niveaux nappes.
+    <strong>Nappes — le signal crue, pas la cote en mètres.</strong>
+    −7 m à Ploufragan n'est pas comparable à −18 m à Collinée : chaque forage a sa propre profondeur. Pour savoir si c'est <em>critique</em>, on classe le niveau actuel dans l'historique du <strong>même mois</strong> (percentile BRGM). Au-dessus du 90ᵉ centile = nappe très haute pour la saison = plus de capacité d'absorption, crues amplifiées, risque de remontée de nappe.
   </div>
   <div class="sol-risk-panel">
     <div class="sol-risk-title">💧 Synthèse départementale — nappes</div>
@@ -3739,6 +3758,21 @@ function nappeJauge(pct, color) {
   </div>`;
 }
 
+function nappeFloodHint(pct) {
+  if (pct == null) return 'Chronique trop courte pour juger.';
+  if (pct >= 90) return 'Critique pour les crues — plus de marge d\'absorption, risque de remontée de nappe.';
+  if (pct >= 75) return 'Vigilance — nappe haute pour la saison, sols moins capables d\'encaisser la pluie.';
+  if (pct >= 25) return 'Pas d\'enjeu crue lié à la nappe — niveau de saison.';
+  return 'Favorable pour les crues (nappe basse). Peut signaler un déficit d\'étiage.';
+}
+function nappeCardClass(pct) {
+  if (pct == null) return '';
+  if (pct >= 90) return 'nappe-crit';
+  if (pct >= 75) return 'nappe-warn';
+  if (pct >= 25) return 'nappe-ok';
+  return 'nappe-low';
+}
+
 function renderNappes() {
   if (!NAPPES_DATA) return;
   const grid = document.getElementById('nappes-grid');
@@ -3746,9 +3780,10 @@ function renderNappes() {
   if (!grid) return;
 
   const counts = { 'Très haut':0, 'Haut':0, 'Normal':0, 'Bas':0, 'Très bas':0, 'N/D':0 };
+  const ranked = [...NAPPES_DATA].sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
   let html = '';
 
-  for (const sta of NAPPES_DATA) {
+  for (const sta of ranked) {
     const mes = sta.mesures || [];
     const last = mes[0];
     const prev = mes[1];
@@ -3756,11 +3791,11 @@ function renderNappes() {
     const prof = last?.profondeur_nappe;
     const date = last ? new Date(last.date_mesure).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'}) : null;
 
-    let tendance = '→', tendColor = 'var(--text3)';
+    let tendance = 'stable', tendGlyph = '→', tendColor = 'var(--text3)';
     if (niveau != null && prev?.niveau_nappe_eau != null) {
       const diff = niveau - prev.niveau_nappe_eau;
-      if (diff > 0.05) { tendance = '↑'; tendColor = '#2980b9'; }
-      else if (diff < -0.05) { tendance = '↓'; tendColor = '#27ae60'; }
+      if (diff > 0.05) { tendance = 'en hausse'; tendGlyph = '↑'; tendColor = '#c0392b'; }
+      else if (diff < -0.05) { tendance = 'en baisse'; tendGlyph = '↓'; tendColor = '#27ae60'; }
     }
 
     const pct = sta.pct;
@@ -3770,32 +3805,31 @@ function renderNappes() {
     const nom = escapeHtml(sta.libelle_pe || sta.code_bss);
     const commune = escapeHtml(sta.nom_commune || '');
     const masse = escapeHtml((sta.noms_masse_eau_edl || [])[0] || '');
-    const niveauStr = niveau != null ? niveau.toFixed(2) + ' m NGF' : '—';
-    const profStr = prof != null ? prof.toFixed(2) + ' m' : '—';
-    const pctStr = pct != null ? `${pct}ᵉ centile` : 'chronique insuffisante';
+    const pctStr = pct != null ? pct + 'ᵉ centile' : 'N/D';
 
-    html += `<div class="sol-card">
+    html += `<div class="sol-card ${nappeCardClass(pct)}">
       <div class="sol-card-hdr">
         <div style="flex:1">
           <div class="sol-card-nom">${nom}</div>
           <div class="sol-card-zone">${commune} · ${sta.code_bss}</div>
         </div>
-        <div style="font-size:18px;font-weight:700;color:${tendColor};margin-left:8px">${tendance}</div>
+        <span style="font-size:11px;font-weight:700;color:${cls.color};background:${cls.bg};padding:3px 10px;border-radius:99px;white-space:nowrap">${cls.label}</span>
       </div>
       <div class="sol-gauge-wrap">
-        <div class="sol-gauge-label">
-          <span>Vs historique (même mois) : <strong>${pctStr}</strong></span>
-          <span style="font-size:11px;font-weight:700;color:${cls.color};background:${cls.bg};padding:1px 8px;border-radius:99px">${cls.label}</span>
-        </div>
+        <div class="nappe-status" style="color:${cls.color}">${pctStr}</div>
+        <div class="nappe-status-hint">${nappeFloodHint(pct)}</div>
         ${nappeJauge(pct, cls.color)}
-        <div class="sol-kpis">
-          <div class="sol-kpi"><div class="sol-kpi-l">Profondeur</div><div class="sol-kpi-v" style="font-size:13px">${profStr}</div></div>
-          <div class="sol-kpi"><div class="sol-kpi-l">Niveau NGF</div><div class="sol-kpi-v" style="font-size:13px">${niveauStr}</div></div>
+        <div class="nappe-abs">
+          Cote brute (incomparable d'un point à l'autre) :
+          ${prof != null ? 'nappe à ' + prof.toFixed(2) + ' m sous le sol' : 'profondeur N/D'}
+          ${niveau != null ? ' · ' + niveau.toFixed(2) + ' m NGF' : ''}
+          · ${tendGlyph} ${tendance}
+          · mesure du ${date || '—'}
+          ${sta.pctYears ? ' · chronique ' + sta.pctYears + ' an' + (sta.pctYears > 1 ? 's' : '') : ''}
         </div>
-        <div style="font-size:10px;color:var(--text3);margin-top:6px">Mesure du ${date || '—'}${sta.pctYears ? ` · chronique ${sta.pctYears} an${sta.pctYears > 1 ? 's' : ''}` : ''}</div>
         ${masse ? `<div style="font-size:10px;color:var(--text3);margin-top:2px">Masse d'eau : ${masse}</div>` : ''}
         <div style="margin-top:6px">
-          <a href="https://ades.eaufrance.fr/Fiche/PtEau?Code=${encodeURIComponent(sta.code_bss)}" target="_blank" style="font-size:11px;color:var(--accent);text-decoration:none">↗ Fiche ADES</a>
+          <a href="https://ades.eaufrance.fr/Fiche/PtEau?Code=${encodeURIComponent(sta.code_bss)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);text-decoration:none">↗ Fiche ADES</a>
         </div>
       </div>
     </div>`;
@@ -3805,16 +3839,33 @@ function renderNappes() {
 
   if (synth) {
     const total = NAPPES_DATA.length;
+    const crit = counts['Très haut'], warn = counts['Haut'];
+    let tone = 'ok', kicker = 'Situation nappes', title, sub;
+    if (crit > 0) {
+      tone = 'crit'; kicker = 'Signal critique';
+      title = crit + ' nappe' + (crit > 1 ? 's' : '') + ' très haute' + (crit > 1 ? 's' : '') + ' pour la saison';
+      sub = 'Capacité d\'absorption quasi nulle sur ces bassins — crues amplifiées et risque de remontée de nappe. La cote en mètres n\'est pas le bon indicateur : c\'est le rang saisonnier qui compte.';
+    } else if (warn > 0) {
+      tone = 'warn'; kicker = 'Vigilance';
+      title = warn + ' nappe' + (warn > 1 ? 's' : '') + ' haute' + (warn > 1 ? 's' : '') + ' pour la saison';
+      sub = 'Pas encore critique, mais les sols encaiseront moins bien un épisode pluvieux. Aucune nappe au-dessus du 90ᵉ centile.';
+    } else {
+      title = 'Pas de signal critique';
+      sub = total + ' piézomètres dans les normes saisonnières ou plus bas. Les cotes absolues (−7 m, −18 m…) ne se comparent pas entre forages.';
+    }
     const badge = (label) => {
       const c = { 'Très haut':['#fdecea','#c0392b'], 'Haut':['#fff3e6','#e67e22'], 'Normal':['#f0faf0','#27ae60'], 'Bas':['#eaf3fb','#5dade2'], 'Très bas':['#eaf3fb','#2980b9'] }[label];
-      return `<span style="background:${c[0]};color:${c[1]};padding:2px 10px;border-radius:99px;font-size:11px">${label} : ${counts[label]}</span>`;
+      return `<span style="background:${c[0]};color:${c[1]};padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600">${label} : ${counts[label]}</span>`;
     };
-    synth.innerHTML = `<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-      <span style="font-weight:600">${total} piézomètres</span>
-      ${badge('Très haut')}${badge('Haut')}${badge('Normal')}${badge('Bas')}${badge('Très bas')}
-      ${counts['N/D'] ? `<span style="background:var(--bg2);color:var(--text3);padding:2px 10px;border-radius:99px;font-size:11px">N/D : ${counts['N/D']}</span>` : ''}
-    </div>
-    <div style="font-size:10px;color:var(--text3);margin-top:6px">Niveau de chaque piézomètre comparé à sa propre chronique historique pour le même mois (percentile). « Très haut » = capacité d'absorption du bassin quasi nulle, risque aggravé de crue et de remontée de nappe.</div>`;
+    synth.innerHTML = `<div class="nappe-verdict ${tone}">
+      <div class="nappe-verdict-kicker">${kicker}</div>
+      <div class="nappe-verdict-title">${title}</div>
+      <div class="nappe-verdict-sub">${sub}</div>
+      <div class="nappe-verdict-badges">
+        ${badge('Très haut')}${badge('Haut')}${badge('Normal')}${badge('Bas')}${badge('Très bas')}
+        ${counts['N/D'] ? `<span style="background:var(--bg2);color:var(--text3);padding:2px 10px;border-radius:99px;font-size:11px">N/D : ${counts['N/D']}</span>` : ''}
+      </div>
+    </div>`;
   }
 }
 
@@ -4669,7 +4720,8 @@ function emInitMap() {
   emAnnotations = L.featureGroup();
   emStationsLayer = L.featureGroup();
 
-  emMap = L.map('em-map', {zoomControl:true, attributionControl:true}).setView([48.42, -2.95], 9);
+  emMap = L.map('em-map', {zoomControl:false, attributionControl:true}).setView([48.42, -2.95], 9);
+  L.control.zoom({position:'bottomright'}).addTo(emMap);
   emBaseLayers.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap', maxZoom:19});
   emBaseLayers.topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {attribution:'© OpenTopoMap', maxZoom:17});
   emBaseLayers.osm.addTo(emMap);
@@ -5737,8 +5789,7 @@ function synthMapInit() {
   if (synthMap) return;
   if (!document.getElementById('synth-map')) return;
   synthMap = L.map('synth-map', {zoomControl:true, attributionControl:false}).setView([48.42, -2.72], 8);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {maxZoom:19, subdomains:'abcd'}).addTo(synthMap);
-  L.control.attribution({prefix:'© CartoDB · OSM'}).addTo(synthMap);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap', maxZoom:19}).addTo(synthMap);
   synthMarkersLayer = L.layerGroup().addTo(synthMap);
 
   window.synthMap = synthMap;
@@ -6439,6 +6490,7 @@ window.renderMeteo = renderMeteo;
 window.renderDailyMeteo = renderDailyMeteo;
 window.renderSol = renderSol;
 window.renderNappes = renderNappes;
+window.nappeFloodHint = nappeFloodHint;
 
 // Modale station
 window.openMod = openMod;

@@ -344,6 +344,22 @@ tr:hover td{background:var(--accent-light)}
 .sol-legend-item{display:flex;align-items:center;gap:4px}
 .sol-legend-dot{width:10px;height:10px;border-radius:50%}
 .sol-source{font-size:10px;color:var(--text3);text-align:right;margin-top:8px}
+.nappe-verdict{border-radius:10px;padding:14px 16px;margin-bottom:4px;border:1px solid var(--border)}
+.nappe-verdict.ok{background:#f0faf0;border-color:#b7e0b7}
+.nappe-verdict.warn{background:#fff6e8;border-color:#f0c98a}
+.nappe-verdict.crit{background:#fdecea;border-color:#f0a8a0}
+.nappe-verdict-kicker{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;opacity:.75}
+.nappe-verdict-title{font-size:16px;font-weight:700;line-height:1.25}
+.nappe-verdict-sub{font-size:12px;color:var(--text2);margin-top:6px;line-height:1.45}
+.nappe-verdict-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.sol-card.nappe-crit{border-left:4px solid #c0392b}
+.sol-card.nappe-warn{border-left:4px solid #e67e22}
+.sol-card.nappe-ok{border-left:4px solid #27ae60}
+.sol-card.nappe-low{border-left:4px solid #5dade2}
+.nappe-status{font-size:22px;font-weight:700;line-height:1.1}
+.nappe-status-hint{font-size:11px;color:var(--text2);margin-top:4px;line-height:1.35}
+.nappe-abs{font-size:10px;color:var(--text3);margin-top:8px;line-height:1.4;font-family:var(--sans)}
+
 
 
 /* ─── CARTE ÉTAT-MAJOR ─── */
@@ -351,11 +367,11 @@ tr:hover td{background:var(--accent-light)}
 #em-map{flex:1;z-index:1}
 /* Barre de recherche géocodage */
 .em-search{
-  position:absolute;top:12px;left:62px;right:228px;z-index:1002;
+  position:absolute;top:12px;left:116px;right:228px;z-index:1202;
   display:flex;align-items:center;gap:0;
 }
 #surge-alert{
-  position:absolute;top:60px;left:62px;right:228px;z-index:1001;
+  position:absolute;top:60px;left:116px;right:228px;z-index:1201;
   margin:0;box-shadow:0 2px 8px rgba(0,0,0,.15);
 }
 .em-search-input{
@@ -382,15 +398,17 @@ tr:hover td{background:var(--accent-light)}
 .em-search-loading{padding:8px 12px;font-size:12px;color:rgba(255,255,255,.5);font-family:var(--sans)}
 /* Barre d'outils */
 .em-toolbar{
-  position:absolute;top:12px;left:12px;z-index:1000;
+  position:absolute;top:12px;left:12px;z-index:1200;
   background:#1a2332;border-radius:10px;
   box-shadow:0 4px 20px rgba(0,0,0,.4);
   display:flex;flex-direction:column;gap:2px;
-  padding:6px;min-width:44px;
-  max-height:calc(100vh - 120px);overflow-y:auto;
+  padding:6px;min-width:44px;width:92px;
+  max-height:calc(100% - 24px);overflow-y:auto;overflow-x:hidden;
+  overscroll-behavior:contain;scrollbar-width:thin;
+  pointer-events:auto;
 }
 .em-section{
-  display:flex;flex-direction:column;gap:2px;
+  display:grid;grid-template-columns:1fr 1fr;gap:2px;
   padding:4px 0;border-bottom:1px solid rgba(255,255,255,.1);
 }
 .em-section:last-child{border-bottom:none}
@@ -403,7 +421,7 @@ tr:hover td{background:var(--accent-light)}
 .em-btn:hover{background:rgba(255,255,255,.12);color:#fff}
 .em-btn.active{background:rgba(255,255,255,.2);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)}
 .em-btn[title]:hover::after{
-  content:attr(title);position:absolute;left:44px;top:50%;transform:translateY(-50%);
+  content:attr(title);position:absolute;left:50px;top:50%;transform:translateY(-50%);z-index:1300;
   background:#1a2332;color:#fff;font-size:11px;white-space:nowrap;
   padding:4px 8px;border-radius:5px;pointer-events:none;font-family:var(--sans);
   box-shadow:0 2px 8px rgba(0,0,0,.3);
@@ -417,7 +435,7 @@ tr:hover td{background:var(--accent-light)}
 .em-color-btn:hover{transform:scale(1.1)}
 /* Panneau info / propriétés */
 .em-info{
-  position:absolute;top:12px;right:12px;z-index:1000;
+  position:absolute;top:12px;right:12px;z-index:1200;
   background:#1a2332;border-radius:10px;
   box-shadow:0 4px 20px rgba(0,0,0,.4);
   color:#fff;padding:10px 12px;width:200px;font-size:12px;
@@ -487,7 +505,7 @@ tr:hover td{background:var(--accent-light)}
   }
 }
 @media(max-width:640px){
-  .em-search{top:10px;left:54px;width:calc(100% - 64px)}
+  .em-search{top:10px;left:108px;right:12px;width:auto}
   .em-search-input{font-size:12px;padding:8px 10px}
   .em-search-btn{padding:8px 10px}
   #surge-alert{top:56px;left:54px;width:calc(100% - 64px);right:auto;font-size:11px}
@@ -705,9 +723,11 @@ tr:hover td{background:var(--accent-light)}
   /* Revue presse */
   .rp-form-grid{grid-template-columns:1fr}
 
-  /* Carte état-major : barre de recherche full-width */
-  .em-search{top:8px;left:8px;width:calc(100% - 16px)}
-  .em-info{width:160px;font-size:11px}
+  /* Carte : chrome au-dessus des tuiles, panneau droit replié */
+  .em-search{top:8px;left:108px;right:8px;width:auto}
+  .em-info{display:none}
+  .em-toolbar{width:92px}
+  .leaflet-bottom.leaflet-left{display:none}
 }
 
 @media(max-width:480px){
@@ -730,8 +750,8 @@ tr:hover td{background:var(--accent-light)}
   .slg{grid-template-columns:1fr 1fr}
   /* Grille seuils popup carte : 2 colonnes */
   .pu-seuils{grid-template-columns:1fr 1fr}
-  /* Barre outils carte état-major : icônes plus grandes pour le tactile */
-  .em-btn{width:40px;height:40px;font-size:16px}
+  .em-btn{width:38px;height:38px;font-size:15px}
+  .em-toolbar{width:92px}
   /* Bouton mobile-home : visible sur mobile */
   #btn-mobile-home{display:flex !important;align-items:center;justify-content:center}
 }
@@ -740,8 +760,6 @@ tr:hover td{background:var(--accent-light)}
   .t-em,#em-map{min-height:220px}
   /* Modal station : padding réduit */
   .mdl{padding:.75rem}
-  /* Barre outils carte état-major : masquer les sections secondaires */
-  .em-section+.em-section+.em-section{display:none}
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
@@ -1318,7 +1336,8 @@ tr:hover td{background:var(--accent-light)}
 <div class="panel" id="panel11" role="tabpanel" aria-labelledby="tab11" tabindex="-1">
 <div class="t7">
   <div class="sol-intro">
-    <strong>Nappes phréatiques — Côtes-d'Armor (22)</strong> — Chaque piézomètre est comparé à <strong>sa propre chronique historique pour le même mois</strong> (percentile, approche BRGM) : une nappe au 90ᵉ centile est exceptionnellement haute pour la saison, quelle que soit sa profondeur absolue. Nappe très haute = bassin sans capacité d'absorption, crues amplifiées et risque de remontée de nappe. Source : Hub'Eau API v1 niveaux nappes.
+    <strong>Nappes — le signal crue, pas la cote en mètres.</strong>
+    −7 m à Ploufragan n'est pas comparable à −18 m à Collinée : chaque forage a sa propre profondeur. Pour savoir si c'est <em>critique</em>, on classe le niveau actuel dans l'historique du <strong>même mois</strong> (percentile BRGM). Au-dessus du 90ᵉ centile = nappe très haute pour la saison = plus de capacité d'absorption, crues amplifiées, risque de remontée de nappe.
   </div>
   <div class="sol-risk-panel">
     <div class="sol-risk-title">💧 Synthèse départementale — nappes</div>
