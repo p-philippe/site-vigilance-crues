@@ -1597,6 +1597,19 @@ function updateOnlineStatus() {
 // ── VIGI — Logique de vigilance ───────────────────────────────────────────
 
 
+// Flux Vigicrues partagé : vigi.js (niveaux) et em-map.js (tracé des tronçons)
+// interrogeaient le même endpoint deux fois par cycle. Mémoïsé (item 9.8).
+const VIGI_GEO_TTL = 5 * 60 * 1000;
+let _vigiGeo = null;
+let _vigiGeoAt = 0;
+
+async function fetchVigicruesGeoJSON({ force = false } = {}) {
+  if (!force && _vigiGeo && Date.now() - _vigiGeoAt < VIGI_GEO_TTL) return _vigiGeo;
+  _vigiGeo = await fetchJson(VIGICRUES_GEOJSON);
+  _vigiGeoAt = Date.now();
+  return _vigiGeo;
+}
+
 function officialVigiLevel(raw) {
   const n = Number(raw);
   if (!Number.isFinite(n)) return null;
@@ -1621,9 +1634,7 @@ function vigiSourceLabel(code) {
 async function loadOfficialVigilance() {
   setVIGI_SOURCE_STATUS('loading');
   try {
-    const r = await fetch(VIGICRUES_GEOJSON);
-    if (!r.ok) throw new Error(`Vigicrues ${r.status}`);
-    const geo = await r.json();
+    const geo = await fetchVigicruesGeoJSON({ force: true });
     const byTroncon = {};
     for (const f of geo.features || []) {
       const p = f.properties || {};
@@ -2192,8 +2203,7 @@ function radarTileUrl(frame) {
 }
 
 async function radarFetchFrames() {
-  const r = await fetch('https://api.rainviewer.com/public/weather-maps.json');
-  const d = await r.json();
+  const d = await fetchJson('https://api.rainviewer.com/public/weather-maps.json', { timeout: 8000 });
   radarHost = d.host || 'https://tilecache.rainviewer.com';
   const past = d.radar?.past || [];
   const cutoff = Date.now() / 1000 - RADAR_WINDOW_MIN * 60;
@@ -2782,11 +2792,7 @@ async function loadVigicruesPrevisions(code) {
   if (!el) return;
   try {
     const url = `https://www.vigicrues.gouv.fr/services/previsions.json?CdStationHydro=${code}&FormatDate=iso`;
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 8000);
-    const r = await fetch(url, {signal: ctrl.signal});
-    clearTimeout(tid);
-    const d = await r.json();
+    const d = await fetchJson(url, { timeout: 8000 });
     const prevs = d?.Simul?.Prevs || [];
     const noPrevsHtml = `<div style="background:#f0f0f0;padding:10px;border-radius:6px;font-size:13px;color:#555;">
   ℹ️ Les prévisions SCHAPI pour cette station sont publiées uniquement lors des épisodes de vigilance orange ou rouge.<br>
@@ -3610,8 +3616,7 @@ function initTabs() {
 let EM_SENSITIVE_INLINE = null;
 async function getEmSensitiveInline() {
   if (EM_SENSITIVE_INLINE) return EM_SENSITIVE_INLINE;
-  const r = await fetch('./em-sensitive.json');
-  EM_SENSITIVE_INLINE = await r.json();
+  EM_SENSITIVE_INLINE = await fetchJson('./em-sensitive.json', { timeout: 20000 });
   return EM_SENSITIVE_INLINE;
 }
 
@@ -3712,9 +3717,7 @@ async function emLoadTroncons(attempt = 0) {
       emMap.createPane('tronconsPane');
       emMap.getPane('tronconsPane').style.zIndex = 550;
     }
-    const r = await fetch('/api/vigicrues');
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const gj = await r.json();
+    const gj = await fetchVigicruesGeoJSON();
     if (emTronconsLayer) { emMap.removeLayer(emTronconsLayer); emTronconsLayer = null; }
     emTronconsLayer = L.geoJSON(gj, {
       filter: f => EM_BT22.has(f.properties?.CdEntCru),
@@ -4671,8 +4674,7 @@ async function emSearchFetch(query) {
   try {
     const q = encodeURIComponent(`${query}, Côtes-d'Armor, Bretagne, France`);
     const url = `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=7&countrycodes=fr&accept-language=fr&addressdetails=1&viewbox=${EM_SEARCH_VIEWBOX}&bounded=0`;
-    const r = await fetch(url);
-    const data = await r.json();
+    const data = await fetchJson(url, { timeout: 8000 });
     if (!data.length) { res.innerHTML = '<div class="em-search-loading">Aucun résultat trouvé.</div>'; return; }
     res.innerHTML = data.map((item) => {
       const parts = item.display_name.split(', ');
@@ -4768,14 +4770,7 @@ async function loadAll() {
     const VIGICRUES_ONLY = ['J371301001', 'J813301001'];
     await Promise.all(VIGICRUES_ONLY.filter(c => !OBS[c]?.H).map(async code => {
       try {
-        const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 8000);
-        const rv = await fetch(
-          `${VIGICRUES_OBS}?code=${code}`,
-          { signal: ctrl.signal }
-        );
-        clearTimeout(tid);
-        const dv = await rv.json();
+        const dv = await fetchJson(`${VIGICRUES_OBS}?code=${code}`, { timeout: 8000 });
         const obs = dv?.Serie?.ObssHydro;
         if (obs && obs.length) {
           for (let i = obs.length - 1; i >= 0; i--) {
@@ -4961,14 +4956,10 @@ async function fetchNappeStats(sta) {
     if (c && Date.now() - c.ts < NAPPE_STATS_TTL) return c;
   } catch {}
   try {
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 15000);
-    const r = await fetch(
+    const d = await fetchJson(
       `https://hubeau.eaufrance.fr/api/v1/niveaux_nappes/chroniques?code_bss=${encodeURIComponent(sta.code_bss)}&size=4000&sort=desc&fields=date_mesure,niveau_nappe_eau`,
-      { signal: ctrl.signal }
+      { timeout: 15000 }
     );
-    clearTimeout(tid);
-    const d = await r.json();
     const rows = (d.data || []).filter(m => m.niveau_nappe_eau != null && m.date_mesure);
     const byMonth = {};
     for (const m of rows) {
@@ -5013,14 +5004,10 @@ async function loadNappes() {
 
     async function fetchChronique(sta) {
       try {
-        const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 8000);
-        const r = await fetch(
+        const d = await fetchJson(
           `https://hubeau.eaufrance.fr/api/v1/niveaux_nappes/chroniques?code_bss=${encodeURIComponent(sta.code_bss)}&size=10&sort=desc&fields=date_mesure,niveau_nappe_eau,profondeur_nappe`,
-          { signal: ctrl.signal }
+          { timeout: 8000 }
         );
-        clearTimeout(tid);
-        const d = await r.json();
         return { ...sta, mesures: d.data || [] };
       } catch { return { ...sta, mesures: [] }; }
     }

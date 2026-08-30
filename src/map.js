@@ -3,7 +3,7 @@
 import { ST, CODES, VC } from './config.js';
 import { OBS, mapInst, mapMarkers, setMapInst, addMapMarker } from './state.js';
 import { vigi } from './vigi.js';
-import { toast } from './utils.js';
+import { fetchJson, toast } from './utils.js';
 
 export function initMap() {
   const L = window.L;
@@ -102,8 +102,7 @@ function radarTileUrl(frame) {
 }
 
 async function radarFetchFrames() {
-  const r = await fetch('https://api.rainviewer.com/public/weather-maps.json');
-  const d = await r.json();
+  const d = await fetchJson('https://api.rainviewer.com/public/weather-maps.json', { timeout: 8000 });
   radarHost = d.host || 'https://tilecache.rainviewer.com';
   const past = d.radar?.past || [];
   const cutoff = Date.now() / 1000 - RADAR_WINDOW_MIN * 60;

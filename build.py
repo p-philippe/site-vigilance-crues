@@ -101,8 +101,7 @@ def copy_em_sensitive() -> None:
 
 def patch_em_map(src: str) -> str:
     """Adapte le chemin du JSON : ./src/... en dev, ./ à la racine servie en prod."""
-    return src.replace("fetch('./src/em-sensitive-inline.json')",
-                       "fetch('./em-sensitive.json')")
+    return src.replace("'./src/em-sensitive-inline.json'", "'./em-sensitive.json'")
 
 
 def bundle_modules() -> str:

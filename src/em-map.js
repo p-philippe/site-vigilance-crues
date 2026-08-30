@@ -2,17 +2,16 @@
 
 import { ST, CODES, VC, VT, VL, EM_SENSITIVE_META, POINTS_22, SOL_POINTS, SOL_LAYERS, PORTS_22 } from './config.js';
 import { OBS, METEO_DATA, SOL_DATA, NAPPES_DATA, MAREE_DATA, COEFF_DATA } from './state.js';
-import { vigi, vigiSourceLabel, trendInfo, formatSpeed } from './vigi.js';
+import { vigi, vigiSourceLabel, trendInfo, formatSpeed, fetchVigicruesGeoJSON } from './vigi.js';
 import { solComposite, solColor, solLabel, nappePctClass, pressureAlert } from './meteo.js';
-import { escapeHtml, toast, fmtDateTime, fmtTime, fmtDate } from './utils.js';
+import { fetchJson, escapeHtml, toast, fmtDateTime, fmtTime, fmtDate } from './utils.js';
 import { nowStrParis } from './meteo.js';
 
 // EM_SENSITIVE_INLINE : chargé dynamiquement (JSON 230KB) pour ne pas bloquer le module
 let EM_SENSITIVE_INLINE = null;
 async function getEmSensitiveInline() {
   if (EM_SENSITIVE_INLINE) return EM_SENSITIVE_INLINE;
-  const r = await fetch('./src/em-sensitive-inline.json');
-  EM_SENSITIVE_INLINE = await r.json();
+  EM_SENSITIVE_INLINE = await fetchJson('./src/em-sensitive-inline.json', { timeout: 20000 });
   return EM_SENSITIVE_INLINE;
 }
 
@@ -113,9 +112,7 @@ async function emLoadTroncons(attempt = 0) {
       emMap.createPane('tronconsPane');
       emMap.getPane('tronconsPane').style.zIndex = 550;
     }
-    const r = await fetch('/api/vigicrues');
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const gj = await r.json();
+    const gj = await fetchVigicruesGeoJSON();
     if (emTronconsLayer) { emMap.removeLayer(emTronconsLayer); emTronconsLayer = null; }
     emTronconsLayer = L.geoJSON(gj, {
       filter: f => EM_BT22.has(f.properties?.CdEntCru),
@@ -1072,8 +1069,7 @@ async function emSearchFetch(query) {
   try {
     const q = encodeURIComponent(`${query}, Côtes-d'Armor, Bretagne, France`);
     const url = `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=7&countrycodes=fr&accept-language=fr&addressdetails=1&viewbox=${EM_SEARCH_VIEWBOX}&bounded=0`;
-    const r = await fetch(url);
-    const data = await r.json();
+    const data = await fetchJson(url, { timeout: 8000 });
     if (!data.length) { res.innerHTML = '<div class="em-search-loading">Aucun résultat trouvé.</div>'; return; }
     res.innerHTML = data.map((item) => {
       const parts = item.display_name.split(', ');

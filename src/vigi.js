@@ -2,6 +2,20 @@
 
 import { ST, CODES, VIGICRUES_GEOJSON, VIGICRUES_TRONCON_BY_STATION } from './config.js';
 import { HIST, VIGI_OFFICIAL, setVIGI_OFFICIAL, setVIGI_SOURCE_STATUS, VIGI_SOURCE_STATUS } from './state.js';
+import { fetchJson } from './utils.js';
+
+// Flux Vigicrues partagé : vigi.js (niveaux) et em-map.js (tracé des tronçons)
+// interrogeaient le même endpoint deux fois par cycle. Mémoïsé (item 9.8).
+const VIGI_GEO_TTL = 5 * 60 * 1000;
+let _vigiGeo = null;
+let _vigiGeoAt = 0;
+
+export async function fetchVigicruesGeoJSON({ force = false } = {}) {
+  if (!force && _vigiGeo && Date.now() - _vigiGeoAt < VIGI_GEO_TTL) return _vigiGeo;
+  _vigiGeo = await fetchJson(VIGICRUES_GEOJSON);
+  _vigiGeoAt = Date.now();
+  return _vigiGeo;
+}
 
 export function officialVigiLevel(raw) {
   const n = Number(raw);
@@ -27,9 +41,7 @@ export function vigiSourceLabel(code) {
 export async function loadOfficialVigilance() {
   setVIGI_SOURCE_STATUS('loading');
   try {
-    const r = await fetch(VIGICRUES_GEOJSON);
-    if (!r.ok) throw new Error(`Vigicrues ${r.status}`);
-    const geo = await r.json();
+    const geo = await fetchVigicruesGeoJSON({ force: true });
     const byTroncon = {};
     for (const f of geo.features || []) {
       const p = f.properties || {};

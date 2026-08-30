@@ -157,8 +157,11 @@ def test_build_em_sensitive_lazy():
     if not asset.exists():
         err('Build : em-sensitive.json absent de public_html/ — la couche ne chargera pas')
         return
-    if "fetch('./em-sensitive.json')" not in prod:
+    if "'./em-sensitive.json'" not in prod:
         err("Build : le bundle ne pointe pas vers ./em-sensitive.json")
+        return
+    if "'./src/em-sensitive-inline.json'" in prod:
+        err('Build : le bundle pointe encore vers le chemin de développement')
         return
     ko = asset.stat().st_size / 1024
     ok(f'Build : établissements sensibles différés ({ko:.0f} Ko hors bundle)')
@@ -196,6 +199,18 @@ def test_network_hygiene():
         ok('Réseau : données critiques avec timeout, HTTP check et retry')
     else:
         err('Réseau : fetchJson non appliqué aux chargements de données critiques')
+    # Aucun fetch brut hors utils.js : tous doivent passer par fetchJson (item 9.7)
+    bruts = []
+    for f in sorted(SRC.glob('*.js')):
+        if f.name == 'utils.js':
+            continue
+        for i, ligne in enumerate(f.read_text(encoding='utf-8').split('\n'), 1):
+            if re.search(r'(await|=|return)\s+fetch\(', ligne):
+                bruts.append(f'{f.name}:{i}')
+    if bruts:
+        err(f'Réseau : {len(bruts)} appel(s) fetch brut(s) sans timeout ni contrôle HTTP — {bruts}')
+    else:
+        ok('Réseau : aucun fetch brut hors utils.js (timeout et relance garantis partout)')
     # Aucun proxy CORS public tiers, où que ce soit dans les sources
     sources = {f.name: f.read_text(encoding='utf-8') for f in SRC.glob('*.js')}
     sources['index.html'] = (ROOT / 'index.html').read_text(encoding='utf-8')

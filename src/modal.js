@@ -3,7 +3,7 @@
 import { ST, API, REF_COLORS, REF_TEXT, VC, VT } from './config.js';
 import { OBS } from './state.js';
 import { vigi, refCrues, refValue, refLabel, vigiSourceLabel } from './vigi.js';
-import { escapeHtml, fmtTime, fmtDateTime, fmtDate } from './utils.js';
+import { fetchJson, escapeHtml, fmtTime, fmtDateTime, fmtDate } from './utils.js';
 
 let chartInst = null;
 let chartQInst = null;
@@ -235,11 +235,7 @@ export async function loadVigicruesPrevisions(code) {
   if (!el) return;
   try {
     const url = `https://www.vigicrues.gouv.fr/services/previsions.json?CdStationHydro=${code}&FormatDate=iso`;
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 8000);
-    const r = await fetch(url, {signal: ctrl.signal});
-    clearTimeout(tid);
-    const d = await r.json();
+    const d = await fetchJson(url, { timeout: 8000 });
     const prevs = d?.Simul?.Prevs || [];
     const noPrevsHtml = `<div style="background:#f0f0f0;padding:10px;border-radius:6px;font-size:13px;color:#555;">
   ℹ️ Les prévisions SCHAPI pour cette station sont publiées uniquement lors des épisodes de vigilance orange ou rouge.<br>

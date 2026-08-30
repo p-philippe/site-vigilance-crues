@@ -80,14 +80,7 @@ export async function loadAll() {
     const VIGICRUES_ONLY = ['J371301001', 'J813301001'];
     await Promise.all(VIGICRUES_ONLY.filter(c => !OBS[c]?.H).map(async code => {
       try {
-        const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 8000);
-        const rv = await fetch(
-          `${VIGICRUES_OBS}?code=${code}`,
-          { signal: ctrl.signal }
-        );
-        clearTimeout(tid);
-        const dv = await rv.json();
+        const dv = await fetchJson(`${VIGICRUES_OBS}?code=${code}`, { timeout: 8000 });
         const obs = dv?.Serie?.ObssHydro;
         if (obs && obs.length) {
           for (let i = obs.length - 1; i >= 0; i--) {
@@ -273,14 +266,10 @@ async function fetchNappeStats(sta) {
     if (c && Date.now() - c.ts < NAPPE_STATS_TTL) return c;
   } catch {}
   try {
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 15000);
-    const r = await fetch(
+    const d = await fetchJson(
       `https://hubeau.eaufrance.fr/api/v1/niveaux_nappes/chroniques?code_bss=${encodeURIComponent(sta.code_bss)}&size=4000&sort=desc&fields=date_mesure,niveau_nappe_eau`,
-      { signal: ctrl.signal }
+      { timeout: 15000 }
     );
-    clearTimeout(tid);
-    const d = await r.json();
     const rows = (d.data || []).filter(m => m.niveau_nappe_eau != null && m.date_mesure);
     const byMonth = {};
     for (const m of rows) {
@@ -325,14 +314,10 @@ export async function loadNappes() {
 
     async function fetchChronique(sta) {
       try {
-        const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 8000);
-        const r = await fetch(
+        const d = await fetchJson(
           `https://hubeau.eaufrance.fr/api/v1/niveaux_nappes/chroniques?code_bss=${encodeURIComponent(sta.code_bss)}&size=10&sort=desc&fields=date_mesure,niveau_nappe_eau,profondeur_nappe`,
-          { signal: ctrl.signal }
+          { timeout: 8000 }
         );
-        clearTimeout(tid);
-        const d = await r.json();
         return { ...sta, mesures: d.data || [] };
       } catch { return { ...sta, mesures: [] }; }
     }
