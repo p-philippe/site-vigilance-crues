@@ -87,10 +87,10 @@ Un push sur `main` déclenche également un déploiement Vercel automatique (ite
 
 | Mesure | Au constat (2026-08-30) | Après 9.1–9.3, 9.11 | Cible phase 9 |
 |---|---|---|---|
-| Onglets | 10 | 10 | 4 (+ 1 modale) |
-| Corps HTML | 780 lignes | 780 | ~450 |
-| `src/*.js` | 5 134 l. (19 modules) | **4 592 l. (18)** | ~3 400 |
-| Bundle production | 554 Ko | **529 Ko** | ~505 Ko, puis ~275 avec 8.5 |
+| Onglets | 10 | **9** | 4 (+ 1 modale) |
+| Corps HTML | 780 lignes | **583** | ~450 |
+| `src/*.js` | 5 134 l. (19 modules) | **4 044 l. (17)** | ~3 400 |
+| Bundle production | 554 Ko | **484 Ko** | ~460 Ko, puis ~235 avec 8.5 |
 | Scripts CDN tiers | 4 — dont 2 morts | **2** | 2 |
 | Code strictement mort | ~540 lignes | **0** | 0 |
 
@@ -132,15 +132,14 @@ Un push sur `main` déclenche également un déploiement Vercel automatique (ite
 
 > Un seul tableau, items **ouverts uniquement**. Tout ce qui est livré part dans [Historique des versions](#historique-des-versions).
 
-> **9.1, 9.2, 9.3 et 9.11 sont livrés** (2026-08-30) — plus aucun item en priorité haute.
-> Prochaine étape : 9.4, puis la fusion des onglets.
+> **9.1 → 9.4 et 9.11 sont livrés** (2026-08-30) — plus aucun item en priorité haute.
+> Prochaine étape : 9.5, la fusion des onglets (9 → 4).
 
 ### 🟡 Priorité moyenne
 
 | # | Item | Effort | Dépend de | Critère de succès |
 |---|---|---|---|---|
-| **9.4** | **Retirer la revue de presse** — `rp.js`, `panel10`, `api/rss.js`, entrées CSP `news.google.com` | ~1 h | ✅ 9.1 | Aucune référence résiduelle ; bundle allégé ; 12/12 tests |
-| **9.5** | **Fusionner les onglets 10 → 4** — Stations (5+3), Contexte (6+7+11), Ressources en modale (12+13) | ~4 h | 9.4 | Aucune donnée perdue ; barre d'onglets sans défilement en 375 px ; `restoreTab` migre les numéros d'onglet enregistrés |
+| **9.5** | **Fusionner les onglets 9 → 4** — Stations (5+3), Contexte (6+7+11), Ressources en modale (12+13) | ~4 h | ✅ 9.4 | Aucune donnée perdue ; barre d'onglets sans défilement en 375 px ; `restoreTab` migre les numéros d'onglet enregistrés |
 | **9.6** | **Simplifier la navigation par onglets** — `data-tab` à la place des 3 regex sur l'attribut `onclick` ; retirer le gestionnaire clavier dupliqué (`initTabKeyboard` en attache deux sur le même `role="tablist"`) | ~30 min | 9.5 | Navigation flèches/Home/End identique ; une seule attache d'événement |
 | **9.7** | **Généraliser `fetchJson`** — 11 appels `fetch` bruts hors `utils.js` (dont Vigicrues, Rainviewer, Nominatim, établissements sensibles) sans timeout ni contrôle HTTP ; `modal.js:232` et `rp.js:167` réimplémentent l'AbortController à la main. Étendre `test_network_hygiene` au-delà de `data.js` | ~2 h | — | Aucun `await fetch(` hors `utils.js` ; le test échoue si un `fetch` brut réapparaît. **Absorbe et clôt 8.3.** |
 | **9.8** | **Mutualiser l'appel `/api/vigicrues`** — appelé deux fois par chargement (`vigi.js:31` et `em-map.js:115`), sans cache partagé | ~30 min | 9.7 | Un seul appel réseau par cycle de rafraîchissement |
@@ -162,7 +161,7 @@ Un push sur `main` déclenche également un déploiement Vercel automatique (ite
 
 ### Séquencement recommandé
 
-~~9.1~~ ✅ → ~~9.2 + 9.3 + 9.11~~ ✅ → **9.4** → **9.5 + 9.6** → **9.7 + 9.8** → **8.5** → **9.9 → 9.10**.
+~~9.1~~ ✅ → ~~9.2 + 9.3 + 9.11~~ ✅ → ~~9.4~~ ✅ → **9.5 + 9.6** → **9.7 + 9.8** → **8.5** → **9.9 → 9.10**.
 
 > ✅ Les sources sont sous git depuis 9.1 : toute suppression est réversible. Le code mort est éliminé (9.2), il ne reste que les retraits fonctionnels — 9.4 (revue de presse) puis 9.5 (fusion des onglets), qui relèvent d'une décision produit et non d'un constat technique.
 
@@ -312,4 +311,5 @@ Après chaque épisode ≥ Jaune, **dans les 72 h suivant le pic** :
 | 2026-08-30 | v6.27 | **Fiabilisation API** (8.3 partiel) — `fetchJson()` sur Hub'Eau/Open-Meteo/SHOM : timeout 10 s, contrôle HTTP, une relance sur 429/5xx. Proxys CORS publics retirés | 554 Ko |
 | 2026-08-30 | v7.0 | **9.1 — Sources versionnées, `vercel_deploy/` supprimé** : le dépôt git ne suivait que le fichier généré ; `src/` (5 134 l.), `build.py`, `tests/`, `index.html` de dev et ROADMAP.md n'existaient que sur un disque. Plutôt que de remonter le `.git` d'un niveau — ce qui aurait renommé tous les chemins suivis et imposé de changer le Root Directory Vercel (impossible via la CLI) — c'est le **contenu** de `vercel_deploy/` qui est remonté à la racine, `.git` compris. Les chemins suivis restent identiques (`public_html/index.html`), le Root Directory `public_html` n'est pas touché, et le commit est une pure addition sans un seul renommage. Chemins mis à jour dans `build.py`, `tests/check.py`, `serve.py`, `.claude/launch.json`, `README_DEPLOIEMENT.md`. `public_html/index.html` régénéré **bit pour bit identique** à la version déployée. 12/12 tests. **Incident révélateur au moment du push** : deux commits distants (`9228cd1`, `8085eda`, poussés le matin même) modifiaient `public_html/index.html` sans que les sources correspondantes existent dans le dépôt — reconstruire depuis `src/` les aurait purement et simplement écrasés. Changements rapatriés à la main dans `index.html` (CSS nappes + barre d'outils carte), `src/meteo.js` (`renderNappes` réécrite, `nappeFloodHint`, `nappeCardClass`), `src/globals.js`, `src/em-map.js` et `src/synth.js` (fond CARTO → OSM). Vérifié par reproduction **bit pour bit** de la prod distante depuis les sources. Déploiement automatique confirmé Ready en 7 s, production HTTP 200. | 556 Ko |
 | 2026-08-30 | v7.1 | **9.2 + 9.3 + 9.11 — 1 610 lignes supprimées** : `synth.js` entier (module orphelin, `renderSynthese` jamais appelée) ; `generatePdfReport` et `exportSituationGeoJSON` (exposées sur `window`, aucun bouton ne les appelait) ; `makePopup`, `rainBarClass`, `renderTable`, `safeErrorMessage`, `refBadge`, `emRemoveLayer` ; 12 expositions `window` sans appelant sur 67 ; 42 imports inutilisés nettoyés jusqu'à point fixe ; CDN `html2canvas` (~200 Ko) et `leaflet.heat`, absents des sources, retirés d'`index.html` et du préchargement `sw.js` ; dossier `vps/` (5 fichiers, VPS jamais déployé). **Découverte** : `toggleFav`/`toggleFavorite` étaient injoignables — la fonctionnalité favoris était déjà morte, `FAVORITES` et `DEFAULT_FAVORITES` retirées avec elles. Conservées `toggleBV` et `rpDeleteArticle` (appelées depuis des `onclick` générés) et `loadMaree` (`window.loadMaree?.()`) — le piège étant qu'un `onclick` généré s'exécute en portée globale même quand la chaîne vit dans le module qui définit la fonction. 18/18 modules de syntaxe ES valide, 12/12 tests, zéro référence résiduelle. 554 → 529 Ko | 529 Ko |
+| 2026-08-30 | v7.2 | **9.4 — Revue de presse retirée** : `rp.js` (513 l.), `panel10` et son bloc CSS (292 l. d'`index.html`), fonction serverless `api/rss.js`, `RP_BASSINS`/`RP_NIV`, `rpInit`, 11 expositions `window`, entrée CSP `news.google.com`. Le contrôle « aucun proxy CORS public tiers » de `tests/check.py` lisait `rp.js` : réécrit pour balayer toutes les sources, il est désormais plus strict qu'avant. `restoreTab` gérait déjà le repli d'un onglet mémorisé disparu. Onglets 10 → 9, bundle 529 → 484 Ko | 484 Ko |
 | 2026-08-30 | — | **Audit complet code + contenu** → ouverture de la [phase 9](#phase-9--simplification-2026-08-30). Constats : sources non versionnées (9.1), ~540 lignes mortes en production, 2 CDN inutilisés, 54 % du HTML sans donnée hydrométrique, 4 jeux de données affichés deux fois. ROADMAP consolidée : 445 → 271 lignes, 8 sections de backlog fusionnées en une, 28 items livrés déplacés dans cet historique | 554 Ko |
