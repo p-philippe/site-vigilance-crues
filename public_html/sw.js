@@ -1,9 +1,10 @@
 // Service Worker — Vigilance 22 — v5.2
-const CACHE_NAME = 'vigicrues22-2026-08-20-2149';
+const CACHE_NAME = 'vigicrues22-2026-08-30-0658';
 const ASSETS = [
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-  'https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
 // Install : cache des libs tierces uniquement (pas index.html)

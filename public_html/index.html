@@ -38,7 +38,7 @@
 <!-- Google Fonts via <link> (plus rapide qu'@import) -->
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: https://tilecache.rainviewer.com; connect-src 'self' https://hubeau.eaufrance.fr https://api.open-meteo.com https://marine-api.open-meteo.com https://www.vigicrues.gouv.fr https://nominatim.openstreetmap.org https://corsproxy.io https://api.allorigins.win https://api.codetabs.com https://news.google.com https://tilecache.rainviewer.com https://api.rainviewer.com; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: https://tilecache.rainviewer.com; connect-src 'self' https://hubeau.eaufrance.fr https://api.open-meteo.com https://marine-api.open-meteo.com https://www.vigicrues.gouv.fr https://nominatim.openstreetmap.org https://news.google.com https://tilecache.rainviewer.com https://api.rainviewer.com; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
 <meta name="description" content="Vigilance 22 : suivi hydrométrique temps réel des stations des Côtes-d'Armor, avec carte, synthèse, météo, sols et état-major.">
 <meta name="theme-color" content="#1a5c2a">
 <title>Vigilance 22 — Suivi hydrométrique des Côtes-d'Armor</title>
@@ -1805,6 +1805,36 @@ function escapeHtml(value) {
 
 function safeErrorMessage(error) {
   return escapeHtml(error?.message || 'Erreur inconnue');
+}
+
+/**
+ * Requête JSON bornée et relancée une fois pour les erreurs transitoires.
+ * Les appels de données publiques ne doivent pas bloquer l'interface
+ * indéfiniment ni tenter de parser une réponse HTTP en erreur comme du JSON.
+ */
+async function fetchJson(url, { timeout = 10000, retries = 1, ...options } = {}) {
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeout);
+    try {
+      const response = await fetch(url, { ...options, signal: ctrl.signal });
+      if (!response.ok) {
+        const error = new Error(`HTTP ${response.status}`);
+        error.retryable = response.status === 429 || response.status >= 500;
+        throw error;
+      }
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+      const retryable = error.name === 'AbortError' || error.retryable || error instanceof TypeError;
+      if (!retryable || attempt === retries) throw error;
+      await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw lastError;
 }
 
 /** Formate une date ISO en heure selon le fuseau actif */
@@ -3993,11 +4023,9 @@ const RP_RSS_QUERIES = [
   'débordement rivière Côtes-d\'Armor',
 ];
 
-const RP_CORS_PROXIES = [
-  url => `/api/rss?url=${encodeURIComponent(url)}`,
-  url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-];
+// Le proxy Vercel contrôle le domaine amont et évite de transmettre les requêtes
+// vers des proxys CORS publics tiers.
+const RP_CORS_PROXIES = [url => `/api/rss?url=${encodeURIComponent(url)}`];
 
 // Couleurs par niveau pour la carte SIG
 const SIG_COLORS = {
@@ -6080,12 +6108,10 @@ async function loadAll() {
   try {
     // ── 1. Observations actuelles (H et Q) ──
     const allCodes = encodeURIComponent(CODES.join(','));
-    const [rH, rQ] = await Promise.all([
-      fetch(`${API}/observations_tr?code_entite=${allCodes}&grandeur_hydro=H&size=300&sort=desc&fields=code_station,date_obs,resultat_obs`),
-      fetch(`${API}/observations_tr?code_entite=${allCodes}&grandeur_hydro=Q&size=300&sort=desc&fields=code_station,date_obs,resultat_obs`),
+    const [obsH, obsQ] = await Promise.all([
+      fetchJson(`${API}/observations_tr?code_entite=${allCodes}&grandeur_hydro=H&size=300&sort=desc&fields=code_station,date_obs,resultat_obs`),
+      fetchJson(`${API}/observations_tr?code_entite=${allCodes}&grandeur_hydro=Q&size=300&sort=desc&fields=code_station,date_obs,resultat_obs`),
     ]);
-    const obsH = await rH.json();
-    const obsQ = await rQ.json();
     const newOBS = {};
     for (const o of obsH.data||[]) {
       if (!newOBS[o.code_station]?.H) { newOBS[o.code_station] = newOBS[o.code_station]||{}; newOBS[o.code_station].H = {val:o.resultat_obs, date:o.date_obs}; }
@@ -6136,13 +6162,12 @@ async function loadAll() {
     const b1h = CODES.slice(0,14).join(',');
     const b2h = CODES.slice(14).join(',');
     const [h1, h2] = await Promise.all([
-      fetch(`${API}/observations_tr?code_entite=${encodeURIComponent(b1h)}&grandeur_hydro=H&size=2000&sort=asc&date_debut_obs=${encodeURIComponent(fromStr)}&fields=code_station,date_obs,resultat_obs`),
-      fetch(`${API}/observations_tr?code_entite=${encodeURIComponent(b2h)}&grandeur_hydro=H&size=2000&sort=asc&date_debut_obs=${encodeURIComponent(fromStr)}&fields=code_station,date_obs,resultat_obs`),
+      fetchJson(`${API}/observations_tr?code_entite=${encodeURIComponent(b1h)}&grandeur_hydro=H&size=2000&sort=asc&date_debut_obs=${encodeURIComponent(fromStr)}&fields=code_station,date_obs,resultat_obs`),
+      fetchJson(`${API}/observations_tr?code_entite=${encodeURIComponent(b2h)}&grandeur_hydro=H&size=2000&sort=asc&date_debut_obs=${encodeURIComponent(fromStr)}&fields=code_station,date_obs,resultat_obs`),
     ]);
 
     const raw = {};
-    for (const r of [h1, h2]) {
-      const d = await r.json();
+    for (const d of [h1, h2]) {
       for (const o of d.data||[]) {
         raw[o.code_station] = raw[o.code_station]||[];
         raw[o.code_station].push({t: new Date(o.date_obs), v: o.resultat_obs});
@@ -6215,7 +6240,7 @@ async function loadMeteo() {
   try {
     const params = 'hourly=precipitation,temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cape,lifted_index,pressure_msl&daily=precipitation_sum,temperature_2m_max,temperature_2m_min,wind_speed_10m_max&timezone=Europe/Paris&past_days=1&forecast_days=3';
     const resps = await Promise.all(POINTS_22.map(p =>
-      fetch(`${METEO_API}?latitude=${p.lat}&longitude=${p.lon}&${params}`).then(r=>r.json())
+      fetchJson(`${METEO_API}?latitude=${p.lat}&longitude=${p.lon}&${params}`)
     ));
     setMETEO_DATA(resps);
     window.renderMeteo && window.renderMeteo();
@@ -6231,7 +6256,7 @@ async function loadSol() {
     const depths = SOL_LAYERS.map(l => l.key).join(',');
     const params = `hourly=${depths}&timezone=Europe/Paris&past_days=1&forecast_days=3`;
     const resps = await Promise.all(SOL_POINTS.map(p =>
-      fetch(`${SOL_API}?latitude=${p.lat}&longitude=${p.lon}&${params}`).then(r=>r.json())
+      fetchJson(`${SOL_API}?latitude=${p.lat}&longitude=${p.lon}&${params}`)
     ));
     setSOL_DATA(resps);
     window.renderSol && window.renderSol();
@@ -6245,7 +6270,7 @@ async function loadMaree() {
   try {
     const params = 'hourly=sea_level_height_msl&timezone=UTC&past_days=1&forecast_days=2';
     const resps = await Promise.all(PORTS_22.map(p =>
-      fetch(`${MAREE_API}?latitude=${p.lat}&longitude=${p.lon}&${params}`).then(r => r.json())
+      fetchJson(`${MAREE_API}?latitude=${p.lat}&longitude=${p.lon}&${params}`)
     ));
     setMAREE_DATA(resps);
   } catch(e) {
@@ -6258,9 +6283,7 @@ async function loadMaree() {
 // le bandeau de risque de surcote sans que l'utilisateur ait à activer la couche marée
 async function loadCoefficients() {
   try {
-    const r = await fetch('/api/coefficient?days=10');
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const d = await r.json();
+    const d = await fetchJson('/api/coefficient?days=10');
     setCOEFF_DATA(d.days || null);
   } catch(e) {
     console.error('[loadCoefficients] indisponibles', e);
@@ -6341,8 +6364,7 @@ async function loadNappes() {
   const grid = document.getElementById('nappes-grid');
   if (grid) grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Chargement Hub\'Eau ADES…</div>';
   try {
-    const rSta = await fetch('https://hubeau.eaufrance.fr/api/v1/niveaux_nappes/stations?code_departement=22&format=json&size=400');
-    const dSta = await rSta.json();
+    const dSta = await fetchJson('https://hubeau.eaufrance.fr/api/v1/niveaux_nappes/stations?code_departement=22&format=json&size=400');
     const stations = (dSta.data || []).filter(s => s.code_bss).slice(0, 30);
     if (!stations.length) { setNAPPES_DATA([]); window.renderNappes && window.renderNappes(); return; }
 

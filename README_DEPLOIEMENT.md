@@ -83,6 +83,6 @@ vercel --prod vercel_deploy/public_html    # déploie sur Vercel
 - **localStorage** : le journal des événements et la revue de presse sont
   stockés dans le navigateur de l'utilisateur (persistants entre sessions,
   spécifiques à chaque appareil).
-- **Pas de serveur** : aucun backend, aucune base de données, aucun cookie.
+- **Pas de backend persistant** : aucune base de données ni cookie. Quatre fonctions serverless Vercel (`api/`) font uniquement office de proxys contrôlés pour les sources qui ne permettent pas les appels directs.
 - **CSP** : politique de sécurité définie en meta-tag, liste blanche des
   domaines autorisés.
