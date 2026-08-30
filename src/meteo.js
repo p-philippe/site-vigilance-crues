@@ -1,7 +1,7 @@
-// ── METEO — Météo, sols, nappes ───────────────────────────────────────────
+// ── METEO — Météo et saturation des sols ──────────────────────────────────
 
 import { POINTS_22, SOL_POINTS, SOL_LAYERS, SOL_THETA_WP, SOL_THETA_SAT, SOL_THETA_FC, WEATHER_ICONS } from './config.js';
-import { METEO_DATA, SOL_DATA, NAPPES_DATA } from './state.js';
+import { METEO_DATA, SOL_DATA } from './state.js';
 
 import { escapeHtml, fmtDate } from './utils.js';
 
@@ -425,7 +425,10 @@ export function renderSol() {
 }
 
 // ── NAPPES ──
-// Classes calquées sur le vocabulaire des bulletins BRGM. Pour le risque crue,
+// Seul reliquat du chapitre nappes (retiré de l'onglet Contexte : signal de
+// sécheresse plus que d'inondation) — sert encore à colorer la couche
+// piézomètres de la carte état-major.
+// Classes calquées sur le vocabulaire des bulletins BRGM : pour le risque crue,
 // une nappe haute est le signal d'alerte (rouge/orange), une nappe basse est bleue.
 export function nappePctClass(pct) {
   if (pct == null) return { label:'N/D',       color:'#95a5a6', bg:'var(--bg2)' };
@@ -434,125 +437,4 @@ export function nappePctClass(pct) {
   if (pct >= 25)   return { label:'Normal',    color:'#27ae60', bg:'#f0faf0' };
   if (pct >= 10)   return { label:'Bas',       color:'#5dade2', bg:'#eaf3fb' };
   return             { label:'Très bas',  color:'#2980b9', bg:'#eaf3fb' };
-}
-
-function nappeJauge(pct, color) {
-  if (pct == null) return '';
-  return `<div style="margin-bottom:8px">
-    <div class="sol-gauge" style="height:14px;margin-bottom:2px">
-      <div class="sol-gauge-fill" style="width:${Math.max(2, pct)}%;background:${color}"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);font-family:var(--mono)"><span>min. hist.</span><span>médiane</span><span>max. hist.</span></div>
-  </div>`;
-}
-
-export function nappeFloodHint(pct) {
-  if (pct == null) return 'Chronique trop courte pour juger.';
-  if (pct >= 90) return 'Critique pour les crues — plus de marge d\'absorption, risque de remontée de nappe.';
-  if (pct >= 75) return 'Vigilance — nappe haute pour la saison, sols moins capables d\'encaisser la pluie.';
-  if (pct >= 25) return 'Pas d\'enjeu crue lié à la nappe — niveau de saison.';
-  return 'Favorable pour les crues (nappe basse). Peut signaler un déficit d\'étiage.';
-}
-function nappeCardClass(pct) {
-  if (pct == null) return '';
-  if (pct >= 90) return 'nappe-crit';
-  if (pct >= 75) return 'nappe-warn';
-  if (pct >= 25) return 'nappe-ok';
-  return 'nappe-low';
-}
-
-export function renderNappes() {
-  if (!NAPPES_DATA) return;
-  const grid = document.getElementById('nappes-grid');
-  const synth = document.getElementById('nappes-synth');
-  if (!grid) return;
-
-  const counts = { 'Très haut':0, 'Haut':0, 'Normal':0, 'Bas':0, 'Très bas':0, 'N/D':0 };
-  const ranked = [...NAPPES_DATA].sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1));
-  let html = '';
-
-  for (const sta of ranked) {
-    const mes = sta.mesures || [];
-    const last = mes[0];
-    const prev = mes[1];
-    const niveau = last?.niveau_nappe_eau;
-    const prof = last?.profondeur_nappe;
-    const date = last ? new Date(last.date_mesure).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'}) : null;
-
-    let tendance = 'stable', tendGlyph = '→', tendColor = 'var(--text3)';
-    if (niveau != null && prev?.niveau_nappe_eau != null) {
-      const diff = niveau - prev.niveau_nappe_eau;
-      if (diff > 0.05) { tendance = 'en hausse'; tendGlyph = '↑'; tendColor = '#c0392b'; }
-      else if (diff < -0.05) { tendance = 'en baisse'; tendGlyph = '↓'; tendColor = '#27ae60'; }
-    }
-
-    const pct = sta.pct;
-    const cls = nappePctClass(pct);
-    counts[cls.label]++;
-
-    const nom = escapeHtml(sta.libelle_pe || sta.code_bss);
-    const commune = escapeHtml(sta.nom_commune || '');
-    const masse = escapeHtml((sta.noms_masse_eau_edl || [])[0] || '');
-    const pctStr = pct != null ? pct + 'ᵉ centile' : 'N/D';
-
-    html += `<div class="sol-card ${nappeCardClass(pct)}">
-      <div class="sol-card-hdr">
-        <div style="flex:1">
-          <div class="sol-card-nom">${nom}</div>
-          <div class="sol-card-zone">${commune} · ${sta.code_bss}</div>
-        </div>
-        <span style="font-size:11px;font-weight:700;color:${cls.color};background:${cls.bg};padding:3px 10px;border-radius:99px;white-space:nowrap">${cls.label}</span>
-      </div>
-      <div class="sol-gauge-wrap">
-        <div class="nappe-status" style="color:${cls.color}">${pctStr}</div>
-        <div class="nappe-status-hint">${nappeFloodHint(pct)}</div>
-        ${nappeJauge(pct, cls.color)}
-        <div class="nappe-abs">
-          Cote brute (incomparable d'un point à l'autre) :
-          ${prof != null ? 'nappe à ' + prof.toFixed(2) + ' m sous le sol' : 'profondeur N/D'}
-          ${niveau != null ? ' · ' + niveau.toFixed(2) + ' m NGF' : ''}
-          · ${tendGlyph} ${tendance}
-          · mesure du ${date || '—'}
-          ${sta.pctYears ? ' · chronique ' + sta.pctYears + ' an' + (sta.pctYears > 1 ? 's' : '') : ''}
-        </div>
-        ${masse ? `<div style="font-size:10px;color:var(--text3);margin-top:2px">Masse d'eau : ${masse}</div>` : ''}
-        <div style="margin-top:6px">
-          <a href="https://ades.eaufrance.fr/Fiche/PtEau?Code=${encodeURIComponent(sta.code_bss)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);text-decoration:none">↗ Fiche ADES</a>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  grid.innerHTML = html;
-
-  if (synth) {
-    const total = NAPPES_DATA.length;
-    const crit = counts['Très haut'], warn = counts['Haut'];
-    let tone = 'ok', kicker = 'Situation nappes', title, sub;
-    if (crit > 0) {
-      tone = 'crit'; kicker = 'Signal critique';
-      title = crit + ' nappe' + (crit > 1 ? 's' : '') + ' très haute' + (crit > 1 ? 's' : '') + ' pour la saison';
-      sub = 'Capacité d\'absorption quasi nulle sur ces bassins — crues amplifiées et risque de remontée de nappe. La cote en mètres n\'est pas le bon indicateur : c\'est le rang saisonnier qui compte.';
-    } else if (warn > 0) {
-      tone = 'warn'; kicker = 'Vigilance';
-      title = warn + ' nappe' + (warn > 1 ? 's' : '') + ' haute' + (warn > 1 ? 's' : '') + ' pour la saison';
-      sub = 'Pas encore critique, mais les sols encaiseront moins bien un épisode pluvieux. Aucune nappe au-dessus du 90ᵉ centile.';
-    } else {
-      title = 'Pas de signal critique';
-      sub = total + ' piézomètres dans les normes saisonnières ou plus bas. Les cotes absolues (−7 m, −18 m…) ne se comparent pas entre forages.';
-    }
-    const badge = (label) => {
-      const c = { 'Très haut':['#fdecea','#c0392b'], 'Haut':['#fff3e6','#e67e22'], 'Normal':['#f0faf0','#27ae60'], 'Bas':['#eaf3fb','#5dade2'], 'Très bas':['#eaf3fb','#2980b9'] }[label];
-      return `<span style="background:${c[0]};color:${c[1]};padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600">${label} : ${counts[label]}</span>`;
-    };
-    synth.innerHTML = `<div class="nappe-verdict ${tone}">
-      <div class="nappe-verdict-kicker">${kicker}</div>
-      <div class="nappe-verdict-title">${title}</div>
-      <div class="nappe-verdict-sub">${sub}</div>
-      <div class="nappe-verdict-badges">
-        ${badge('Très haut')}${badge('Haut')}${badge('Normal')}${badge('Bas')}${badge('Très bas')}
-        ${counts['N/D'] ? `<span style="background:var(--bg2);color:var(--text3);padding:2px 10px;border-radius:99px;font-size:11px">N/D : ${counts['N/D']}</span>` : ''}
-      </div>
-    </div>`;
-  }
 }

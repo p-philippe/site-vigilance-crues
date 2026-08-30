@@ -2,7 +2,7 @@
 
 > Outil de surveillance hydrométrique temps réel — Côtes-d'Armor (22)
 > Production : https://vigilance-des-crues.vercel.app
-> Dernière mise à jour : 2026-08-30 — phase 9 terminée
+> Dernière mise à jour : 2026-08-30 — phase 9 terminée, retrait 9.13
 
 ---
 
@@ -104,15 +104,25 @@ Un push sur `main` déclenche également un déploiement Vercel automatique (ite
 
 | Onglet cible | Contenu | Origine |
 |---|---|---|
-| 🗺️ **Carte** | carte état-major, toutes ses couches (météo, sols, nappes, marée, radar, stations, établissements sensibles) | 9 — inchangé |
+| 🗺️ **Carte** | carte état-major, toutes ses couches (météo, sols, nappes, marée, radar, stations, établissements sensibles) — consultation seule depuis 9.13 | 9 |
 | 🏞️ **Stations** | liste par bassin, dépliable, série 12 h intégrée à la ligne station | 5 + 3 |
-| 🌧️ **Contexte** | météo / sols / nappes empilés en trois blocs — conserve les graphiques de prévision 7 j | 6 + 7 + 11 |
+| 🌧️ **Contexte** | météo / sols en deux blocs — conserve les graphiques de prévision 7 j | 6 + 7 |
 | 📋 **Journal** | inchangé | 4 |
 | ℹ️ Ressources | **modale** ouverte depuis l'en-tête, pas un onglet : numéros d'urgence, liens officiels, webcams, licence | 12 + 13 |
 
 **Revue de presse : retirée.** Formulaire de saisie à 10 champs, géocodage Nominatim, sous-carte SIG, import/export JSON, validation de candidats RSS — un mini-CRM greffé sur un outil de vigilance. Suppression de `rp.js` (513 lignes), `panel10` (200 lignes) et `api/rss.js`.
 
 **Contexte conservé comme onglet, pas supprimé.** Les couches carte montrent l'état instantané ; les graphiques Open-Meteo montrent la **prévision à 7 jours**, que la carte ne réplique pas. Or l'anticipation est la raison d'être de l'outil (voir Vision). Le gain est la fusion 3 → 1, pas la suppression.
+
+### 9.13 — Annotation de la carte et chapitre nappes retirés (2026-08-30)
+
+Deux retraits demandés après usage réel, dans la ligne du critère de tri de la [Vision](#vision).
+
+**Carte : tout l'outillage d'annotation.** Post-it, tracés, polygones, cercles, palette de six couleurs, gomme, « tout effacer », horodatage, export/import GeoJSON et sauvegarde de session. Personne n'annote une carte de vigilance en salle de crise : on la lit, et on l'imprime. Le bouton **🖨 Imprimer** est conservé — c'est le seul export qui servait. Supprimé : 25 fonctions d'`em-map.js`, la barre d'outils de dessin, la palette, la barre flottante de tracé, 9 expositions `window`, les gestionnaires `click`/`mousemove`/`dblclick`/`contextmenu` de la carte, les raccourcis Entrée/Échap et le `featureGroup` d'annotations. La « sauvegarde » ne survivait de toute façon pas au rechargement : depuis un correctif antérieur elle écrivait dans une variable de module (`EM_MEMORY`), pas dans `localStorage`.
+
+**Contexte : le chapitre Nappes phréatiques.** Un piézomètre haut est d'abord un indicateur de recharge — le signal opérationnel de sécheresse, pas d'inondation. La carte conserve sa couche 💧 pour qui veut le détail ponctuel ; `nappePctClass` reste dans `meteo.js` pour la colorer, et `loadNappes` n'alimente plus que cette couche. Supprimé : `renderNappes`, `nappeJauge`, `nappeFloodHint`, `nappeCardClass`, le bloc CSS `.nappe-*` (15 règles), la synthèse départementale et la grille de 30 cartes.
+
+`switchTab` ne charge plus les nappes à l'ouverture de Contexte : l'onglet gagne **30 requêtes Hub'Eau** au premier affichage. Bundle 256 → 227 Ko. 12/12 tests, vérifié en production.
 
 ### Gains attendus
 
@@ -315,4 +325,5 @@ Après chaque épisode ≥ Jaune, **dans les 72 h suivant le pic** :
 | 2026-08-30 | — | **Commit parasite `a165e48`** — intitulé « Carte : jauges de saturation des sols à la place des cercles », il ne contient **pas** cette modification : son unique changement fait *reculer* le `CACHE_NAME` de `sw.js` (1814 → 1613), signature d'un commit fait depuis une copie de travail périmée. Origine : une session d'agent (Grok) interrompue en cours de route. Vérifié avant fusion — aucune source manquante, rien dans son bundle d'absent du nôtre ; état conservé et `CACHE_NAME` ré-horodaté par un rebuild. **Ne pas se fier à son message.** Si le travail sur les jauges a existé, il n'a jamais été commité. | — |
 | 2026-08-30 | — | **Nettoyage** : `public_html/.vercel/` (doublon exact de `.vercel/` racine), `public_html/.gitignore` (redondant depuis 9.1) et `__pycache__/` supprimés | — |
 | 2026-08-30 | v7.4 | **9.6 + 8.5 + 9.7 + 9.8 — fin de la phase 9.** *9.6* : `data-tab` remplace les 3 regex lisant l'attribut `onclick`, un seul gestionnaire (clic délégué + clavier) au lieu de deux sur le même `role="tablist"`. *8.5* : les sources chargeaient déjà le JSON des établissements sensibles à la demande — c'est `build.py` qui cassait la paresse en l'inlinant ; l'item revenait donc à **retirer** du code. Le fichier (227 Ko) est servi à part et mis en cache par le service worker au premier accès. **Bundle 483 → 256 Ko.** *9.7* : les 7 derniers `fetch` bruts passent par `fetchJson` (dont 4 réimplémentaient l'AbortController sans contrôle HTTP ni relance) ; le test échoue désormais si un `fetch` brut réapparaît. *9.8* : `/api/vigicrues` était appelé deux fois par cycle — mémoïsation de la **promesse en vol** (la première tentative, qui ne mémoïsait que le résultat, laissait les deux appels concurrents rater le cache vide ; corrigé après vérification en production). Au passage, la table Historique ne tronque plus ses valeurs sous 1100 px. 12/12 tests | 256 Ko |
+| 2026-08-30 | v7.5 | **9.13 — Annotation de la carte et chapitre nappes retirés** : 25 fonctions d'`em-map.js` (dessin, post-it, cercles, gomme, horodatage, export/import GeoJSON, sauvegarde), la barre d'outils de dessin, la palette, la barre flottante de tracé, 9 expositions `window` et les 4 gestionnaires de souris de la carte ; côté Contexte, `renderNappes` et ses trois auxiliaires, le CSS `.nappe-*` et le chapitre HTML. **🖨 Imprimer conservé** — le seul export qui servait. *Constat au passage* : la « sauvegarde » d'annotations écrivait dans une variable de module (`EM_MEMORY`), pas dans `localStorage` — elle ne survivait pas au rechargement, donc rien à migrer. `loadNappes` et `nappePctClass` restent : la couche 💧 de la carte en dépend. L'onglet Contexte économise 30 requêtes Hub'Eau à l'ouverture. 12/12 tests, syntaxe du bundle validée, comportement vérifié sur la production déployée. 256 → 227 Ko | 227 Ko |
 | 2026-08-30 | — | **Audit complet code + contenu** → ouverture de la [phase 9](#phase-9--simplification-2026-08-30). Constats : sources non versionnées (9.1), ~540 lignes mortes en production, 2 CDN inutilisés, 54 % du HTML sans donnée hydrométrique, 4 jeux de données affichés deux fois. ROADMAP consolidée : 445 → 271 lignes, 8 sections de backlog fusionnées en une, 28 items livrés déplacés dans cet historique | 554 Ko |

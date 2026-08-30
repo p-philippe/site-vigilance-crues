@@ -304,13 +304,14 @@ function nappePercentile(stats, niveau, dateMesure) {
   return Math.round((i + frac) * 5);
 }
 
+// Alimente uniquement la couche « piézomètres » de la carte état-major :
+// le chapitre nappes de l'onglet Contexte a été retiré (indicateur de
+// sécheresse plus que d'inondation).
 export async function loadNappes() {
-  const grid = document.getElementById('nappes-grid');
-  if (grid) grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Chargement Hub\'Eau ADES…</div>';
   try {
     const dSta = await fetchJson('https://hubeau.eaufrance.fr/api/v1/niveaux_nappes/stations?code_departement=22&format=json&size=400');
     const stations = (dSta.data || []).filter(s => s.code_bss).slice(0, 30);
-    if (!stations.length) { setNAPPES_DATA([]); window.renderNappes && window.renderNappes(); return; }
+    if (!stations.length) { setNAPPES_DATA([]); return; }
 
     async function fetchChronique(sta) {
       try {
@@ -330,7 +331,6 @@ export async function loadNappes() {
     }
 
     // Percentile vs chronique historique (cache localStorage → réseau seulement 1×/mois)
-    if (grid) grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Calcul des percentiles historiques…</div>';
     for (let i = 0; i < results.length; i += 8) {
       const batch = results.slice(i, i + 8);
       await Promise.all(batch.map(async sta => {
@@ -342,9 +342,7 @@ export async function loadNappes() {
     }
 
     setNAPPES_DATA(results);
-    window.renderNappes && window.renderNappes();
   } catch(e) {
-    if (grid) grid.innerHTML = `<div style="text-align:center;padding:2rem;color:#c0392b">${e.message}</div>`;
     console.error('[loadNappes]', e);
   }
 }

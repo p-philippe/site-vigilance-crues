@@ -5,7 +5,6 @@ import './globals.js';
 import { loadAll } from './data.js';
 import { cacheRestore } from './cache.js';
 import { journalLoad } from './journal.js';
-import { emSetColor } from './em-map.js';
 import { initMap } from './map.js';
 import { restoreTab, initTabs } from './tabs.js';
 import { updateOnlineStatus } from './utils.js';
@@ -54,9 +53,6 @@ window.PROP_DATA = [
 
   // 3. Carte principale (optionnelle — le div#map n'existe pas dans tous les layouts)
   try { initMap(); } catch(e) { console.warn('[map] initMap ignorée:', e.message); }
-
-  // 4. Carte EM — couleur par défaut
-  emSetColor('#e63946');
 
   // 6. Restaurer le cache si hors-ligne
   if (!navigator.onLine) {
@@ -125,18 +121,6 @@ window.PROP_DATA = [
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
-
-  // 17. Raccourcis clavier EM
-  document.addEventListener('keydown', e => {
-    const onEM = document.getElementById('panel9')?.classList.contains('active');
-    if (!onEM || !window.emMap) return;
-    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '');
-    if (typing) return;
-    if (window._emDrawing) {
-      if (e.key === 'Enter') { e.preventDefault(); window.emFinishDraw && window.emFinishDraw(); }
-      else if (e.key === 'Escape') { e.preventDefault(); window.emCancelDraw && window.emCancelDraw(); }
-    }
-  });
 
   // 18. Fermer recherche EM si clic ailleurs
   document.addEventListener('click', e => {

@@ -343,21 +343,6 @@ tr:hover td{background:var(--accent-light)}
 .sol-legend-item{display:flex;align-items:center;gap:4px}
 .sol-legend-dot{width:10px;height:10px;border-radius:50%}
 .sol-source{font-size:10px;color:var(--text3);text-align:right;margin-top:8px}
-.nappe-verdict{border-radius:10px;padding:14px 16px;margin-bottom:4px;border:1px solid var(--border)}
-.nappe-verdict.ok{background:#f0faf0;border-color:#b7e0b7}
-.nappe-verdict.warn{background:#fff6e8;border-color:#f0c98a}
-.nappe-verdict.crit{background:#fdecea;border-color:#f0a8a0}
-.nappe-verdict-kicker{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;opacity:.75}
-.nappe-verdict-title{font-size:16px;font-weight:700;line-height:1.25}
-.nappe-verdict-sub{font-size:12px;color:var(--text2);margin-top:6px;line-height:1.45}
-.nappe-verdict-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.sol-card.nappe-crit{border-left:4px solid #c0392b}
-.sol-card.nappe-warn{border-left:4px solid #e67e22}
-.sol-card.nappe-ok{border-left:4px solid #27ae60}
-.sol-card.nappe-low{border-left:4px solid #5dade2}
-.nappe-status{font-size:22px;font-weight:700;line-height:1.1}
-.nappe-status-hint{font-size:11px;color:var(--text2);margin-top:4px;line-height:1.35}
-.nappe-abs{font-size:10px;color:var(--text3);margin-top:8px;line-height:1.4;font-family:var(--sans)}
 
 
 
@@ -425,13 +410,6 @@ tr:hover td{background:var(--accent-light)}
   padding:4px 8px;border-radius:5px;pointer-events:none;font-family:var(--sans);
   box-shadow:0 2px 8px rgba(0,0,0,.3);
 }
-/* Palette couleurs */
-.em-color-btn{
-  width:24px;height:24px;border-radius:50%;border:2px solid transparent;
-  cursor:pointer;transition:all .15s;margin:2px auto;display:block;
-}
-.em-color-btn.active{border-color:#fff;transform:scale(1.15)}
-.em-color-btn:hover{transform:scale(1.1)}
 /* Panneau info / propriétés */
 .em-info{
   position:absolute;top:12px;right:12px;z-index:1200;
@@ -455,21 +433,6 @@ tr:hover td{background:var(--accent-light)}
 .em-layer-toggle:hover{background:rgba(255,255,255,.13);color:#fff}
 .em-layer-toggle.active{background:rgba(126,200,126,.18);border-color:rgba(126,200,126,.55);color:#fff}
 .em-layer-count{margin-left:auto;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.55)}
-/* Barre aide au dessin */
-.em-draw-bar{
-  display:none;position:absolute;bottom:70px;left:50%;transform:translateX(-50%);
-  z-index:1001;background:#1a2332;color:#fff;border-radius:8px;
-  padding:6px 12px;gap:8px;align-items:center;
-  box-shadow:0 4px 16px rgba(0,0,0,.4);font-family:var(--sans);font-size:12px;
-}
-.em-draw-bar.show{display:flex}
-.em-draw-ok,.em-draw-cancel{
-  background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);
-  border-radius:5px;padding:4px 10px;cursor:pointer;font-size:11px;font-family:var(--sans);
-}
-.em-draw-ok:hover{background:#2a7a2a}
-.em-draw-cancel:hover{background:#7a2a2a}
-.em-draw-info{font-size:11px;color:rgba(255,255,255,.7);white-space:nowrap}
 /* Barre du bas */
 .em-bottom{
   position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
@@ -581,8 +544,6 @@ tr:hover td{background:var(--accent-light)}
   .conv-item.ci-danger{background:#2a1400;border-left-color:#c06000}
   .conv-item.ci-high{background:#2a0a0a;border-left-color:#c03030}
   .conv-item.ci-ok{background:#0d2014;border-left-color:#2a9040}
-  .em-postit{background:#3a3400;border-color:rgba(255,255,255,.2)}
-  .em-postit-title,.em-postit-note{color:#f0e890}
   input,select,textarea{background:var(--bg3);color:var(--text);border-color:var(--border)}
   input::placeholder{color:var(--text3)}
 }
@@ -734,7 +695,7 @@ tr:hover td{background:var(--accent-light)}
 <div class="tabs-bar" role="tablist" aria-label="Sections de surveillance">
   <div class="tab active" data-tab="9" id="tab9" role="tab" tabindex="0" aria-selected="true" aria-controls="panel9" title="Carte état-major — outils de tracé opérationnels"><span class="tab-ico">🗺️</span> Carte</div>
   <div class="tab" data-tab="5" id="tab5" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel5" title="Bassins versants, stations et historique 12 h"><span class="tab-ico">🏞️</span> Stations</div>
-  <div class="tab" data-tab="6" id="tab6" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel6" title="Facteurs aggravants — météo, sols, nappes"><span class="tab-ico">🌧️</span> Contexte</div>
+  <div class="tab" data-tab="6" id="tab6" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel6" title="Facteurs aggravants — météo et saturation des sols"><span class="tab-ico">🌧️</span> Contexte</div>
   <div class="tab" data-tab="4" id="tab4" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel4" title="Journal des événements"><span class="tab-ico">📋</span> Journal</div>
 </div>
 </div><!-- /tabs-bar-wrap -->
@@ -896,21 +857,6 @@ tr:hover td{background:var(--accent-light)}
       Données de calcul : Open-Meteo ERA5-Land / ECMWF — humidité volumétrique par couche · Référence sols INRAE/BDAT (limon-argile Bretagne) · θ<sub>wp</sub>=0,10 · θ<sub>fc</sub>=0,28 · θ<sub>sat</sub>=0,44 m³/m³
     </div>
   </div>
-
-  <!-- ═══ Nappes phréatiques (ex-onglet 11, fusionné en 9.5) ═══ -->
-  <h3 class="sect-sep">💧 Nappes phréatiques</h3>
-  <div class="sol-intro">
-    <strong>Nappes — le signal crue, pas la cote en mètres.</strong>
-    −7 m à Ploufragan n'est pas comparable à −18 m à Collinée : chaque forage a sa propre profondeur. Pour savoir si c'est <em>critique</em>, on classe le niveau actuel dans l'historique du <strong>même mois</strong> (percentile BRGM). Au-dessus du 90ᵉ centile = nappe très haute pour la saison = plus de capacité d'absorption, crues amplifiées, risque de remontée de nappe.
-  </div>
-  <div class="sol-risk-panel">
-    <div class="sol-risk-title">💧 Synthèse départementale — nappes</div>
-    <div id="nappes-synth" style="font-size:12px;color:var(--text3);font-style:italic;padding:8px 0">Chargement…</div>
-  </div>
-  <div class="sol-grid" id="nappes-grid">
-    <div style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Chargement des données Hub'Eau ADES…</div>
-  </div>
-  <div class="sol-source" style="margin-top:10px">Source : Hub'Eau — API Niveaux des nappes d'eau souterraine · BRGM/OFB · Réseau piézométrique ADES</div>
 </div>
 </div>
 
@@ -942,31 +888,6 @@ tr:hover td{background:var(--accent-light)}
 
     <!-- Barre outils gauche -->
     <div class="em-toolbar" id="em-toolbar">
-
-      <!-- Outils de dessin -->
-      <div class="em-section">
-        <button aria-label="Outil sélection et déplacement" class="em-btn" id="em-tool-select"    onclick="emSetTool('select')"   title="Sélection / Déplacer">↖</button>
-        <button aria-label="Outil annotation post-it" class="em-btn" id="em-tool-note"      onclick="emSetTool('note')"     title="Post-it (note toujours visible)">📝</button>
-        <button aria-label="Outil tracé de ligne" class="em-btn" id="em-tool-polyline"  onclick="emSetTool('polyline')" title="Tracé (route, limite)">✏️</button>
-        <button aria-label="Outil tracé de zone" class="em-btn" id="em-tool-polygon"   onclick="emSetTool('polygon')"  title="Zone (inondée, danger)">⬡</button>
-        <button aria-label="Outil tracé de cercle" class="em-btn" id="em-tool-circle"    onclick="emSetTool('circle')"   title="Zone circulaire">⊙</button>
-      </div>
-
-      <!-- Palette couleurs -->
-      <div class="em-section" style="align-items:center;padding:6px 0">
-        <button aria-label="Couleur rouge — Danger" class="em-color-btn" style="background:#e63946" onclick="emSetColor('#e63946')" title="Danger / Urgent" id="emc-red"></button>
-        <button aria-label="Couleur orange — Vigilance" class="em-color-btn" style="background:#FF7F00" onclick="emSetColor('#FF7F00')" title="Vigilance / Alerte" id="emc-orange"></button>
-        <button aria-label="Couleur bleue — Eau / crue" class="em-color-btn" style="background:#2196F3" onclick="emSetColor('#2196F3')" title="Eau / Inondation" id="emc-blue"></button>
-        <button aria-label="Couleur verte — Ressources" class="em-color-btn" style="background:#4CAF50" onclick="emSetColor('#4CAF50')" title="Ressource / OK" id="emc-green"></button>
-        <button aria-label="Couleur violette — Infrastructures" class="em-color-btn" style="background:#9C27B0" onclick="emSetColor('#9C27B0')" title="Infrastructure" id="emc-purple"></button>
-        <button aria-label="Couleur blanche — Neutre" class="em-color-btn" style="background:#F5F5F5" onclick="emSetColor('#F5F5F5')" title="Neutre / Info" id="emc-white"></button>
-      </div>
-
-      <!-- Actions suppression -->
-      <div class="em-section">
-        <button class="em-btn" id="em-tool-erase" aria-label="Outil gomme" onclick="emSetTool('erase')" title="Supprimer un élément">🗑</button>
-        <button aria-label="Effacer toutes les annotations" class="em-btn" onclick="emClearConfirm()" title="Tout effacer">✕</button>
-      </div>
 
       <!-- Fond de carte -->
       <div class="em-section">
@@ -1020,33 +941,17 @@ tr:hover td{background:var(--accent-light)}
         </select>
       </div>
       <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);font-size:10px;color:rgba(255,255,255,.4)" id="em-status">
-        Outil actif : Sélection
+        Carte état-major — consultation
       </div>
     </div>
 
-    <!-- Barre flottante d'aide au dessin -->
-    <div class="em-draw-bar" id="em-draw-bar">
-      <span class="em-draw-info" id="em-draw-info">0 point</span>
-      <button aria-label="Valider le tracé" class="em-draw-ok" onclick="emFinishDraw()">✓ Terminer <span style="opacity:.7">(Entrée)</span></button>
-      <button aria-label="Annuler le tracé" class="em-draw-cancel" onclick="emCancelDraw()">✕ Annuler <span style="opacity:.7">(Échap)</span></button>
-    </div>
-
-    <!-- Barre bas : export/import -->
+    <!-- Barre bas -->
     <div class="em-bottom">
       <button aria-label="Imprimer / exporter la carte" class="em-action-btn" onclick="emPrint()" title="Imprimer la carte ou enregistrer en PDF">🖨 Imprimer</button>
-      <button aria-label="Exporter les annotations en GeoJSON" class="em-action-btn" onclick="emExportGeoJSON()" title="Exporter les annotations en GeoJSON">📤 GeoJSON</button>
-      <label class="em-action-btn" style="cursor:pointer" title="Importer des annotations GeoJSON">
-        📥 Importer
-        <input type="file" accept=".geojson,.json" onchange="emImportGeoJSON(event)" style="display:none">
-      </label>
-      <button aria-label="Sauvegarder les annotations localement" class="em-action-btn" onclick="emSaveLocal()"     title="Sauvegarder dans le navigateur">💾 Sauvegarder</button>
-      <button aria-label="Ajouter un horodatage sur la carte" class="em-action-btn" onclick="emAddTimestamp()"  title="Horodater la carte">🕐 Horodatage</button>
     </div>
   </div>
 </div>
 
-
-<!-- ═══ TAB 11 : NAPPES PHRÉATIQUES ═══ -->
 
 <!-- ═══ TAB 12 : PRÉVENTION ═══ -->
 

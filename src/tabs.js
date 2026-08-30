@@ -1,6 +1,6 @@
 // ── TABS — Navigation onglets ─────────────────────────────────────────────
 
-import { METEO_DATA, SOL_DATA, NAPPES_DATA } from './state.js';
+import { METEO_DATA, SOL_DATA } from './state.js';
 
 export const TAB_KEY = 'vig22_active_tab';
 
@@ -21,14 +21,12 @@ export function switchTab(n) {
     window.renderBassins && window.renderBassins();
     window.renderHist && window.renderHist();
   }
-  // Onglet 6 « Contexte » : météo + sols + nappes (ex-onglets 6, 7 et 11)
+  // Onglet 6 « Contexte » : météo + sols (ex-onglets 6 et 7)
   if (n===6) {
     if (!METEO_DATA) window.loadMeteo && window.loadMeteo();
     else window.renderMeteo && window.renderMeteo();
     if (!SOL_DATA) window.loadSol && window.loadSol();
     else window.renderSol && window.renderSol();
-    if (!NAPPES_DATA) window.loadNappes && window.loadNappes();
-    else window.renderNappes && window.renderNappes();
   }
   if (n===9) {
     if (!window.emMap) {

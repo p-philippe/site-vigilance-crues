@@ -17,12 +17,6 @@ async function getEmSensitiveInline() {
 
 // ── État ──
 let emMap = null;
-let emCurrentTool = 'select';
-let emCurrentColor = '#e63946';
-let emDrawing = false;
-let emDrawPoints = [];
-let emDrawLayer = null;
-let emAnnotations = null;
 let emStationsLayer = null;
 let emShowStations = true;
 let emSensitiveData = null;
@@ -32,11 +26,6 @@ let emShowSensitive = {school:false, health:false, ehpad:false};
 let emSensitiveFilters = { text: '', schoolKind: 'all' };
 let emBaseLayers = {};
 let emCurrentBase = 'osm';
-let emCircleCenter = null;
-let emCirclePreview = null;
-let EM_MEMORY = '';
-
-function emFmtDist(m) { return m < 1000 ? Math.round(m)+' m' : (m/1000).toFixed(2)+' km'; }
 
 // ── Utilitaires ──
 function emSafeColor(color, fallback='#e63946') {
@@ -46,29 +35,11 @@ function emSafeColor(color, fallback='#e63946') {
   return fallback;
 }
 
-function emMakeIcon(color, label='') {
-  const L = window.L;
-  const safeColor = emSafeColor(color);
-  const safeLabel = escapeHtml(String(label).slice(0,2));
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
-    <path d="M14 0C6.27 0 0 6.27 0 14c0 10.5 14 22 14 22S28 24.5 28 14C28 6.27 21.73 0 14 0z" fill="${safeColor}" stroke="rgba(0,0,0,0.3)" stroke-width="1"/>
-    <circle cx="14" cy="14" r="7" fill="white" opacity="0.9"/>
-    <text x="14" y="18" text-anchor="middle" font-size="10" font-family="sans-serif" font-weight="700" fill="${safeColor}">${safeLabel}</text>
-  </svg>`;
-  return L.divIcon({ html:svg, iconSize:[28,36], iconAnchor:[14,36], popupAnchor:[0,-36], className:'' });
-}
-
-function emGetStyleOpts(alpha) {
-  const a = alpha !== undefined ? alpha : 0.25;
-  return { color:emCurrentColor, weight:3, opacity:0.9, fillColor:emCurrentColor, fillOpacity:a, dashArray:null };
-}
-
 // ── Init ──
 export function emInitMap() {
   const L = window.L;
   if (emMap) return;
 
-  emAnnotations = L.featureGroup();
   emStationsLayer = L.featureGroup();
 
   emMap = L.map('em-map', {zoomControl:false, attributionControl:true}).setView([48.42, -2.95], 9);
@@ -76,7 +47,6 @@ export function emInitMap() {
   emBaseLayers.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap', maxZoom:19});
   emBaseLayers.topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {attribution:'© OpenTopoMap', maxZoom:17});
   emBaseLayers.osm.addTo(emMap);
-  emAnnotations.addTo(emMap);
   emStationsLayer.addTo(emMap);
   emSensitiveLayers = {
     school: L.featureGroup(),
@@ -85,17 +55,10 @@ export function emInitMap() {
   };
 
   emRefreshStations();
-  emLoadLocal();
   emLoadTroncons();
-
-  emMap.on('click', emHandleMapClick);
-  emMap.on('mousemove', emHandleMouseMove);
-  emMap.on('dblclick', emHandleDblClick);
-  emMap.on('contextmenu', e => { e.originalEvent.preventDefault(); emCancelDraw(); });
 
   // Exposer sur window pour les appels depuis index.html
   window.emMap = emMap;
-  window.emAnnotations = emAnnotations;
 }
 
 const EM_BT22 = new Set(['BT2','BT5','BT7','BT13','BT14','BT15']);
@@ -570,209 +533,6 @@ export async function emToggleNappes() {
   emSetStatus(`${emNappesLayer.getLayers().length} piézomètres affichés — cliquer pour le détail`);
 }
 
-function emHandleMapClick(e) {
-  if (emCurrentTool === 'select') return;
-  if (emCurrentTool === 'erase') return;
-  if (emCurrentTool === 'note') { emAddNote(e.latlng); return; }
-  if (emCurrentTool === 'circle') {
-    if (!emCircleCenter) {
-      emCircleCenter = e.latlng;
-      emSetStatus('Déplacez la souris puis cliquez pour fixer le rayon · Échap pour annuler');
-    } else {
-      const radius = emCircleCenter.distanceTo(e.latlng);
-      emAddCircle(emCircleCenter, radius);
-      emCircleCenter = null;
-      if (emCirclePreview) { emMap.removeLayer(emCirclePreview); emCirclePreview = null; }
-      emSetStatus('Zone circulaire ajoutée (rayon ' + emFmtDist(radius) + ')');
-    }
-    return;
-  }
-  if (emCurrentTool === 'polyline' || emCurrentTool === 'polygon') {
-    // Un clic qui fait partie d'un double-clic (detail > 1) ne doit pas ajouter de point :
-    // il sera géré par emHandleDblClick, qui termine le tracé.
-    if (e.originalEvent && e.originalEvent.detail > 1) return;
-    if (!emDrawing) {
-      emDrawing = true; emDrawPoints = [e.latlng]; emShowDrawBar();
-    } else {
-      emDrawPoints.push(e.latlng);
-    }
-    emUpdateDrawInfo(); emUpdateDrawPreview(); return;
-  }
-}
-
-function emHandleDblClick(e) {
-  if (!emDrawing) return;
-  if (e && e.originalEvent) window.L.DomEvent.stop(e.originalEvent);
-  emFinishDraw();
-}
-
-function emHandleMouseMove(e) {
-  if (emCurrentTool === 'circle' && emCircleCenter) {
-    const L = window.L;
-    const r = emCircleCenter.distanceTo(e.latlng);
-    if (emCirclePreview) emMap.removeLayer(emCirclePreview);
-    emCirclePreview = L.circle(emCircleCenter, {radius:r, ...emGetStyleOpts(0.12), dashArray:'6 4', opacity:0.75}).addTo(emMap);
-    emSetStatus('Rayon : ' + emFmtDist(r) + ' · cliquez pour valider');
-    return;
-  }
-  if (!emDrawing || emDrawPoints.length === 0) return;
-  const L = window.L;
-  const pts = [...emDrawPoints, e.latlng];
-  if (emDrawLayer) { emMap.removeLayer(emDrawLayer); emDrawLayer = null; }
-  const opts = emGetStyleOpts();
-  emDrawLayer = (emCurrentTool === 'polyline' ? L.polyline(pts, opts) : L.polygon(pts, opts)).addTo(emMap);
-}
-
-function emShowDrawBar() {
-  const bar = document.getElementById('em-draw-bar');
-  if (bar) bar.classList.add('show');
-  emUpdateDrawInfo();
-}
-function emHideDrawBar() {
-  const bar = document.getElementById('em-draw-bar');
-  if (bar) bar.classList.remove('show');
-}
-function emUpdateDrawInfo() {
-  const el = document.getElementById('em-draw-info');
-  if (!el) return;
-  const n = emDrawPoints.length;
-  let len = 0;
-  for (let i = 1; i < emDrawPoints.length; i++) len += emDrawPoints[i-1].distanceTo(emDrawPoints[i]);
-  const kind = emCurrentTool === 'polygon' ? 'sommet' : 'point';
-  el.textContent = `${n} ${kind}${n>1?'s':''}` + (len > 0 ? ` · ${emFmtDist(len)}` : '');
-}
-
-function emUpdateDrawPreview() {
-  if (!emDrawing || emDrawPoints.length < 2) return;
-  const L = window.L;
-  if (emDrawLayer) { emMap.removeLayer(emDrawLayer); }
-  const opts = {...emGetStyleOpts(), dashArray:'6 4', opacity:0.6};
-  emDrawLayer = (emCurrentTool === 'polyline' ? L.polyline(emDrawPoints, opts) : L.polygon(emDrawPoints, opts)).addTo(emMap);
-}
-
-export function emFinishDraw() {
-  const L = window.L;
-  if (emDrawLayer) { emMap.removeLayer(emDrawLayer); emDrawLayer = null; }
-  if (emDrawPoints.length < 2) { emCancelDraw(); return; }
-  const opts = emGetStyleOpts();
-  let layer;
-  if (emCurrentTool === 'polyline') {
-    layer = L.polyline(emDrawPoints, opts);
-  } else {
-    layer = L.polygon(emDrawPoints, opts);
-  }
-  emBindErasePopup(layer);
-  emAnnotations.addLayer(layer);
-  emDrawing = false; emDrawPoints = []; emDrawLayer = null;
-  emHideDrawBar();
-  emSetStatus('Tracé ajouté · Double-clic sur un élément pour le supprimer');
-  emSaveLocal();
-}
-
-export function emCancelDraw() {
-  if (emDrawLayer) { emMap.removeLayer(emDrawLayer); emDrawLayer = null; }
-  emDrawing = false; emDrawPoints = []; emDrawLayer = null;
-  emHideDrawBar();
-  emSetStatus('Dessin annulé');
-}
-
-function emMakeNoteIcon(color, title, note) {
-  const L = window.L;
-  const c = emSafeColor(color);
-  const t = escapeHtml(String(title || '').trim());
-  const n = escapeHtml(String(note || '').trim());
-  let body = '';
-  if (t) body += `<div class="em-postit-title">${t}</div>`;
-  if (n) body += `<div class="em-postit-note">${n}</div>`;
-  if (!body) body = '<div class="em-postit-empty">(note vide)</div>';
-  return L.divIcon({
-    html: `<div class="em-postit"><div class="em-postit-bar" style="background:${c}"></div><div class="em-postit-body">${body}</div></div>`,
-    iconSize: null, iconAnchor: [10, 8], className: 'em-postit-wrap'
-  });
-}
-
-function emBindNoteErase(marker) {
-  marker.on('click', () => {
-    if (emCurrentTool === 'erase') { emAnnotations.removeLayer(marker); emSaveLocal(); emSetStatus('Post-it supprimé'); }
-  });
-}
-
-function emAddNote(latlng) {
-  const title = (prompt('Titre du post-it (court) :', '') || '').trim();
-  const note  = (prompt('Détail / note (optionnel) :', '') || '').trim();
-  if (!title && !note) return;
-  const L = window.L;
-  const marker = L.marker(latlng, { icon: emMakeNoteIcon(emCurrentColor, title, note), draggable: true });
-  emBindNoteErase(marker);
-  marker._emData = { type: 'note', color: emCurrentColor, title, note };
-  emAnnotations.addLayer(marker);
-  emSaveLocal();
-  emSetStatus('Post-it ajouté');
-}
-
-function emLabelTextColor(bg) {
-  bg = emSafeColor(bg, '#e63946');
-  const r=parseInt(bg.slice(1,3),16), g=parseInt(bg.slice(3,5),16), b=parseInt(bg.slice(5,7),16);
-  return (0.299*r+0.587*g+0.114*b) > 150 ? '#000' : '#fff';
-}
-
-function emAddCircle(center, radius) {
-  const L = window.L;
-  const layer = L.circle(center, {radius, ...emGetStyleOpts(0.15)});
-  emBindErasePopup(layer);
-  emAnnotations.addLayer(layer);
-  emSaveLocal();
-}
-
-function emBindErasePopup(layer) {
-  layer.on('click', e => {
-    if (emCurrentTool === 'erase') {
-      window.L.DomEvent.stopPropagation(e);
-      emAnnotations.removeLayer(layer);
-      emSaveLocal();
-      return;
-    }
-    window.L.DomEvent.stopPropagation(e);
-    const popup = window.L.popup()
-      .setLatLng(e.latlng)
-      .setContent(`<button class="em-popup-btn" style="background:#c0392b" onclick="emAnnotations.removeLayer(${emAnnotations.getLayerId(layer)});emSaveLocal();emMap.closePopup()">🗑 Supprimer</button>`)
-      .openOn(emMap);
-  });
-}
-
-export function emSetTool(tool) {
-  if (emDrawing) emCancelDraw();
-  emCircleCenter = null;
-  if (emCirclePreview) { emMap.removeLayer(emCirclePreview); emCirclePreview = null; }
-  emHideDrawBar();
-  emCurrentTool = tool;
-  document.querySelectorAll('.em-btn[id^="em-tool-"]').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById(`em-tool-${tool}`);
-  if (btn) btn.classList.add('active');
-  if (emMap && emMap.doubleClickZoom) {
-    if (tool === 'polyline' || tool === 'polygon') emMap.doubleClickZoom.disable();
-    else emMap.doubleClickZoom.enable();
-  }
-  const labels = {
-    select:'Sélection / Déplacer', note:'Post-it (cliquez sur la carte)',
-    polyline:'Tracé : cliquez pour ajouter des points · double-clic ou Entrée pour terminer',
-    polygon:'Zone : cliquez pour ajouter des sommets · double-clic ou Entrée pour terminer',
-    circle:'Cercle : clic = centre, puis clic = rayon', erase:'Suppression (cliquer sur un élément)'
-  };
-  emSetStatus(`Outil : ${labels[tool] || tool}`);
-  if (emMap) emMap.getContainer().style.cursor = tool === 'select' ? '' : 'crosshair';
-}
-
-export function emSetColor(color) {
-  emCurrentColor = color;
-  document.querySelectorAll('.em-color-btn').forEach(b => b.classList.remove('active'));
-  const id = {
-    '#e63946':'emc-red','#FF7F00':'emc-orange','#2196F3':'emc-blue',
-    '#4CAF50':'emc-green','#9C27B0':'emc-purple','#F5F5F5':'emc-white'
-  }[color];
-  if (id) document.getElementById(id)?.classList.add('active');
-}
-
 export function emSetLayer(name) {
   Object.values(emBaseLayers).forEach(l => { if (emMap.hasLayer(l)) emMap.removeLayer(l); });
   emBaseLayers[name]?.addTo(emMap);
@@ -791,152 +551,9 @@ export function emSetStatus(msg) {
   if (el) el.textContent = msg;
 }
 
-export function emClearConfirm() {
-  if (confirm('Effacer toutes les annotations de la carte ?')) {
-    emAnnotations.clearLayers();
-    emSaveLocal();
-    emSetStatus('Carte effacée');
-  }
-}
-
-export function emAddTimestamp() {
-  const L = window.L;
-  const now = new Date();
-  const txt = `Situation du ${fmtDate(now,{day:'2-digit',month:'2-digit',year:'numeric'})} ${fmtTime(now)}`;
-  const center = emMap.getCenter();
-  const icon = L.divIcon({
-    html:`<div style="background:rgba(26,35,50,0.85);color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;font-family:sans-serif;border:1px solid rgba(255,255,255,.3)">${txt}</div>`,
-    iconAnchor:[0,10], className:''
-  });
-  const marker = L.marker(center, {icon, draggable:true});
-  marker._emData = {type:'label', color:'#1a2332', text:txt};
-  emAnnotations.addLayer(marker);
-  emSaveLocal();
-  toast('Horodatage ajouté : ' + txt);
-}
-
 export function emPrint() {
   emMap.invalidateSize();
   setTimeout(() => window.print(), 150);
-}
-
-export function emExportGeoJSON() {
-  const features = [];
-  emAnnotations.eachLayer(layer => {
-    try {
-      const gj = layer.toGeoJSON ? layer.toGeoJSON() : null;
-      if (gj) {
-        gj.properties = { ...(gj.properties || {}), ...(layer._emData || {}), color: emCurrentColor };
-        if (layer._emData?.color) gj.properties.color = layer._emData.color;
-        if (typeof layer.getRadius === 'function') {
-          gj.properties.type   = 'circle';
-          gj.properties.radius = layer.getRadius();
-        }
-        features.push(gj);
-      }
-    } catch(e) {}
-  });
-  const geojson = {type:'FeatureCollection', features, metadata:{date:new Date().toISOString(), source:'Suivi stations Côtes-d\'Armor 22', version:'1.0'}};
-  const blob = new Blob([JSON.stringify(geojson, null, 2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `etatmajor_${new Date().toISOString().slice(0,10)}.geojson`;
-  a.click();
-  toast(`${features.length} annotation(s) exportée(s)`);
-}
-
-export function emImportGeoJSON(event) {
-  const L = window.L;
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const geojson = JSON.parse(e.target.result);
-      let count = 0;
-      L.geoJSON(geojson, {
-        style: f => ({color:emSafeColor(f.properties?.color), weight:3, opacity:0.9, fillColor:emSafeColor(f.properties?.color), fillOpacity:0.2}),
-        pointToLayer: (f, latlng) => {
-          const color = emSafeColor(f.properties?.color);
-          if (f.properties?.type === 'note') return L.marker(latlng, {icon:emMakeNoteIcon(color, f.properties?.title, f.properties?.note), draggable:true});
-          if (f.properties?.type === 'label') {
-            const txt = escapeHtml(f.properties?.text || '?');
-            const icon = L.divIcon({html:`<div style="background:${color};color:${emLabelTextColor(color)};padding:3px 8px;border-radius:4px;font-size:12px;font-weight:600;white-space:nowrap;font-family:sans-serif">${txt}</div>`, iconAnchor:[0,10], className:''});
-            return L.marker(latlng, {icon, draggable:true});
-          }
-          if (f.properties?.type === 'circle' && f.properties?.radius) {
-            const style = emGetStyleOpts(0.15);
-            style.color = color; style.fillColor = color;
-            return L.circle(latlng, {radius:f.properties.radius, ...style});
-          }
-          return L.marker(latlng, {icon:emMakeIcon(color, f.properties?.label||''), draggable:true});
-        },
-        onEachFeature: (f, layer) => {
-          layer._emData = f.properties || {};
-          if (f.properties?.type === 'note' || f.properties?.type === 'label') emBindNoteErase(layer);
-          else emBindErasePopup(layer);
-          emAnnotations.addLayer(layer);
-          count++;
-        }
-      });
-      emSaveLocal();
-      toast(`${count} annotation(s) importée(s)`);
-    } catch(err) { toast('Erreur d\'import : fichier GeoJSON invalide'); }
-    event.target.value = '';
-  };
-  reader.readAsText(file);
-}
-
-export function emSaveLocal() {
-  try {
-    const features = [];
-    emAnnotations.eachLayer(layer => {
-      try {
-        const gj = layer.toGeoJSON ? layer.toGeoJSON() : null;
-        if (gj) {
-          gj.properties = {...(gj.properties||{}), ...(layer._emData||{})};
-          if (layer._emData?.color) gj.properties.color = layer._emData.color;
-          if (typeof layer.getRadius === 'function') {
-            gj.properties.type   = 'circle';
-            gj.properties.radius = layer.getRadius();
-          }
-          features.push(gj);
-        }
-      } catch(e) {}
-    });
-    EM_MEMORY = JSON.stringify({type:'FeatureCollection', features});
-    toast('Annotations sauvegardées pour cette session');
-  } catch(e) {}
-}
-
-function emLoadLocal() {
-  const L = window.L;
-  try {
-    const raw = EM_MEMORY;
-    if (!raw) return;
-    const geojson = JSON.parse(raw);
-    L.geoJSON(geojson, {
-      style: f => ({color:emSafeColor(f.properties?.color), weight:3, opacity:0.9, fillColor:emSafeColor(f.properties?.color), fillOpacity:0.2}),
-      pointToLayer: (f, latlng) => {
-        const color = emSafeColor(f.properties?.color);
-        if (f.properties?.type === 'note') return L.marker(latlng, {icon:emMakeNoteIcon(color, f.properties?.title, f.properties?.note), draggable:true});
-        if (f.properties?.type === 'label') {
-          const txt = escapeHtml(f.properties?.text || '?');
-          const icon = L.divIcon({html:`<div style="background:${color};color:${emLabelTextColor(color)};padding:3px 8px;border-radius:4px;font-size:12px;font-weight:600;white-space:nowrap;font-family:sans-serif">${txt}</div>`, iconAnchor:[0,10], className:''});
-          return L.marker(latlng, {icon, draggable:true});
-        }
-        return L.marker(latlng, {icon:emMakeIcon(color, f.properties?.label||''), draggable:true});
-      },
-      onEachFeature: (f, layer) => {
-        layer._emData = f.properties || {};
-        if (f.properties?.type === 'note' || f.properties?.type === 'label') emBindNoteErase(layer);
-        else emBindErasePopup(layer);
-        emAnnotations.addLayer(layer);
-      }
-    });
-    const n = geojson.features?.length || 0;
-    if (n > 0) emSetStatus(`${n} annotation(s) restaurée(s) depuis la sauvegarde`);
-  } catch(e) {}
 }
 
 // ── Établissements sensibles ──
