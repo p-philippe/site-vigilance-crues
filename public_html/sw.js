@@ -1,5 +1,5 @@
 // Service Worker — Vigilance 22 — v5.2
-const CACHE_NAME = 'vigicrues22-2026-08-30-1829';
+const CACHE_NAME = 'vigicrues22-2026-08-30-1832';
 const ASSETS = [
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
