@@ -43,8 +43,6 @@ export const VIGICRUES_OBS = '/api/vigicrues-obs';
 export const REF_COLORS = {s1:'#7dd3fc', s2:'#2563eb', s3:'#7c3aed'};
 export const REF_TEXT   = {s1:'#075985', s2:'#fff',    s3:'#fff'};
 
-export const DEFAULT_FAVORITES = ['J151301001','J140531001','J132401001','J110301001','J223302001','J540212001'];
-
 export const VIGICRUES_TRONCON_BY_STATION = {
   J061161001:'BT15', J100452001:'BT15', J110301001:'BT15', J110581001:'BT15', J111401001:'BT15',
   J131301001:'BT15', J132401001:'BT15',
@@ -152,14 +150,6 @@ export const WEATHER_ICONS = {
   80:'🌦️', 81:'🌧️', 82:'⛈️',
   95:'⛈️', 96:'⛈️', 99:'⛈️'
 };
-
-export const SYNTH_ZONES = [
-  {id:'lannion',   nom:'Trégor / Lannion',     poly:[[48.82,-3.65],[48.82,-3.23],[48.05,-3.23],[48.05,-3.65]]},
-  {id:'guingamp',  nom:'Argoat / Guingamp',    poly:[[48.82,-3.23],[48.82,-2.94],[48.34,-2.94],[48.34,-3.23]]},
-  {id:'st-brieuc', nom:'Goëllo / St-Brieuc',   poly:[[48.82,-2.94],[48.82,-2.39],[48.34,-2.39],[48.34,-2.94]]},
-  {id:'loudéac',   nom:'Penthièvre / Loudéac',  poly:[[48.34,-3.23],[48.34,-2.39],[48.05,-2.39],[48.05,-3.23]]},
-  {id:'dinan',     nom:'Rance / Dinan',         poly:[[48.82,-2.39],[48.82,-1.85],[48.05,-1.85],[48.05,-2.39]]},
-];
 
 export const RP_BASSINS = [
   'Rance','Frémur','Arguenon','Quiloury','Rosette','Gouessant','Evron','Urne',

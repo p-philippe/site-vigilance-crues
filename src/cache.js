@@ -1,9 +1,20 @@
 // ── CACHE — IndexedDB hors-ligne ──────────────────────────────────────────
 
-import { OBS, HIST, HOURS, VIGI_OFFICIAL, HOUR_SLOTS,
-         METEO_DATA, SOL_DATA,
-         setOBS, setHIST, setHOURS, setHOUR_SLOTS, setVIGI_OFFICIAL,
-         setMETEO_DATA, setSOL_DATA } from './state.js';
+import {
+  OBS,
+  HIST,
+  HOURS,
+  VIGI_OFFICIAL,
+  METEO_DATA,
+  SOL_DATA,
+  setOBS,
+  setHIST,
+  setHOURS,
+  setHOUR_SLOTS,
+  setVIGI_OFFICIAL,
+  setMETEO_DATA,
+  setSOL_DATA
+} from './state.js';
 
 const IDB_NAME = 'vig22_idb', IDB_VER = 2, IDB_STORE = 'cache';
 let _idb = null;

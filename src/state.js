@@ -1,15 +1,11 @@
 // ── STATE — Variables d'état global ──────────────────────────────────────
 
-import { DEFAULT_FAVORITES } from './config.js';
-
 export let OBS  = {};        // {code: {H:{val,date}, Q:{val}}}
 export let HIST = {};        // {code: {heure_utc: valeur_m}}
 export let HOURS = [];       // labels UTC, clés dans HIST
 export let HOUR_SLOTS = [];  // timestamps bruts (Date)
 export let VIGI_OFFICIAL = {};
 export let VIGI_SOURCE_STATUS = 'pending';
-
-export let FAVORITES = new Set(DEFAULT_FAVORITES);
 
 export let mapInst    = null;
 export let mapMarkers = {};
@@ -37,7 +33,6 @@ export function setHOUR_SLOTS(v)       { HOUR_SLOTS = v; }
 export function setVIGI_OFFICIAL(v)    { VIGI_OFFICIAL = v; }
 export function setVIGI_SOURCE_STATUS(v){ VIGI_SOURCE_STATUS = v; }
 export function setMapInst(v)          { mapInst = v; }
-export function setMapMarkers(v)       { mapMarkers = v; }
 export function addMapMarker(code, m)  { mapMarkers[code] = m; }
 export function setLoading_(v)         { loading = v; }
 export function setNAPPES_DATA(v)      { NAPPES_DATA = v; }

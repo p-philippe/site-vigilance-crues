@@ -1,9 +1,9 @@
 // ── MAP — Carte Leaflet principale ────────────────────────────────────────
 
-import { ST, CODES, VC, VT, VL } from './config.js';
+import { ST, CODES, VC } from './config.js';
 import { OBS, mapInst, mapMarkers, setMapInst, addMapMarker } from './state.js';
 import { vigi } from './vigi.js';
-import { escapeHtml, fmtDateTime, toast } from './utils.js';
+import { toast } from './utils.js';
 
 export function initMap() {
   const L = window.L;
@@ -56,30 +56,6 @@ export function makeIcon(code) {
     html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid ${border};box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`,
     iconSize:[14,14], iconAnchor:[7,7], className:''
   });
-}
-
-export function makePopup(code) {
-  const st = ST[code], o = OBS[code];
-  const hm = o?.H ? o.H.val/1000 : null;
-  const v = vigi(code, hm);
-  const color = VC[v], tcolor = VT[v];
-  const nom = st.n.replace(' ★','');
-  const brd = v===1 ? 'border:1px solid #bbb;' : '';
-  const crues = st.h.map((c,i) =>
-    `<div class="pu-crue"><span>#${i+1} ${escapeHtml(c.l)}</span><strong style="font-family:monospace">${c.v.toFixed(2)}m</strong></div>`
-  ).join('');
-  return `
-    <div class="pu-title">${nom}</div>
-    <div class="pu-cours">${st.c} · ${code}</div>
-    <span class="vbadge" style="background:${color};color:${tcolor};${brd}margin-bottom:8px;display:inline-block">${VL[v]||'N/A'}</span>
-    <div class="pu-row"><span>Hauteur</span><strong>${hm!=null?hm.toFixed(3)+' m':'—'}</strong></div>
-    <div class="pu-row"><span>Débit</span><strong>${o?.Q?(o.Q.val/1000).toFixed(2)+' m³/s':'—'}</strong></div>
-    <div class="pu-crues-title">Crues historiques</div>
-    ${crues}
-    <div class="pu-links">
-      <a class="pu-link" href="https://www.vigicrues.gouv.fr/station/${code}" target="_blank">↗ Vigicrues</a>
-      <a class="pu-link" href="https://hydro.eaufrance.fr/stationhydro/${code}/synthese" target="_blank">↗ Hub'Eau</a>
-    </div>`;
 }
 
 export function updateMap() {

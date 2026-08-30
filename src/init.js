@@ -2,11 +2,11 @@
 
 import './globals.js';
 
-import { loadAll, ensureEnvData, checkPropagation } from './data.js';
+import { loadAll } from './data.js';
 import { cacheRestore } from './cache.js';
 import { journalLoad } from './journal.js';
 import { rpInit } from './rp.js';
-import { emInitMap, emSetColor } from './em-map.js';
+import { emSetColor } from './em-map.js';
 import { initMap } from './map.js';
 import { restoreTab, initTabKeyboard } from './tabs.js';
 import { updateOnlineStatus } from './utils.js';

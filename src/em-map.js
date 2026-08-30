@@ -782,7 +782,6 @@ export function emSetLayer(name) {
   emCurrentBase = name;
 }
 
-
 export function emToggleStations() {
   emShowStations = !emShowStations;
   const btn = document.getElementById('em-btn-sta');
@@ -1042,16 +1041,6 @@ export function emApplyFilters() {
     if (emMap.hasLayer(layer)) emMap.removeLayer(layer);
     layer.addTo(emMap);
   }
-}
-
-export function emRemoveLayer(btn) {
-  const popup = btn.closest('.leaflet-popup');
-  if (!popup) return;
-  emAnnotations.eachLayer(l => {
-    if (l._popup && l._popup._container === popup) {
-      emAnnotations.removeLayer(l); emSaveLocal(); emMap.closePopup();
-    }
-  });
 }
 
 function emUpdateSensitiveCounts(counts={}) {

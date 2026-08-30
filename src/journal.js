@@ -2,15 +2,14 @@
 
 import { CODES, ST, REF_COLORS, REF_TEXT } from './config.js';
 import { NOTIF_BATCHING, NOTIF_BATCH, setNOTIF_BATCH } from './state.js';
-import { refCrues, refValue } from './vigi.js';
-import { fmtTime, fmtDate, escapeHtml } from './utils.js';
+import { refCrues } from './vigi.js';
+import { fmtTime, fmtDate } from './utils.js';
 import { sendNotif } from './notif.js';
 
 const JOURNAL_KEY = 'vigicrues22_journal_v1';
 
 export let JOURNAL = [];
 export let PREV_OBS = {};
-export let JOURNAL_MEMORY = '';
 
 const SPEED_ALERT   = 2.0;
 const SPEED_DESCENTE = -3.0;

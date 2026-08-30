@@ -1,8 +1,7 @@
 // ── VIGI — Logique de vigilance ───────────────────────────────────────────
 
-import { ST, CODES, REF_COLORS, REF_TEXT, VC, VT, VL, VIGICRUES_GEOJSON, VIGICRUES_TRONCON_BY_STATION } from './config.js';
-import { OBS, HIST, VIGI_OFFICIAL, setVIGI_OFFICIAL, setVIGI_SOURCE_STATUS, VIGI_SOURCE_STATUS } from './state.js';
-import { escapeHtml } from './utils.js';
+import { ST, CODES, VIGICRUES_GEOJSON, VIGICRUES_TRONCON_BY_STATION } from './config.js';
+import { HIST, VIGI_OFFICIAL, setVIGI_OFFICIAL, setVIGI_SOURCE_STATUS, VIGI_SOURCE_STATUS } from './state.js';
 
 export function officialVigiLevel(raw) {
   const n = Number(raw);
@@ -90,14 +89,6 @@ export function refValue(code, key) {
 export function refLabel(code, key) {
   const r = refCrues(code)[key];
   return r ? r.l : key.toUpperCase();
-}
-
-export function refBadge(code, key, compact = false) {
-  const r = refCrues(code)[key];
-  const label = key.toUpperCase();
-  const title = r?.l ? escapeHtml(r.l) : 'crue historique';
-  const value = r?.v != null ? r.v.toFixed(2) + ' m' : '—';
-  return `<span class="ref-chip" title="${title}" style="background:${REF_COLORS[key]};color:${REF_TEXT[key]}">${compact ? label : `${label} ${value}`}</span>`;
 }
 
 export function trendInfo(code) {

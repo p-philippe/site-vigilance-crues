@@ -2,10 +2,24 @@
 
 import { ST, CODES, API, METEO_API, SOL_API, MAREE_API, POINTS_22, SOL_POINTS, SOL_LAYERS, PORTS_22, VIGICRUES_OBS } from './config.js';
 import {
-  OBS, HIST, HOURS, HOUR_SLOTS, METEO_DATA, SOL_DATA, NAPPES_DATA, COEFF_DATA,
-  loading, envLoadingStarted,
-  setOBS, setHIST, setHOURS, setHOUR_SLOTS, setEnvLoadingStarted, setMETEO_DATA, setSOL_DATA, setNAPPES_DATA, setMAREE_DATA, setCOEFF_DATA,
-  setNOTIF_BATCHING, setNOTIF_BATCH, NOTIF_BATCH
+  OBS,
+  METEO_DATA,
+  SOL_DATA,
+  COEFF_DATA,
+  loading,
+  envLoadingStarted,
+  setOBS,
+  setHIST,
+  setHOURS,
+  setHOUR_SLOTS,
+  setEnvLoadingStarted,
+  setMETEO_DATA,
+  setSOL_DATA,
+  setNAPPES_DATA,
+  setMAREE_DATA,
+  setCOEFF_DATA,
+  setNOTIF_BATCHING,
+  setNOTIF_BATCH
 } from './state.js';
 import { fetchJson, setLoading, fmtDateTime, toast } from './utils.js';
 import { loadOfficialVigilance, refValue } from './vigi.js';

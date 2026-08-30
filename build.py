@@ -34,7 +34,6 @@ MODULE_ORDER = [
     'rp.js',
     'tabs.js',
     'em-map.js',
-    'synth.js',
     'data.js',
     'globals.js',
     'init.js',

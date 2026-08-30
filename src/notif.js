@@ -1,7 +1,7 @@
 // ── NOTIF — Notifications navigateur ─────────────────────────────────────
 
 import { OBS } from './state.js';
-import { NOTIF_BATCHING, NOTIF_BATCH, setNOTIF_BATCHING, setNOTIF_BATCH } from './state.js';
+import { NOTIF_BATCH, setNOTIF_BATCHING, setNOTIF_BATCH } from './state.js';
 
 export function sendNotif(titre, corps, opts = {}) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;

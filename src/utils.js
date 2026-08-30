@@ -12,10 +12,6 @@ export function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-export function safeErrorMessage(error) {
-  return escapeHtml(error?.message || 'Erreur inconnue');
-}
-
 /**
  * Requête JSON bornée et relancée une fois pour les erreurs transitoires.
  * Les appels de données publiques ne doivent pas bloquer l'interface

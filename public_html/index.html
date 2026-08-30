@@ -46,7 +46,6 @@
 <link rel="preload" as="style" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous" fetchpriority="high"></script>
-<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js" crossorigin="anonymous"></script>
 <style>
 /* Google Fonts chargées via <link> dans le <head> — @import supprimé pour performance */
 :root {
@@ -763,7 +762,6 @@ tr:hover td{background:var(--accent-light)}
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous"></script>
 <script type="importmap">
 {
   "imports": {
@@ -1618,8 +1616,6 @@ const VIGICRUES_OBS = '/api/vigicrues-obs';
 const REF_COLORS = {s1:'#7dd3fc', s2:'#2563eb', s3:'#7c3aed'};
 const REF_TEXT   = {s1:'#075985', s2:'#fff',    s3:'#fff'};
 
-const DEFAULT_FAVORITES = ['J151301001','J140531001','J132401001','J110301001','J223302001','J540212001'];
-
 const VIGICRUES_TRONCON_BY_STATION = {
   J061161001:'BT15', J100452001:'BT15', J110301001:'BT15', J110581001:'BT15', J111401001:'BT15',
   J131301001:'BT15', J132401001:'BT15',
@@ -1728,14 +1724,6 @@ const WEATHER_ICONS = {
   95:'⛈️', 96:'⛈️', 99:'⛈️'
 };
 
-const SYNTH_ZONES = [
-  {id:'lannion',   nom:'Trégor / Lannion',     poly:[[48.82,-3.65],[48.82,-3.23],[48.05,-3.23],[48.05,-3.65]]},
-  {id:'guingamp',  nom:'Argoat / Guingamp',    poly:[[48.82,-3.23],[48.82,-2.94],[48.34,-2.94],[48.34,-3.23]]},
-  {id:'st-brieuc', nom:'Goëllo / St-Brieuc',   poly:[[48.82,-2.94],[48.82,-2.39],[48.34,-2.39],[48.34,-2.94]]},
-  {id:'loudéac',   nom:'Penthièvre / Loudéac',  poly:[[48.34,-3.23],[48.34,-2.39],[48.05,-2.39],[48.05,-3.23]]},
-  {id:'dinan',     nom:'Rance / Dinan',         poly:[[48.82,-2.39],[48.82,-1.85],[48.05,-1.85],[48.05,-2.39]]},
-];
-
 const RP_BASSINS = [
   'Rance','Frémur','Arguenon','Quiloury','Rosette','Gouessant','Evron','Urne',
   'Gouët','Ic','Trieux','Leff','Jaudy / Guindy','Léguer','Hyère',
@@ -1759,15 +1747,12 @@ const EM_SENSITIVE_META = {
 // ═══ state.js ═══
 // ── STATE — Variables d'état global ──────────────────────────────────────
 
-
 let OBS  = {};        // {code: {H:{val,date}, Q:{val}}}
 let HIST = {};        // {code: {heure_utc: valeur_m}}
 let HOURS = [];       // labels UTC, clés dans HIST
 let HOUR_SLOTS = [];  // timestamps bruts (Date)
 let VIGI_OFFICIAL = {};
 let VIGI_SOURCE_STATUS = 'pending';
-
-let FAVORITES = new Set(DEFAULT_FAVORITES);
 
 let mapInst    = null;
 let mapMarkers = {};
@@ -1795,7 +1780,6 @@ function setHOUR_SLOTS(v)       { HOUR_SLOTS = v; }
 function setVIGI_OFFICIAL(v)    { VIGI_OFFICIAL = v; }
 function setVIGI_SOURCE_STATUS(v){ VIGI_SOURCE_STATUS = v; }
 function setMapInst(v)          { mapInst = v; }
-function setMapMarkers(v)       { mapMarkers = v; }
 function addMapMarker(code, m)  { mapMarkers[code] = m; }
 function setLoading_(v)         { loading = v; }
 function setNAPPES_DATA(v)      { NAPPES_DATA = v; }
@@ -1820,10 +1804,6 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
-}
-
-function safeErrorMessage(error) {
-  return escapeHtml(error?.message || 'Erreur inconnue');
 }
 
 /**
@@ -2017,14 +1997,6 @@ function refLabel(code, key) {
   return r ? r.l : key.toUpperCase();
 }
 
-function refBadge(code, key, compact = false) {
-  const r = refCrues(code)[key];
-  const label = key.toUpperCase();
-  const title = r?.l ? escapeHtml(r.l) : 'crue historique';
-  const value = r?.v != null ? r.v.toFixed(2) + ' m' : '—';
-  return `<span class="ref-chip" title="${title}" style="background:${REF_COLORS[key]};color:${REF_TEXT[key]}">${compact ? label : `${label} ${value}`}</span>`;
-}
-
 function trendInfo(code) {
   const histVals = Object.values(HIST[code] || {}).filter(v => v != null);
   if (histVals.length < 2) return {speed:null, icon:'→', cls:'trend-flat', label:'stable'};
@@ -2198,7 +2170,6 @@ const JOURNAL_KEY = 'vigicrues22_journal_v1';
 
 let JOURNAL = [];
 let PREV_OBS = {};
-let JOURNAL_MEMORY = '';
 
 const SPEED_ALERT   = 2.0;
 const SPEED_DESCENTE = -3.0;
@@ -2489,30 +2460,6 @@ function makeIcon(code) {
   });
 }
 
-function makePopup(code) {
-  const st = ST[code], o = OBS[code];
-  const hm = o?.H ? o.H.val/1000 : null;
-  const v = vigi(code, hm);
-  const color = VC[v], tcolor = VT[v];
-  const nom = st.n.replace(' ★','');
-  const brd = v===1 ? 'border:1px solid #bbb;' : '';
-  const crues = st.h.map((c,i) =>
-    `<div class="pu-crue"><span>#${i+1} ${escapeHtml(c.l)}</span><strong style="font-family:monospace">${c.v.toFixed(2)}m</strong></div>`
-  ).join('');
-  return `
-    <div class="pu-title">${nom}</div>
-    <div class="pu-cours">${st.c} · ${code}</div>
-    <span class="vbadge" style="background:${color};color:${tcolor};${brd}margin-bottom:8px;display:inline-block">${VL[v]||'N/A'}</span>
-    <div class="pu-row"><span>Hauteur</span><strong>${hm!=null?hm.toFixed(3)+' m':'—'}</strong></div>
-    <div class="pu-row"><span>Débit</span><strong>${o?.Q?(o.Q.val/1000).toFixed(2)+' m³/s':'—'}</strong></div>
-    <div class="pu-crues-title">Crues historiques</div>
-    ${crues}
-    <div class="pu-links">
-      <a class="pu-link" href="https://www.vigicrues.gouv.fr/station/${code}" target="_blank">↗ Vigicrues</a>
-      <a class="pu-link" href="https://hydro.eaufrance.fr/stationhydro/${code}/synthese" target="_blank">↗ Hub'Eau</a>
-    </div>`;
-}
-
 function updateMap() {
   for (const code of CODES) {
     if (mapMarkers[code]) {
@@ -2764,20 +2711,6 @@ function renderHist() {
   html += '</tbody>';
   document.getElementById('t12').innerHTML = html;
 }
-
-// ── TABLE (alias) ──
-function renderTable() {
-  renderBassins();
-}
-
-// ── BASSINS VERSANTS ──
-function toggleFav(code) {
-  if (FAVORITES.has(code)) FAVORITES.delete(code);
-  else FAVORITES.add(code);
-  renderBassins();
-}
-
-function toggleFavorite(code) { toggleFav(code); }
 
 function bvWorstVigi(bassin) {
   let worst = -1;
@@ -3310,6 +3243,7 @@ async function loadVigicruesPrevisions(code) {
 // ── METEO — Météo, sols, nappes ───────────────────────────────────────────
 
 
+
 let meteoCharts = [];
 let solCharts = [];
 
@@ -3370,13 +3304,6 @@ function rainClass(mm) {
   if (mm >= 20) return 'alert';
   if (mm >= 10) return 'warn';
   return 'rain';
-}
-
-function rainBarClass(mm) {
-  if (mm == null || mm === 0) return '';
-  if (mm >= 20) return 'alert';
-  if (mm >= 10) return 'warn';
-  return '';
 }
 
 // ── RENDER MÉTÉO ──
@@ -3874,157 +3801,6 @@ function renderNappes() {
 // ── PDF / EXPORT ─────────────────────────────────────────────────────────
 
 
-function generatePdfReport() {
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('fr-FR', {weekday:'long', day:'2-digit', month:'long', year:'numeric'});
-  const timeStr = now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-  const ts = dateStr + ' · ' + timeStr;
-
-  const agTitre = document.getElementById('ag-titre')?.textContent || '—';
-  const agSous  = document.getElementById('ag-sous')?.textContent  || '';
-
-  const kpis = [
-    { icon:'🌊', label:'Hydrologie',      val: document.getElementById('sk-hydro-val')?.textContent  || '—', sub: document.getElementById('sk-hydro-sub')?.textContent  || '' },
-    { icon:'🌧️', label:'Météo 24h',       val: document.getElementById('sk-meteo-val')?.textContent  || '—', sub: document.getElementById('sk-meteo-sub')?.textContent  || '' },
-    { icon:'🌱', label:'Saturation sols', val: document.getElementById('sk-sol-val')?.textContent    || '—', sub: document.getElementById('sk-sol-sub')?.textContent    || '' },
-  ];
-
-  const stationsVigi = CODES
-    .filter(code => { const hm = OBS[code]?.H ? OBS[code].H.val/1000 : null; return vigi(code,hm) > 0; })
-    .map(code => {
-      const st = ST[code];
-      const hm = OBS[code]?.H ? OBS[code].H.val/1000 : null;
-      const v = vigi(code, hm);
-      const colors = [null,'#b8960a','#b85a00','#b81010'];
-      const labels = [null,'Vigilance','Alerte','Alerte max'];
-      return `<tr>
-        <td>${escapeHtml(st.n.replace(' ★',''))}</td>
-        <td>${escapeHtml(st.c)}</td>
-        <td style="font-family:monospace">${hm!=null?hm.toFixed(3)+' m':'—'}</td>
-        <td style="font-weight:700;color:${colors[v]||'#333'}">${labels[v]||String(v)}</td>
-      </tr>`;
-    }).join('');
-
-  const recents = [...JOURNAL].reverse().slice(0, 8).map(e => {
-    const d = new Date(e.date).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-    return `<tr><td style="white-space:nowrap">${d}</td><td>${escapeHtml((ST[e.code]?.n||e.code).replace(' ★',''))}</td><td>${escapeHtml(e.message||e.type||'')}</td></tr>`;
-  }).join('');
-
-  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
-<title>Rapport Vigicrues 22 · ${ts}</title>
-<style>
-  @page { size:A4; margin:16mm 14mm; }
-  * { box-sizing:border-box; margin:0; padding:0; font-family:Arial,sans-serif; }
-  body { color:#222; font-size:10pt; }
-  .hdr { background:#2c5332; color:#fff; padding:10px 14px; border-radius:6px; margin-bottom:14px; }
-  .hdr h1 { font-size:14pt; margin-bottom:3px; }
-  .hdr p  { font-size:8pt; opacity:.85; }
-  .section { margin-bottom:14px; }
-  .section h2 { font-size:10pt; color:#2c5332; border-bottom:1.5px solid #2c5332; padding-bottom:3px; margin-bottom:8px; }
-  .alert-box { background:#f4f8f4; border-left:4px solid #2c5332; padding:7px 10px; border-radius:4px; font-size:10pt; }
-  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
-  .kpi { background:#f5f8f5; border:1px solid #d8e4d8; border-radius:6px; padding:8px 10px; }
-  .kpi-label { font-size:7.5pt; color:#5a7a5a; margin-bottom:2px; }
-  .kpi-val { font-size:12pt; font-weight:700; color:#1e3c1e; }
-  .kpi-sub { font-size:7pt; color:#7a9a7a; margin-top:2px; }
-  table { width:100%; border-collapse:collapse; font-size:9pt; }
-  th { background:#2c5332; color:#fff; padding:5px 7px; text-align:left; }
-  td { padding:4px 7px; border-bottom:1px solid #e8ede8; }
-  tr:nth-child(even) td { background:#f8faf8; }
-  .empty { color:#888; font-style:italic; font-size:9pt; padding:6px 0; }
-  .footer { position:fixed; bottom:0; left:0; right:0; font-size:7pt; color:#aaa; text-align:center; border-top:1px solid #e0e0e0; padding:4px 0; }
-</style>
-</head><body>
-<div class="hdr">
-  <h1>📊 Rapport de situation — Vigicrues 22</h1>
-  <p>Côtes-d'Armor · ${ts}</p>
-</div>
-
-<div class="section">
-  <h2>Niveau d'alerte global</h2>
-  <div class="alert-box">${escapeHtml(agTitre)}${agSous ? ' — ' + escapeHtml(agSous) : ''}</div>
-</div>
-
-<div class="section">
-  <h2>Indicateurs</h2>
-  <div class="kpis">
-    ${kpis.map(k=>`<div class="kpi">
-      <div class="kpi-label">${k.icon} ${k.label}</div>
-      <div class="kpi-val">${k.val}</div>
-      <div class="kpi-sub">${escapeHtml(k.sub)}</div>
-    </div>`).join('')}
-  </div>
-</div>
-
-<div class="section">
-  <h2>Stations en vigilance (${stationsVigi ? stationsVigi.split('<tr>').length - 1 : 0} / ${CODES.length})</h2>
-  ${stationsVigi ? `<table><thead><tr><th>Station</th><th>Cours d'eau</th><th>Hauteur</th><th>Niveau</th></tr></thead><tbody>${stationsVigi}</tbody></table>` : '<p class="empty">Aucune station en vigilance — situation normale.</p>'}
-</div>
-
-${recents ? `<div class="section">
-  <h2>Derniers événements</h2>
-  <table><thead><tr><th>Date</th><th>Station</th><th>Événement</th></tr></thead><tbody>${recents}</tbody></table>
-</div>` : ''}
-
-<div class="footer">Vigicrues 22 · ${ts} · Données Hub'Eau &amp; Vigicrues · usage interne</div>
-<script>window.onload=()=>{window.print();};<\/script>
-</body></html>`;
-
-  const w = window.open('', '_blank', 'width=900,height=700');
-  if (!w) { toast('⚠️ Autorisez les popups pour générer le rapport'); return; }
-  w.document.write(html);
-  w.document.close();
-  toast('📄 Rapport de situation ouvert — utilisez Ctrl+P pour exporter en PDF');
-}
-
-function exportSituationGeoJSON() {
-  const now = new Date();
-  const ts = now.toISOString();
-  const dateStr = ts.replace(/[:.]/g, '-').slice(0, 19);
-
-  const features = CODES.map(code => {
-    const st = ST[code];
-    const o = OBS[code] || {};
-    const hm = o.H ? o.H.val/1000 : null;
-    const v = vigi(code, hm);
-    const propArcs = (window.PROP_ACTIVE_ARCS || []).filter(a => a.to === code);
-    return {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [st.lon, st.lat] },
-      properties: {
-        code, nom: st.n.replace(' ★',''), riviere: st.c,
-        h_m: hm, q_m3s: o.Q ? o.Q.val/1000 : null,
-        vigilance: v,
-        s1_m: st.s?.s1 ?? null, s2_m: st.s?.s2 ?? null, s3_m: st.s?.s3 ?? null,
-        propagation_entrante: propArcs.length > 0 ? propArcs.map(a => `${a.from_nom} (${a.riviere}, +${a.transit_h}h)`).join('; ') : null,
-        ts_observation: o.H?.date || null,
-        ts_export: ts
-      }
-    };
-  });
-
-  const geojson = {
-    type: 'FeatureCollection',
-    metadata: {
-      titre: 'Situation hydrométrique — Côtes-d\'Armor (22)',
-      source: 'Vigilance 22 — Hub\'Eau / Vigicrues',
-      date_export: ts,
-      nb_stations: features.length
-    },
-    features
-  };
-
-  const blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/geo+json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `vigicrues22_${dateStr}.geojson`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  toast('GeoJSON exporté');
-}
 
 function exportCSV() {
   if (!HOURS.length) return;
@@ -5430,7 +5206,6 @@ function emSetLayer(name) {
   emCurrentBase = name;
 }
 
-
 function emToggleStations() {
   emShowStations = !emShowStations;
   const btn = document.getElementById('em-btn-sta');
@@ -5692,16 +5467,6 @@ function emApplyFilters() {
   }
 }
 
-function emRemoveLayer(btn) {
-  const popup = btn.closest('.leaflet-popup');
-  if (!popup) return;
-  emAnnotations.eachLayer(l => {
-    if (l._popup && l._popup._container === popup) {
-      emAnnotations.removeLayer(l); emSaveLocal(); emMap.closePopup();
-    }
-  });
-}
-
 function emUpdateSensitiveCounts(counts={}) {
   for (const kind of Object.keys(EM_SENSITIVE_META)) {
     const el = document.getElementById(`em-count-${kind}`);
@@ -5771,354 +5536,6 @@ function emSearchSelect(lat, lon, label) {
   const inp = document.getElementById('em-search-input');
   if (inp) inp.value = label;
 }
-
-
-// ═══ synth.js ═══
-// ── SYNTH — Carte de synthèse et renderSynthese ───────────────────────────
-
-
-let synthMap = null;
-let synthTronconsLayer = null;
-let synthMarkersLayer = null;
-
-const VIGI_COLORS = { 0:'#27ae60', 1:'#e6c600', 2:'#FF7F00', 3:'#FF2200' };
-const TRONCON_COLORS = { 1:'#e6c600', 2:'#FF7F00', 3:'#FF2200', 4:'#c0392b' };
-
-function synthMapInit() {
-  const L = window.L;
-  if (synthMap) return;
-  if (!document.getElementById('synth-map')) return;
-  synthMap = L.map('synth-map', {zoomControl:true, attributionControl:false}).setView([48.42, -2.72], 8);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap', maxZoom:19}).addTo(synthMap);
-  synthMarkersLayer = L.layerGroup().addTo(synthMap);
-
-  window.synthMap = synthMap;
-  window.synthMapInit = synthMapInit;
-}
-
-async function synthUpdateChoropleth() {
-  const L = window.L;
-  if (!synthMap) return;
-
-  // ── Tronçons Vigicrues officiels ──
-  try {
-    if (synthTronconsLayer) { synthMap.removeLayer(synthTronconsLayer); synthTronconsLayer = null; }
-    const r = await fetch(VIGICRUES_GEOJSON);
-    const gj = await r.json();
-    const BT22 = new Set(['BT2','BT5','BT7','BT13','BT14','BT15']);
-    const nivLabels = {1:'Vert — normal', 2:'Vigilance jaune', 3:'Alerte orange', 4:'Alerte rouge'};
-    synthTronconsLayer = L.geoJSON(gj, {
-      filter: f => BT22.has(f.properties?.CdEntCru),
-      style: f => {
-        const niv = f.properties.NivInfViCr || 1;
-        const col = niv >= 4 ? '#c0392b' : niv === 3 ? '#FF7F00' : niv === 2 ? '#e6c600' : '#27ae60';
-        return { color: col, weight: niv >= 3 ? 5 : niv === 2 ? 4 : 3, opacity: 0.9 };
-      },
-      onEachFeature: (f, layer) => {
-        const p = f.properties;
-        const niv = p.NivInfViCr || 1;
-        layer.bindTooltip(`<strong>${p.lbentcru || p.CdEntCru}</strong><br>${nivLabels[niv] || ''}`, {className:'synth-tip'});
-      }
-    }).addTo(synthMap);
-  } catch(e) { /* silencieux si hors ligne */ }
-
-  // ── Cercles par station colorés par niveau calculé ──
-  synthMarkersLayer.clearLayers();
-  for (const code of CODES) {
-    const st = ST[code]; if (!st) continue;
-    const hm = OBS[code]?.H ? OBS[code].H.val / 1000 : null;
-    const v = hm != null ? vigi(code, hm) : -1;
-    const col = v >= 0 ? VIGI_COLORS[v] : '#9ea7ad';
-    const nom = st.n.replace(' ★','').split('[')[0].trim();
-    const circle = L.circleMarker([st.lat, st.lon], {
-      radius: v >= 2 ? 9 : v === 1 ? 7 : 5,
-      fillColor: col, color: v > 0 ? '#000' : '#666',
-      weight: v > 0 ? 1.5 : 0.8,
-      fillOpacity: v > 0 ? 0.95 : 0.65,
-    });
-    circle.bindTooltip(
-      `<strong>${nom}</strong><br>${st.c}<br>H = ${hm != null ? hm.toFixed(3)+' m' : '—'}`,
-      {direction:'top', className:'synth-tip'}
-    );
-    circle.on('click', () => window.openMod && window.openMod(code));
-    synthMarkersLayer.addLayer(circle);
-  }
-}
-
-function synthMapUpdate() {
-  if (!synthMap) return;
-  synthUpdateChoropleth();
-}
-
-// ── RENDER SYNTHÈSE ──
-function renderSynthese() {
-  // Mettre à jour la carte de synthèse
-  synthMapUpdate();
-
-  // Indicateurs globaux
-  let nAlert = 0, nMontee = 0;
-  const watchStations = [];
-  for (const code of CODES) {
-    const hm = OBS[code]?.H ? OBS[code].H.val/1000 : null;
-    const v = vigi(code, hm);
-    if (v > 0) nAlert++;
-    const tr = trendInfo(code);
-    if (tr.speed != null && tr.speed >= 1) nMontee++;
-    if (v > 0 || (tr.speed != null && tr.speed >= 1)) watchStations.push({code, v, speed: tr.speed});
-  }
-  watchStations.sort((a,b) => (b.v - a.v) || ((b.speed||0) - (a.speed||0)));
-
-  const env = environmentStats();
-
-  // Titre alerte global
-  const agTitre = document.getElementById('ag-titre');
-  const agSous  = document.getElementById('ag-sous');
-  if (agTitre) {
-    if (nAlert === 0) {
-      agTitre.textContent = '✅ Situation normale';
-      agTitre.style.color = '#00A000';
-      if (agSous) agSous.textContent = 'Aucune station en vigilance — cours d\'eau sous les seuils d\'alerte';
-    } else {
-      const highest = watchStations[0];
-      const vLabels = {1:'Vigilance jaune',2:'Alerte orange',3:'Alerte rouge'};
-      agTitre.textContent = `⚠ ${nAlert} station${nAlert>1?'s':''} en vigilance`;
-      agTitre.style.color = ['#e6c600','#FF7F00','#FF2200'][Math.max(0,(highest?.v||1)-1)];
-      if (agSous) {
-        const top3 = watchStations.slice(0,3).map(ws => ST[ws.code]?.n?.replace(' ★','').split('[')[0].trim()).join(', ');
-        agSous.textContent = `Stations prioritaires : ${top3}`;
-      }
-    }
-  }
-
-  // KPIs synthèse
-  const hydroVal = document.getElementById('sk-hydro-val');
-  const hydroSub = document.getElementById('sk-hydro-sub');
-  if (hydroVal) hydroVal.textContent = nAlert + ' en alerte';
-  if (hydroSub) hydroSub.textContent = nMontee + ' en hausse · ' + CODES.length + ' stations';
-
-  const meteoVal = document.getElementById('sk-meteo-val');
-  const meteoSub = document.getElementById('sk-meteo-sub');
-  if (meteoVal) {
-    const rain24 = env.maxFut24;
-    if (rain24 >= 20) { meteoVal.textContent = rain24.toFixed(0) + ' mm/24h'; meteoVal.style.color = '#c0392b'; }
-    else if (rain24 >= 10) { meteoVal.textContent = rain24.toFixed(0) + ' mm/24h'; meteoVal.style.color = '#e67e22'; }
-    else { meteoVal.textContent = rain24 > 0 ? rain24.toFixed(0) + ' mm/24h' : 'Sec'; meteoVal.style.color = '#27ae60'; }
-  }
-  if (meteoSub && env.maxFut24 > 0) meteoSub.textContent = 'Cumul 24h prévu max';
-
-  const solVal = document.getElementById('sk-sol-val');
-  const solSub = document.getElementById('sk-sol-sub');
-  if (solVal) {
-    const sat = env.maxSat;
-    const col = sat >= 90 ? '#c0392b' : sat >= 75 ? '#e67e22' : sat >= 60 ? '#e6c600' : '#27ae60';
-    solVal.textContent = sat ? Math.round(sat) + '%' : '—';
-    solVal.style.color = col;
-    if (solSub) solSub.textContent = sat ? `${env.maxSatNom} le plus saturé` : 'Chargement…';
-  }
-
-  // Render sub-composants
-  renderBasinScores(env);
-  renderBriefings(env, nAlert, nMontee, watchStations);
-  renderFavorites();
-  renderWatchStations(watchStations);
-  renderConvergence(env, nAlert, nMontee, watchStations);
-}
-
-function basinRiskScore(bv, env) {
-  let maxV = -1, maxPctHist = 0, maxSpeed = 0, active = 0, n = 0;
-  for (const {code} of bv.stations) {
-    const hm = OBS[code]?.H ? OBS[code].H.val/1000 : null;
-    if (hm == null) continue;
-    n++;
-    const v = vigi(code, hm);
-    maxV = Math.max(maxV, v);
-    if (v > 0) active++;
-    maxPctHist = Math.max(maxPctHist, hm / refValue(code, 's1') * 100);
-    const tr = trendInfo(code);
-    if (tr.speed != null) maxSpeed = Math.max(maxSpeed, tr.speed);
-  }
-  const hydro = maxV >= 3 ? 55 : maxV === 2 ? 42 : maxV === 1 ? 28 : Math.min(24, maxPctHist / 4);
-  const trend = Math.max(0, Math.min(18, maxSpeed * 4));
-  const rain = Math.min(14, env.maxFut24 * 0.7);
-  const soil = env.maxSat >= 80 ? 8 : env.maxSat >= 65 ? 5 : env.maxSat >= 50 ? 2 : 0;
-  const score = Math.round(Math.min(100, hydro + trend + rain + soil));
-  return {score, maxV, active, n, maxSpeed, maxPctHist};
-}
-
-function renderBasinScores(env) {
-  const grid = document.getElementById('basin-score-grid');
-  if (!grid) return;
-  const items = BASSINS.map(bv => ({bv, ...basinRiskScore(bv, env)})).sort((a,b) => b.score - a.score).slice(0,8);
-  grid.innerHTML = items.map(item => {
-    const label = item.score >= 70 ? 'Risque fort' : item.score >= 45 ? 'À surveiller' : item.score >= 25 ? 'Modéré' : 'Calme';
-    const color = item.score >= 70 ? '#FF0000' : item.score >= 45 ? '#FF7F00' : item.score >= 25 ? '#FFFF00' : '#00A000';
-    const textColor = item.score >= 25 && item.score < 45 ? '#333' : color;
-    return `<div class="basin-score-card" onclick="switchTab(5);BV_OPEN.add('${escapeHtml(item.bv.id)}');renderBassins()">
-      <div class="basin-score-title"><span>${escapeHtml(item.bv.nom)}</span><span style="color:${textColor}">${label}</span></div>
-      <div class="basin-score-val">${item.score}</div>
-      <div class="basin-score-sub">${item.active}/${item.n || item.bv.stations.length} station(s) en vigilance · tendance max ${formatSpeed(item.maxSpeed)}</div>
-      <div class="basin-score-bar"><div class="basin-score-fill" style="width:${item.score}%"></div></div>
-    </div>`;
-  }).join('');
-}
-
-function renderBriefings(env, nAlert, nMontee, watchStations) {
-  const top = watchStations.slice(0,3).map(ws => ST[ws.code]?.n?.replace(' ★','').split('[')[0].trim()).filter(Boolean).join(', ') || 'aucune station prioritaire';
-  const rain = env.maxFut24 ? `${env.maxFut24.toFixed(0)} mm/24h prévus` : 'météo à charger';
-  const soil = env.maxSat ? `sols max ${Math.round(env.maxSat)}% (${env.maxSatNom})` : 'sols à charger';
-  const score = Math.min(100, Math.round(nAlert*12 + nMontee*3 + env.maxFut24*1.2 + Math.max(0,env.maxSat-60)*0.5));
-  const color = score >= 70 ? '#FF0000' : score >= 45 ? '#FF7F00' : score >= 25 ? '#FFFF00' : '#00A000';
-  const scoreTextColor = score >= 25 && score < 45 ? '#333' : color;
-  const morning = document.getElementById('brief-morning');
-  const evening = document.getElementById('brief-evening');
-  if (morning) morning.innerHTML = `Priorité : ${escapeHtml(top)}. <br> ${escapeHtml(rain)} · ${escapeHtml(soil)}. <br> À contrôler : stations en hausse et bassins avec score > 45.`;
-  if (evening) evening.innerHTML = `Bilan : ${nAlert} station(s) en vigilance, ${nMontee} en hausse. <br> ${escapeHtml(rain)}. <br> Préparer surveillance nuit si pluie + sols humides.`;
-  ['brief-morning-score','brief-evening-score'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) { el.textContent = score; el.style.color = scoreTextColor; }
-  });
-}
-
-function renderWatchStations(watchStations) {
-  const body  = document.getElementById('watch-body');
-  const count = document.getElementById('watch-count');
-  const ts    = document.getElementById('watch-ts');
-  if (!body) return;
-
-  if (!watchStations.length) {
-    body.innerHTML = '<div class="watch-empty">✅ Aucune station sous surveillance — situation normale</div>';
-    if (count) count.textContent = '';
-    if (ts) ts.textContent = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-    return;
-  }
-
-  if (count) count.textContent = `(${watchStations.length})`;
-  if (ts) ts.textContent = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-
-  const vLabels = {'-1':'—', '0':'Normal', '1':'Jaune', '2':'Orange', '3':'Rouge'};
-  const vColors = {'-1':'#9ea7ad', '0':'#00A000', '1':'#e6c600', '2':'#FF7F00', '3':'#FF2200'};
-
-  body.innerHTML = `<table class="watch-table">
-    <thead><tr>
-      <th>Station</th><th>H (m)</th><th>% S1</th><th>Tend.</th><th>Vitesse</th><th>Vigilance</th>
-    </tr></thead>
-    <tbody>${watchStations.map(({code, v, speed}) => {
-      const st  = ST[code]; if (!st) return '';
-      const hm  = OBS[code]?.H ? OBS[code].H.val / 1000 : null;
-      const s1  = refValue(code, 's1');
-      const pct = hm != null && s1 ? Math.round(hm / s1 * 100) : null;
-      const tr  = trendInfo(code);
-      const col = vColors[String(v)] || vColors['-1'];
-      const nom = st.n.replace(' ★','').split('[')[0].trim();
-      return `<tr onclick="openMod('${escapeHtml(code)}')" style="cursor:pointer">
-        <td><div class="wt-station">${escapeHtml(nom)}</div><div class="wt-cours">${escapeHtml(st.c)}</div></td>
-        <td class="wt-h">${hm != null ? hm.toFixed(3) : '—'}</td>
-        <td><span class="wt-pct">${pct != null ? pct + '%' : '—'}</span></td>
-        <td class="wt-tend" style="color:${tr.cls==='trend-up'?'#c0392b':tr.cls==='trend-down'?'#27ae60':'var(--text3)'}">${tr.icon}</td>
-        <td class="wt-speed" style="color:${speed>=2?'#c0392b':speed>=1?'#e67e22':'var(--text3)'}">${formatSpeed(speed)}</td>
-        <td><span style="font-size:11px;font-weight:700;color:${col}">${vLabels[String(v)]}</span></td>
-      </tr>`;
-    }).join('')}</tbody>
-  </table>`;
-}
-
-function renderConvergence(env, nAlert, nMontee, watchStations) {
-  const list = document.getElementById('conv-list');
-  if (!list) return;
-
-  const items = [];
-
-  // 1. Sols saturés + Précipitations prévues
-  if (env.maxSat >= 75 && env.maxFut24 >= 10) {
-    const cls = env.maxSat >= 90 && env.maxFut24 >= 20 ? 'ci-high' : 'ci-danger';
-    items.push({cls, icon:'🌧️', text:`<strong>Ruissellement fort probable</strong> — sols à ${Math.round(env.maxSat)}% (${escapeHtml(env.maxSatNom)}) + ${env.maxFut24.toFixed(0)} mm prévus en 24h. Les cours d'eau peuvent monter rapidement.`});
-  } else if (env.maxSat >= 60 && env.maxFut24 >= 15) {
-    items.push({cls:'ci-warn', icon:'🌱', text:`<strong>Sols moyennement saturés</strong> (${Math.round(env.maxSat)}%) avec ${env.maxFut24.toFixed(0)} mm prévus — surveiller les bassins versants.`});
-  }
-
-  // 2. Plusieurs stations en montée rapide
-  const rapidRise = watchStations.filter(ws => (ws.speed || 0) >= 2);
-  if (rapidRise.length >= 2) {
-    const noms = rapidRise.slice(0,3).map(ws => ST[ws.code]?.n?.replace(' ★','').split('[')[0].trim()).join(', ');
-    items.push({cls:'ci-danger', icon:'📈', text:`<strong>Montées rapides simultanées</strong> sur ${rapidRise.length} stations : ${escapeHtml(noms)}. Risque de franchissement de seuils dans les prochaines heures.`});
-  } else if (nMontee >= 3) {
-    items.push({cls:'ci-warn', icon:'↗', text:`<strong>${nMontee} stations en hausse</strong> simultanément — possible épisode en développement.`});
-  }
-
-  // 3. Propagation active (arcs oust confiance 1.0)
-  const activeArcs = window.PROP_ACTIVE_ARCS || [];
-  if (activeArcs.length > 0) {
-    const arcTxt = activeArcs.map(a => `${escapeHtml(a.riviere)} : front attendu à l'aval dans ~${a.transit_h}h`).join(' · ');
-    items.push({cls:'ci-danger', icon:'⬇', text:`<strong>Propagation amont→aval détectée</strong> — ${arcTxt}.`});
-  }
-
-  // 4. Situation calme
-  if (!items.length) {
-    items.push({cls:'ci-ok', icon:'✅', text:`<strong>Aucune convergence détectée</strong> — les facteurs de risque (hydro, météo, sols) ne se cumulent pas actuellement.`});
-  }
-
-  list.innerHTML = items.map(({cls, icon, text}) =>
-    `<div class="conv-item ${cls}"><span class="conv-icon">${icon}</span><span class="conv-text">${text}</span></div>`
-  ).join('');
-}
-
-function renderFavorites() {
-  const grid = document.getElementById('fav-grid');
-  if (!grid) return;
-  const favs = [...FAVORITES].filter(code => ST[code]);
-  if (!favs.length) {
-    grid.innerHTML = '<div class="watch-empty">Aucune station favorite pour cette session. Utilise les étoiles dans le tableau Stations.</div>';
-    return;
-  }
-  grid.innerHTML = favs.map(code => {
-    const st = ST[code];
-    const hm = OBS[code]?.H ? OBS[code].H.val/1000 : null;
-    const v = vigi(code, hm);
-    const tr = trendInfo(code);
-    const pctS1 = hm != null ? Math.round(hm / refValue(code,'s1') * 100) : null;
-    const nom = st.n.replace(' ★','').split('[')[0].trim();
-    return `<div class="fav-card" onclick="openMod('${code}')">
-      <div class="fav-title"><span>${escapeHtml(nom)}</span>${badge(v,false)}</div>
-      <div class="fav-lines">
-        <strong>${hm!=null?hm.toFixed(3)+' m':'—'}</strong> · ${refBadge(code,'s1',true)} ${pctS1!=null?pctS1+'%':'—'}<br>
-        <span class="${tr.cls}">${tr.icon} ${formatSpeed(tr.speed)}</span> · ${escapeHtml(st.c)}
-      </div>
-      <div class="fav-meta">${code}</div>
-    </div>`;
-  }).join('');
-}
-
-function environmentStats() {
-  const stats = {maxPast24:0, maxFut6:0, maxFut24:0, maxSat:0, maxSatNom:''};
-  if (METEO_DATA) {
-    const nowStr = nowStrParis();
-    METEO_DATA.forEach(d => {
-      const h = d.hourly;
-      if (!h?.time) return;
-      const ni = h.time.findIndex(t => t >= nowStr);
-      if (ni < 0) return;
-      stats.maxPast24 = Math.max(stats.maxPast24, h.precipitation.slice(Math.max(0,ni-24), ni).reduce((a,b)=>a+(b||0),0));
-      stats.maxFut6 = Math.max(stats.maxFut6, h.precipitation.slice(ni, ni+6).reduce((a,b)=>a+(b||0),0));
-      stats.maxFut24 = Math.max(stats.maxFut24, h.precipitation.slice(ni, ni+24).reduce((a,b)=>a+(b||0),0));
-    });
-  }
-  if (SOL_DATA) {
-    const nowStr = nowStrParis();
-    SOL_DATA.forEach((d, i) => {
-      const h = d.hourly;
-      if (!h?.time) return;
-      const ni = h.time.findIndex(t => t >= nowStr);
-      const idx = ni >= 0 ? ni : h.time.length - 1;
-      const pct = solComposite(h, idx);
-      if (pct > stats.maxSat) { stats.maxSat = pct; stats.maxSatNom = SOL_POINTS[i].nom; }
-    });
-  }
-  return stats;
-}
-
-// Exposer renderSynthese sur window
-window.renderSynthese = renderSynthese;
-window.synthMapInit = synthMapInit;
 
 
 // ═══ data.js ═══
@@ -6482,15 +5899,12 @@ window.renderJournal = renderJournal;
 window.clearJournal = clearJournal;
 window.exportJournalCSV = exportJournalCSV;
 window.toggleBV = toggleBV;
-window.toggleFav = toggleFav;
-window.toggleFavorite = toggleFavorite;
 
 // Météo
 window.renderMeteo = renderMeteo;
 window.renderDailyMeteo = renderDailyMeteo;
 window.renderSol = renderSol;
 window.renderNappes = renderNappes;
-window.nappeFloodHint = nappeFloodHint;
 
 // Modale station
 window.openMod = openMod;
@@ -6504,8 +5918,6 @@ window.toggleNotif = toggleNotif;
 window.toggleTz = toggleTz;
 
 // Export / PDF
-window.generatePdfReport = generatePdfReport;
-window.exportSituationGeoJSON = exportSituationGeoJSON;
 window.exportCSV = exportCSV;
 
 // Carte EM
@@ -6523,7 +5935,6 @@ window.emUpdateSurgeAlert = emUpdateSurgeAlert;
 window.emToggleSensitive = emToggleSensitive;
 window.emSearchDebounce = emSearchDebounce;
 window.emSearchGo = emSearchGo;
-window.emSearchSelect = emSearchSelect;
 window.emApplyFilters = emApplyFilters;
 window.emFinishDraw = emFinishDraw;
 window.emCancelDraw = emCancelDraw;
@@ -6532,17 +5943,13 @@ window.emAddTimestamp = emAddTimestamp;
 window.emPrint = emPrint;
 window.emExportGeoJSON = emExportGeoJSON;
 window.emImportGeoJSON = emImportGeoJSON;
-window.emRemoveLayer = emRemoveLayer;
 window.emSaveLocal = emSaveLocal;
 
 // Revue de presse
 window.rpFetchAll = rpFetchAll;
 window.rpRender = rpRender;
-window.rpRenderStats = rpRenderStats;
-window.rpRenderCandidates = rpRenderCandidates;
 window.rpValidateCandidates = rpValidateCandidates;
 window.rpSelectAllCandidates = rpSelectAllCandidates;
-window.rpAddArticle = rpAddArticle;
 window.rpDeleteArticle = rpDeleteArticle;
 window.rpToggleForm = rpToggleForm;
 window.rpSubmitForm = rpSubmitForm;
@@ -6550,8 +5957,6 @@ window.rpExport = rpExport;
 window.rpImport = rpImport;
 window.rpToggleSIG = rpToggleSIG;
 window.rpGeocodeForm = rpGeocodeForm;
-window.rpInitSIG = rpInitSIG;
-window.rpRenderSIG = rpRenderSIG;
 
 
 

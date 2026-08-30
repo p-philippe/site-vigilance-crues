@@ -1,8 +1,8 @@
 // ── METEO — Météo, sols, nappes ───────────────────────────────────────────
 
 import { POINTS_22, SOL_POINTS, SOL_LAYERS, SOL_THETA_WP, SOL_THETA_SAT, SOL_THETA_FC, WEATHER_ICONS } from './config.js';
-import { OBS, METEO_DATA, SOL_DATA, NAPPES_DATA } from './state.js';
-import { vigi } from './vigi.js';
+import { METEO_DATA, SOL_DATA, NAPPES_DATA } from './state.js';
+
 import { escapeHtml, fmtDate } from './utils.js';
 
 let meteoCharts = [];
@@ -65,13 +65,6 @@ export function rainClass(mm) {
   if (mm >= 20) return 'alert';
   if (mm >= 10) return 'warn';
   return 'rain';
-}
-
-export function rainBarClass(mm) {
-  if (mm == null || mm === 0) return '';
-  if (mm >= 20) return 'alert';
-  if (mm >= 10) return 'warn';
-  return '';
 }
 
 // ── RENDER MÉTÉO ──

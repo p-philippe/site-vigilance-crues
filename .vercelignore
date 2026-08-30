@@ -1,0 +1,10 @@
+src/
+tests/
+maintenance/
+build.py
+serve.py
+index.html
+ROADMAP.md
+README_DEPLOIEMENT.md
+*.docx
+__pycache__/

@@ -1,9 +1,9 @@
 // ── RENDER — Fonctions de rendu DOM ──────────────────────────────────────
 
-import { ST, CODES, VC, VT, VL, REF_COLORS, REF_TEXT, BASSINS } from './config.js';
-import { OBS, HIST, HOURS, HOUR_SLOTS, FAVORITES, METEO_DATA, SOL_DATA, COEFF_DATA } from './state.js';
-import { vigi, refCrues, refValue, refLabel, trendInfo } from './vigi.js';
-import { fmtTime, fmtDateTime, escapeHtml } from './utils.js';
+import { ST, CODES, VC, VT, REF_COLORS, BASSINS } from './config.js';
+import { OBS, HIST, HOURS, HOUR_SLOTS } from './state.js';
+import { vigi, refValue } from './vigi.js';
+import { fmtTime } from './utils.js';
 
 // ── TABLEAU HISTORIQUE 12H ──
 export function renderHist() {
@@ -42,20 +42,6 @@ export function renderHist() {
   html += '</tbody>';
   document.getElementById('t12').innerHTML = html;
 }
-
-// ── TABLE (alias) ──
-export function renderTable() {
-  renderBassins();
-}
-
-// ── BASSINS VERSANTS ──
-export function toggleFav(code) {
-  if (FAVORITES.has(code)) FAVORITES.delete(code);
-  else FAVORITES.add(code);
-  renderBassins();
-}
-
-export function toggleFavorite(code) { toggleFav(code); }
 
 export function bvWorstVigi(bassin) {
   let worst = -1;
