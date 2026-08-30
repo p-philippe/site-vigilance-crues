@@ -8,13 +8,24 @@ Projet personnel basé sur données publiques (Hub'Eau, Vigicrues, Open-Meteo).
 ## Structure du projet
 
 ```
-vercel_deploy/
-├── public_html/          ← Servi par Vercel (contenu du site)
-│   ├── index.html        ← Application complète (~510 Ko, fichier unique)
+.                         ← racine du dépôt git
+├── index.html            ← Source de développement (structure + CSS)
+├── src/                  ← 19 modules ES — source de vérité du code
+├── build.py              ← Assemble index.html + src/ → public_html/index.html
+├── tests/check.py        ← 12 contrôles d'intégrité (lancés par build.py)
+├── ROADMAP.md            ← Pilotage du projet
+├── public_html/          ← Servi par Vercel (Root Directory du projet)
+│   ├── index.html        ← Application complète générée — NE PAS ÉDITER À LA MAIN
+│   ├── api/              ← 4 fonctions serverless (proxys Vigicrues, RSS, SHOM)
+│   ├── sw.js             ← Service Worker PWA
 │   └── robots.txt        ← Autorisation indexation moteurs de recherche
 └── maintenance/
-    └── calibrer_propagation.py  ← Script local de calibration propagation amont-aval
+    └── calibrer_propagation.py  ← Calibration propagation amont-aval
 ```
+
+> Le dossier `vercel_deploy/` a été supprimé le 2026-08-30 (item 9.1) : son contenu
+> est remonté à la racine, qui est désormais aussi la racine du dépôt git — les
+> sources sont enfin versionnées. Les chemins servis par Vercel sont inchangés.
 
 ---
 
@@ -33,7 +44,7 @@ vercel_deploy/
 ```bash
 # Depuis la racine du projet
 python3 build.py
-(cd vercel_deploy && vercel --prod)
+vercel --prod
 ```
 
 C'est tout. Vercel détecte automatiquement les fichiers modifiés.
@@ -61,7 +72,7 @@ Workflow complet après modification du code source :
 
 ```bash
 python3 build.py                              # génère public_html/index.html
-(cd vercel_deploy && vercel --prod)           # déploie sur Vercel
+vercel --prod                                 # déploie sur Vercel
 ```
 
 ---

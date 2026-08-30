@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<!--
+  Vigilance 22 — Suivi hydrométrique des Côtes-d'Armor
+  Copyright (C) 2026  Philippe Payet
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  Full license: https://www.gnu.org/licenses/gpl-3.0.html
+  Source code: https://github.com/p-philippe/site-vigilance-crues
+-->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2c5e2c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vigilance 22">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<!-- Preconnect CDN & APIs -->
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link rel="preconnect" href="https://api.open-meteo.com">
+<link rel="preconnect" href="https://hubeau.eaufrance.fr">
+<link rel="dns-prefetch" href="https://www.vigicrues.gouv.fr">
+<link rel="dns-prefetch" href="https://api.rainviewer.com">
+<link rel="dns-prefetch" href="https://tilecache.rainviewer.com">
+<!-- Google Fonts via <link> (plus rapide qu'@import) -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: https://tilecache.rainviewer.com; connect-src 'self' https://hubeau.eaufrance.fr https://api.open-meteo.com https://marine-api.open-meteo.com https://www.vigicrues.gouv.fr https://nominatim.openstreetmap.org https://news.google.com https://tilecache.rainviewer.com https://api.rainviewer.com; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
+<meta name="description" content="Vigilance 22 : suivi hydrométrique temps réel des stations des Côtes-d'Armor, avec carte, synthèse, météo, sols et état-major.">
+<meta name="theme-color" content="#1a5c2a">
+<title>Vigilance 22 — Suivi hydrométrique des Côtes-d'Armor</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231a5c2a'/><path d='M5 19c2.5-2.5 4.5-2.5 7 0s4.5 2.5 7 0 4.5-2.5 7 0' stroke='white' stroke-width='2' fill='none' stroke-linecap='round'/><path d='M5 24c2.5-2.5 4.5-2.5 7 0s4.5 2.5 7 0 4.5-2.5 7 0' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' opacity='.6'/></svg>">
+<link rel="preload" as="style" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous" fetchpriority="high"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js" crossorigin="anonymous"></script>
+<style>
+/* Google Fonts chargées via <link> dans le <head> — @import supprimé pour performance */
+:root {
+  --bg:#f0f2f0; --bg2:#e6e9e6; --bg3:#fff;
+  --border:#d0d5d0; --text:#1a1f1a; --text2:#5a6b5a; --text3:#8a9b8a;
+  --accent:#1a5c2a; --accent-light:#e8f2ea;
+  --mono:'DM Mono',monospace; --sans:'DM Sans',sans-serif;
+  --v0:#00A000; --v0t:#fff;
+  --v1:#FFFF00; --v1t:#333;
+  --v2:#FF7F00; --v2t:#fff;
+  --v3:#FF0000; --v3t:#fff;
+  --vna:#c8d0c8; --vnat:#5a6b5a;
+  --shadow:0 1px 4px rgba(0,0,0,.08);
+  color-scheme:light dark;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#151a15; --bg2:#1c221c; --bg3:#1f261f;
+    --border:#2c342c; --text:#dce8dc; --text2:#8aaa8a; --text3:#5a6e5a;
+    --accent:#2e8b46; --accent-light:#1a2d1e;
+    --vna:#2c342c; --vnat:#6a7e6a;
+    --shadow:0 1px 6px rgba(0,0,0,.35);
+  }
+  .leaflet-tile{filter:brightness(.85) saturate(.9)}
+  .em-popup input,.em-popup textarea,.em-popup select{background:#1f261f;color:var(--text);border-color:var(--border)}
+  .em-popup label{color:var(--text2)}
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+.shell{display:flex;flex-direction:column;height:100vh}
+
+/* HEADER */
+header{background:var(--accent);color:#fff;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{font-size:22px}
+.logo-title{font-size:16px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.logo-sub{font-size:11px;opacity:.7;margin-top:1px}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.ts{font-family:var(--mono);font-size:11px;opacity:.8}
+.spin{display:none;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.spin.active{display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn-hdr{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:var(--sans);display:inline-flex;align-items:center;gap:5px;touch-action:manipulation}
+.btn-hdr:hover{background:rgba(255,255,255,.25)}
+.btn-hdr:disabled{opacity:.5;cursor:not-allowed}
+
+/* TABS */
+.tabs-bar{background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:stretch;padding:0 16px;flex-shrink:0;overflow-x:auto;scrollbar-width:thin}
+.tabs-bar::-webkit-scrollbar{height:6px}
+.tabs-bar::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.tab-group{display:flex;align-items:stretch}
+.tab-group+.tab-group{margin-left:8px;padding-left:8px;border-left:1px solid var(--border)}
+.tab{padding:14px 14px 12px;font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px;transition:color .15s,border-color .15s,background .15s;user-select:none;white-space:nowrap;touch-action:manipulation}
+.tab:hover{color:var(--text2);background:var(--bg2)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:4px}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tab .tab-ico{font-size:14px}
+.panels{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.panel{display:none;flex:1;overflow:hidden;flex-direction:column}
+.panel.active{display:flex}
+/* ─── SKIP LINK A11Y ─── */
+.skip-link{position:absolute;left:-9999px;top:8px;z-index:99999;background:var(--accent);color:#fff;padding:8px 18px;border-radius:0 0 8px 8px;font-size:13px;font-weight:600;text-decoration:none;font-family:var(--sans);outline:none;white-space:nowrap}
+.skip-link:focus{left:50%;transform:translateX(-50%)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;border-radius:8px;padding:10px 20px;font-size:12px;font-family:var(--sans);z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* Indicateur de défilement horizontal sur la barre d'onglets */
+.tabs-bar-wrap{position:relative;flex-shrink:0;background:var(--bg3);border-bottom:1px solid var(--border)}
+.tabs-bar-wrap::after{content:'';position:absolute;top:0;right:0;bottom:0;width:32px;background:linear-gradient(to right,transparent,var(--bg3));pointer-events:none;z-index:2;transition:opacity .2s}
+.tabs-bar-wrap.at-end::after{opacity:0}
+.tabs-bar{background:transparent;border-bottom:none;display:flex;align-items:stretch;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.tabs-bar::-webkit-scrollbar{display:none}
+
+/* ─── TAB 1 ─── */
+.t1{flex:1;overflow:auto;padding:16px 20px}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.mc{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px}
+.mc-l{font-size:11px;color:var(--text3);margin-bottom:3px}
+.mc-v{font-size:22px;font-weight:600;font-family:var(--mono);color:var(--text)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.ld{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.filters{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.filters input,.filters select{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;background:var(--bg3);color:var(--text);font-family:var(--sans)}
+.filters input{flex:1;min-width:160px;max-width:240px}
+.cnt{font-size:11px;color:var(--text3);margin-left:auto}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px;background:var(--bg3)}
+table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+th{padding:8px 10px;font-weight:500;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg);text-align:left;white-space:nowrap;position:sticky;top:0;z-index:1;text-wrap:balance}
+td{padding:7px 10px;border-bottom:1px solid var(--bg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--accent-light)}
+.sn{font-weight:500;font-size:12px}
+.sn a{color:var(--text);text-decoration:none}
+.sn a:hover{color:var(--accent);text-decoration:underline}
+.ce{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.vbadge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500;white-space:nowrap;font-family:var(--mono)}
+.sbar{width:100%;height:4px;background:var(--bg2);border-radius:2px;overflow:hidden;margin-top:3px}
+.sfill{height:100%;border-radius:2px}
+.ref-chip{display:inline-block;padding:1px 6px;border-radius:99px;font-size:10px;font-family:var(--mono);font-weight:600;color:#fff}
+.fav-btn{border:1px solid var(--border);background:var(--bg3);color:var(--text3);border-radius:6px;width:24px;height:24px;cursor:pointer;line-height:1}
+.fav-btn.active{background:#fff7d6;color:#a66b00;border-color:#f0c040}
+.fav-btn:hover{color:#a66b00;border-color:#f0c040}
+.ext{color:var(--text3);text-decoration:none;font-size:10px;margin-left:4px}
+.ext:hover{color:var(--accent)}
+.loading-row td{text-align:center;padding:2rem;color:var(--text3);font-style:italic}
+.err-row td{text-align:center;padding:1rem;color:#c0392b;background:#fff5f5}
+.note{font-size:11px;color:var(--text3);margin-top:10px}
+
+/* ─── TAB 2 ─── */
+#map{flex:1;z-index:1}
+.leaflet-popup-content-wrapper{border-radius:8px;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.12)}
+.leaflet-popup-content{font-family:var(--sans);font-size:12px;line-height:1.5;min-width:210px}
+.pu-title{font-weight:600;font-size:13px;margin-bottom:2px}
+.pu-cours{font-size:11px;color:var(--text2);margin-bottom:6px}
+.pu-row{display:flex;justify-content:space-between;gap:12px;font-size:12px;margin-bottom:2px}
+.pu-row span:first-child{color:var(--text2)}
+.pu-row strong{font-family:monospace}
+.pu-seuils{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin:6px 0}
+.ps{text-align:center;padding:3px;border-radius:4px;font-size:10px;font-weight:500}
+.pu-links{display:flex;gap:8px;margin-top:6px}
+.pu-link{font-size:11px;color:var(--accent);text-decoration:none}
+.pu-link:hover{text-decoration:underline}
+.pu-crues-title{font-size:11px;font-weight:500;color:var(--text2);margin:.5rem 0 .2rem;text-transform:uppercase;letter-spacing:.04em}
+.pu-crue{display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid #f0f0f0}
+.pu-crue span{color:var(--text2)}
+
+/* ─── TAB 4 : JOURNAL ─── */
+.t4{flex:1;overflow:auto;padding:16px 20px}
+.t4-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.t4-bar h3{font-size:14px;font-weight:600;flex:1}
+.btn-clr{background:transparent;border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;font-family:var(--sans);cursor:pointer;color:var(--text2)}
+.btn-clr:hover{background:var(--bg2)}
+.j-empty{text-align:center;padding:3rem;color:var(--text3);font-size:13px;font-style:italic}
+.j-list{display:flex;flex-direction:column;gap:8px}
+.j-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:flex-start;gap:12px;border-left:4px solid #ccc}
+.j-item.ev-s1{border-left-color:#7dd3fc}
+.j-item.ev-s2{border-left-color:#2563eb}
+.j-item.ev-s3{border-left-color:#7c3aed}
+.j-item.ev-pic{border-left-color:#185FA5}
+.j-item.ev-speed{border-left-color:#9b59b6}
+.j-item.ev-desc{border-left-color:#27ae60}
+.j-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.j-body{flex:1;min-width:0}
+.j-title{font-weight:600;font-size:13px;color:var(--text);margin-bottom:2px}
+.j-meta{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:4px}
+.j-detail{font-size:12px;color:var(--text2);line-height:1.5}
+.j-time{font-size:11px;color:var(--text3);font-family:var(--mono);flex-shrink:0;text-align:right;min-width:70px}
+.j-badge{display:inline-block;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:500;font-family:var(--mono);margin-left:6px}
+.j-filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.j-filters select,.j-filters input{border:1px solid var(--border);border-radius:6px;padding:5px 9px;font-size:12px;background:var(--bg3);color:var(--text);font-family:var(--sans)}
+.j-cnt{font-size:11px;color:var(--text3);margin-left:auto}
+.j-section-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px;padding-left:2px}
+
+/* ─── TAB 5 : BASSINS VERSANTS ─── */
+.t5{flex:1;overflow:auto;padding:16px 20px}
+.t5-intro{font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px}
+.bv-grid{display:flex;flex-direction:column;gap:12px}
+.bv-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.bv-header{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none;transition:background .15s}
+.bv-header:hover{background:var(--bg)}
+.bv-color{width:4px;align-self:stretch;border-radius:2px;flex-shrink:0}
+.bv-title{font-size:14px;font-weight:600;color:var(--text);flex:1}
+.bv-desc{font-size:11px;color:var(--text3);margin-top:1px}
+.bv-summary{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.bv-worst{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:500}
+.bv-toggle{font-size:12px;color:var(--text3);margin-left:4px;transition:transform .2s}
+.bv-toggle.open{transform:rotate(180deg)}
+.bv-body{display:none;border-top:1px solid var(--border)}
+.bv-body.open{display:block}
+.bv-river{padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--bg2)}
+.bv-station-row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--bg2);transition:background .1s}
+.bv-station-row:last-child{border-bottom:none}
+.bv-station-row:hover{background:var(--accent-light);cursor:pointer}
+.bv-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.bv-pos{font-size:9px;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:var(--text3);font-family:var(--mono);flex-shrink:0}
+.bv-sname{font-size:12px;font-weight:500;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bv-cours-tag{font-size:10px;color:var(--text3);font-family:var(--mono);flex-shrink:0}
+.bv-h{font-family:var(--mono);font-size:12px;font-weight:600;flex-shrink:0;min-width:65px;text-align:right}
+.bv-badge{display:inline-block;padding:1px 8px;border-radius:99px;font-size:10px;font-weight:500;flex-shrink:0}
+.bv-bar-wrap{width:80px;flex-shrink:0}
+.bv-bar{width:100%;height:4px;background:var(--bg2);border-radius:2px;overflow:hidden}
+.bv-bar-fill{height:100%;border-radius:2px}
+.bv-pct{font-size:9px;color:var(--text3);font-family:var(--mono);text-align:right;margin-top:1px}
+.bv-arrow{font-size:12px;flex-shrink:0;font-weight:700;min-width:16px;text-align:center}
+.bv-prop-line{display:flex;align-items:center;padding:4px 14px 4px 38px;font-size:11px;color:var(--text3)}
+.bv-prop-icon{margin-right:6px;font-size:13px}
+.bv-speed-badge{font-size:10px;font-family:var(--mono);padding:1px 6px;border-radius:4px;font-weight:600}
+
+/* ─── TAB 12 : PRÉVENTION ─── */
+.t12p{flex:1;overflow:auto;padding:16px 20px}
+.prev-intro{font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.5}
+.prev-group{margin-bottom:22px}
+.prev-group-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.prev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.prev-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;text-decoration:none;color:inherit;transition:border-color .15s}
+.prev-card:hover{border-color:var(--accent)}
+.prev-card-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.prev-card-desc{font-size:11px;color:var(--text3);line-height:1.4}
+.prev-card-link{font-size:11px;color:var(--accent);margin-top:2px}
+.prev-numeros{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.prev-num{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 14px;text-align:center;min-width:90px}
+.prev-num-v{font-size:20px;font-weight:700;font-family:var(--mono);color:#c0392b}
+.prev-num-l{font-size:10px;color:var(--text3)}
+
+/* ─── TAB 6 : MÉTÉO ─── */
+.t6{flex:1;overflow:auto;padding:16px 20px}
+.meteo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:16px}
+.meteo-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.meteo-card-hdr{padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);background:var(--bg)}
+.meteo-card-hdr .mc-icon{font-size:18px}
+.meteo-card-hdr .mc-title{font-size:13px;font-weight:600;color:var(--text);flex:1}
+.meteo-card-hdr .mc-sub{font-size:10px;color:var(--text3)}
+.meteo-summary{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--border)}
+.meteo-kpi{padding:10px 14px;border-right:1px solid var(--border)}
+.meteo-kpi:last-child{border-right:none}
+.meteo-kpi-l{font-size:10px;color:var(--text3);margin-bottom:3px}
+.meteo-kpi-v{font-size:20px;font-weight:700;font-family:var(--mono);color:var(--text)}
+.meteo-kpi-v.rain{color:#2980b9}
+.meteo-kpi-v.warn{color:#e67e22}
+.meteo-kpi-v.alert{color:#c0392b}
+.meteo-chart-wrap{padding:10px 14px}
+.meteo-chart-title{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.meteo-chart-container{position:relative;width:100%;height:110px}
+.meteo-section{margin-bottom:14px}
+.meteo-section-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.daily-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.daily-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;text-align:center}
+.daily-date{font-size:10px;color:var(--text3);font-weight:500;text-transform:uppercase;margin-bottom:4px}
+.daily-icon{font-size:22px;margin-bottom:4px}
+.daily-rain{font-size:16px;font-weight:700;font-family:var(--mono);color:#2980b9}
+.daily-rain.warn{color:#e67e22}
+.daily-rain.alert{color:#c0392b}
+.daily-prob{font-size:10px;color:var(--text3);margin-top:2px}
+.daily-hours{font-size:10px;color:var(--text2);margin-top:1px}
+.meteo-alert-box{background:#fef3cd;border:1px solid #f0ad4e;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:none}
+.meteo-alert-box.visible{display:flex;align-items:flex-start;gap:8px}
+.meteo-alert-icon{font-size:18px;flex-shrink:0}
+.meteo-alert-text{font-size:12px;color:#7d4e00;line-height:1.5}
+.meteo-source{font-size:10px;color:var(--text3);text-align:right;margin-top:8px}
+.meteo-loading{text-align:center;padding:2rem;color:var(--text3);font-style:italic;font-size:13px}
+.rain-bar-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:11px}
+.rain-bar-label{width:38px;color:var(--text3);font-family:var(--mono);text-align:right;flex-shrink:0}
+.rain-bar-wrap{flex:1;height:12px;background:var(--bg2);border-radius:2px;overflow:hidden}
+.rain-bar-fill{height:100%;border-radius:2px;background:#2980b9;transition:width .3s}
+.rain-bar-fill.warn{background:#e67e22}
+.rain-bar-fill.alert{background:#c0392b}
+.rain-bar-val{width:40px;font-family:var(--mono);color:var(--text2);font-size:10px}
+
+/* ─── TAB 7 : SOLS ─── */
+.t7{flex:1;overflow:auto;padding:16px 20px}
+.sol-intro{font-size:12px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:14px;line-height:1.6}
+.sol-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:16px}
+.sol-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.sol-card-hdr{padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);background:var(--bg)}
+.sol-card-nom{font-size:13px;font-weight:600;color:var(--text);flex:1}
+.sol-card-zone{font-size:10px;color:var(--text3)}
+.sol-gauge-wrap{padding:14px}
+.sol-gauge-label{font-size:11px;color:var(--text3);margin-bottom:6px;display:flex;justify-content:space-between}
+.sol-gauge{width:100%;height:22px;background:var(--bg2);border-radius:11px;overflow:hidden;position:relative;margin-bottom:4px}
+.sol-gauge-fill{height:100%;border-radius:11px;transition:width .6s ease;position:relative}
+.sol-gauge-pct{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;font-family:var(--mono);color:rgba(0,0,0,.6)}
+.sol-gauge-pct.light{color:rgba(255,255,255,.9)}
+.sol-thresholds{display:flex;font-size:9px;color:var(--text3);justify-content:space-between;margin-bottom:10px;font-family:var(--mono)}
+.sol-layers{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.sol-layer-row{display:flex;align-items:center;gap:8px;font-size:11px}
+.sol-layer-label{width:90px;color:var(--text3);flex-shrink:0;font-size:10px}
+.sol-layer-bar{flex:1;height:8px;background:var(--bg2);border-radius:4px;overflow:hidden}
+.sol-layer-fill{height:100%;border-radius:4px}
+.sol-layer-val{width:38px;text-align:right;font-family:var(--mono);font-size:10px;color:var(--text2);flex-shrink:0}
+.sol-kpis{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border)}
+.sol-kpi{padding:8px 12px;border-right:1px solid var(--border)}
+.sol-kpi:last-child{border-right:none}
+.sol-kpi-l{font-size:10px;color:var(--text3);margin-bottom:2px}
+.sol-kpi-v{font-size:15px;font-weight:700;font-family:var(--mono);color:var(--text)}
+.sol-chart-wrap{padding:10px 14px;border-top:1px solid var(--border)}
+.sol-chart-container{position:relative;width:100%;height:100px}
+/* Couleurs saturation */
+.sat-sec{background:linear-gradient(90deg,#a8d8a8,#7ec87e)}
+.sat-normal{background:linear-gradient(90deg,#7ec87e,#f0c040)}
+.sat-humide{background:linear-gradient(90deg,#f0c040,#e67e22)}
+.sat-tres-humide{background:linear-gradient(90deg,#e67e22,#c0392b)}
+.sat-sature{background:linear-gradient(90deg,#c0392b,#8e1a0e)}
+/* Panneau risque global */
+.sol-risk-panel{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px}
+.sol-risk-title{font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sol-risk-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.sol-risk-item{text-align:center;padding:6px;border-radius:6px;background:var(--bg)}
+.sol-risk-nom{font-size:10px;color:var(--text3);margin-bottom:3px}
+.sol-risk-val{font-size:14px;font-weight:700;font-family:var(--mono)}
+.sol-risk-label{font-size:9px;margin-top:2px}
+.sol-legend{display:flex;gap:10px;flex-wrap:wrap;font-size:10px;color:var(--text3);margin-bottom:12px}
+.sol-legend-item{display:flex;align-items:center;gap:4px}
+.sol-legend-dot{width:10px;height:10px;border-radius:50%}
+.sol-source{font-size:10px;color:var(--text3);text-align:right;margin-top:8px}
+
+
+/* ─── CARTE ÉTAT-MAJOR ─── */
+.t-em{flex:1;display:flex;overflow:hidden;position:relative}
+#em-map{flex:1;z-index:1}
+/* Barre de recherche géocodage */
+.em-search{
+  position:absolute;top:12px;left:62px;right:228px;z-index:1002;
+  display:flex;align-items:center;gap:0;
+}
+#surge-alert{
+  position:absolute;top:60px;left:62px;right:228px;z-index:1001;
+  margin:0;box-shadow:0 2px 8px rgba(0,0,0,.15);
+}
+.em-search-input{
+  flex:1;background:rgba(26,35,50,.92);border:1px solid rgba(255,255,255,.25);
+  color:#fff;border-radius:7px 0 0 7px;padding:9px 12px;font-size:13px;
+  font-family:var(--sans);outline:none;
+}
+.em-search-input::placeholder{color:rgba(255,255,255,.45)}
+.em-search-input:focus{border-color:rgba(255,255,255,.5);background:rgba(26,35,50,.98)}
+.em-search-btn{
+  background:rgba(26,35,50,.92);border:1px solid rgba(255,255,255,.25);border-left:none;
+  color:#fff;border-radius:0 7px 7px 0;padding:9px 12px;cursor:pointer;font-size:14px;
+}
+.em-search-btn:hover{background:rgba(50,65,90,.98)}
+.em-search-results{
+  position:absolute;top:100%;left:0;right:0;margin-top:4px;
+  background:#1a2332;border:1px solid rgba(255,255,255,.2);border-radius:7px;
+  overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.4);display:none;z-index:1003;
+}
+.em-search-results.open{display:block}
+.em-search-result{padding:8px 12px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.85);font-family:var(--sans)}
+.em-search-result:hover{background:rgba(255,255,255,.1)}
+.em-search-hint{font-size:10px;color:rgba(255,255,255,.4);margin-top:2px}
+.em-search-loading{padding:8px 12px;font-size:12px;color:rgba(255,255,255,.5);font-family:var(--sans)}
+/* Barre d'outils */
+.em-toolbar{
+  position:absolute;top:12px;left:12px;z-index:1000;
+  background:#1a2332;border-radius:10px;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  display:flex;flex-direction:column;gap:2px;
+  padding:6px;min-width:44px;
+  max-height:calc(100vh - 120px);overflow-y:auto;
+}
+.em-section{
+  display:flex;flex-direction:column;gap:2px;
+  padding:4px 0;border-bottom:1px solid rgba(255,255,255,.1);
+}
+.em-section:last-child{border-bottom:none}
+.em-btn{
+  width:36px;height:36px;border-radius:7px;border:none;
+  background:transparent;color:rgba(255,255,255,.7);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:16px;transition:all .15s;position:relative;
+}
+.em-btn:hover{background:rgba(255,255,255,.12);color:#fff}
+.em-btn.active{background:rgba(255,255,255,.2);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)}
+.em-btn[title]:hover::after{
+  content:attr(title);position:absolute;left:44px;top:50%;transform:translateY(-50%);
+  background:#1a2332;color:#fff;font-size:11px;white-space:nowrap;
+  padding:4px 8px;border-radius:5px;pointer-events:none;font-family:var(--sans);
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+/* Palette couleurs */
+.em-color-btn{
+  width:24px;height:24px;border-radius:50%;border:2px solid transparent;
+  cursor:pointer;transition:all .15s;margin:2px auto;display:block;
+}
+.em-color-btn.active{border-color:#fff;transform:scale(1.15)}
+.em-color-btn:hover{transform:scale(1.1)}
+/* Panneau info / propriétés */
+.em-info{
+  position:absolute;top:12px;right:12px;z-index:1000;
+  background:#1a2332;border-radius:10px;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  color:#fff;padding:10px 12px;width:200px;font-size:12px;
+  font-family:var(--sans);
+}
+.em-info-title{font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.06em;color:rgba(255,255,255,.5);margin-bottom:6px}
+.em-legend-row{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:11px;color:rgba(255,255,255,.8)}
+.em-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.em-legend-line{width:16px;height:3px;border-radius:2px;flex-shrink:0}
+.em-layer-toggle{
+  width:100%;border:1px solid rgba(255,255,255,.14);border-radius:7px;
+  background:rgba(255,255,255,.07);color:rgba(255,255,255,.82);
+  padding:7px 8px;margin-top:5px;display:flex;align-items:center;gap:7px;
+  font-size:11px;font-family:var(--sans);font-weight:600;cursor:pointer;
+  text-align:left;transition:background .15s,border-color .15s,color .15s;
+}
+.em-layer-toggle:hover{background:rgba(255,255,255,.13);color:#fff}
+.em-layer-toggle.active{background:rgba(126,200,126,.18);border-color:rgba(126,200,126,.55);color:#fff}
+.em-layer-count{margin-left:auto;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.55)}
+/* Barre aide au dessin */
+.em-draw-bar{
+  display:none;position:absolute;bottom:70px;left:50%;transform:translateX(-50%);
+  z-index:1001;background:#1a2332;color:#fff;border-radius:8px;
+  padding:6px 12px;gap:8px;align-items:center;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);font-family:var(--sans);font-size:12px;
+}
+.em-draw-bar.show{display:flex}
+.em-draw-ok,.em-draw-cancel{
+  background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);
+  border-radius:5px;padding:4px 10px;cursor:pointer;font-size:11px;font-family:var(--sans);
+}
+.em-draw-ok:hover{background:#2a7a2a}
+.em-draw-cancel:hover{background:#7a2a2a}
+.em-draw-info{font-size:11px;color:rgba(255,255,255,.7);white-space:nowrap}
+/* Barre du bas */
+.em-bottom{
+  position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  z-index:1000;display:flex;gap:6px;
+}
+.em-action-btn{
+  background:#1a2332;color:#fff;border:none;border-radius:7px;
+  padding:7px 12px;font-size:11px;cursor:pointer;font-family:var(--sans);
+  display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+  transition:background .15s;font-weight:500;
+}
+.em-action-btn:hover{background:#263347}
+.em-action-btn.em-danger{background:#7d1a1a}
+.em-action-btn.em-danger:hover{background:#a02020}
+/* ── BANNIÈRE HORS-LIGNE ── */
+.offline-banner{display:none;align-items:center;gap:10px;background:#1a3a1a;color:#a8d8a8;font-size:12px;padding:7px 16px;border-bottom:1px solid #2a5a2a;font-family:var(--sans)}
+.offline-banner.visible{display:flex}
+.offline-banner-icon{font-size:16px;flex-shrink:0}
+.offline-banner-text{flex:1;line-height:1.4}
+.offline-banner-ts{font-family:'DM Mono',monospace;font-size:10px;opacity:.7;flex-shrink:0}
+.offline-banner-close{background:none;border:none;color:#a8d8a8;cursor:pointer;font-size:16px;padding:0 0 0 4px;line-height:1;flex-shrink:0}
+
+/* ── IMPRESSION ── */
+@media print {
+  /* État-major : carte plein écran */
+  body:has(#panel9.active) * { visibility:hidden; }
+  body:has(#panel9.active) #em-map,
+  body:has(#panel9.active) #em-map * { visibility:visible; }
+  body:has(#panel9.active) #em-map {
+    position:fixed !important; inset:0 !important;
+    width:100vw !important; height:100vh !important; z-index:9999;
+  }
+}
+@media(max-width:640px){
+  .em-search{top:10px;left:54px;width:calc(100% - 64px)}
+  .em-search-input{font-size:12px;padding:8px 10px}
+  .em-search-btn{padding:8px 10px}
+  #surge-alert{top:56px;left:54px;width:calc(100% - 64px);right:auto;font-size:11px}
+}
+
+/* ─── TAB 3 ─── */
+.t3{flex:1;overflow:auto;padding:16px 20px}
+.t3-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.t3-bar h3{font-size:14px;font-weight:600;flex:1}
+.btn-export{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-family:var(--sans);cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:500}
+.btn-export:hover{background:#0f3d1a}
+.btn-export:disabled{opacity:.5;cursor:not-allowed}
+.t12-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px;background:var(--bg3)}
+.t12{border-collapse:collapse;font-size:11px;white-space:nowrap}
+.t12 th{padding:7px 10px;font-weight:500;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;text-align:center}
+.t12 th.th-st{text-align:left;min-width:185px;position:sticky;left:0;background:var(--bg);z-index:2;border-right:1px solid var(--border)}
+.t12 td{padding:5px 10px;border-bottom:1px solid var(--bg2);text-align:center;font-family:var(--mono);font-size:11px}
+.t12 td.td-st{text-align:left;position:sticky;left:0;background:var(--bg3);z-index:1;border-right:1px solid var(--border);font-family:var(--sans)}
+.t12 tr:hover td{background:var(--accent-light)}
+.t12 tr:hover td.td-st{background:var(--accent-light)}
+.t12 td.null{color:var(--text3)}
+.t12 td.vc0{background:rgba(0,160,0,.1)}
+.t12 td.vc1{background:rgba(255,220,0,.25)}
+.t12 td.vc2{background:rgba(255,127,0,.2)}
+.t12 td.vc3{background:rgba(255,0,0,.15)}
+.t12 td.last-col{border-left:2px solid var(--border)}
+.t12 th.th-last{border-left:2px solid var(--border)}
+.sn2{font-weight:500;display:block;font-size:11px}
+.ce2{font-size:9px;color:var(--text3);font-family:var(--mono)}
+
+/* ─── MODAL STATION ─── */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:9000}
+.mbg.open{display:flex}
+.mdl{background:var(--bg3);border-radius:10px;border:1px solid var(--border);padding:1.25rem;width:520px;max-width:95vw;max-height:84vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.mhdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem}
+.mt{font-size:14px;font-weight:600;color:var(--text)}
+.ms{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px}
+.xbtn{background:transparent;border:none;cursor:pointer;font-size:22px;line-height:1;color:var(--text3);padding:0}
+.xbtn:hover{color:var(--text)}
+.mchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem}
+.chip{font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 9px;color:var(--text2);font-family:var(--mono)}
+.msect{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:.85rem 0 .35rem}
+.slg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:.5rem}
+.sli{text-align:center;padding:6px 4px;border-radius:6px;font-size:11px;font-weight:500}
+.crue-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bg2);font-size:12px}
+.crue-row:last-child{border-bottom:none}
+.crk{font-size:10px;background:var(--bg);border-radius:3px;padding:1px 5px;margin-right:6px;color:var(--text3);font-family:var(--mono)}
+.mlinks{display:flex;gap:8px;flex-wrap:wrap;margin-top:.5rem}
+.mlink{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--accent);text-decoration:none;border:1px solid #b0d0b8;border-radius:6px;padding:4px 10px;background:var(--accent-light)}
+.mlink:hover{background:#d0e8d4}
+.mnote{font-size:10px;color:var(--text3);background:var(--bg);border-radius:6px;padding:6px 10px;margin-top:.75rem;line-height:1.5}
+.trend-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:.75rem;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.trend-val{font-size:22px;font-weight:700;font-family:var(--mono)}
+.trend-label{font-size:11px;color:var(--text3);margin-top:1px}
+.trend-speed{font-size:13px;font-weight:600;font-family:var(--mono)}
+.chart-wrap{position:relative;width:100%;height:180px;margin:.5rem 0}
+.chart-loading{text-align:center;padding:1.5rem;color:var(--text3);font-size:12px;font-style:italic}
+.ibtn{background:transparent;border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-size:11px;cursor:pointer;color:var(--text2)}
+.ibtn:hover{background:var(--accent-light);border-color:#b0d0b8;color:var(--accent)}
+
+
+/* ─── TAB 10 : REVUE DE PRESSE ─── */
+.t10{flex:1;overflow:auto;padding:16px 20px}
+.rp-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.rp-bar h3{font-size:14px;font-weight:600;flex:1;color:var(--text)}
+.rp-fetch-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px}
+.rp-fetch-box.ok{background:#f0faf0;border-color:#86efac;color:#166534}
+.rp-fetch-box.err{background:#fff5f5;border-color:#fca5a5;color:#c0392b}
+.rp-fetch-box.loading{color:var(--text3);font-style:italic}
+.rp-candidates{background:var(--bg3);border:1px solid #f0d060;border-radius:10px;margin-bottom:14px;overflow:hidden;display:none}
+.rp-cand-hdr{padding:10px 14px;background:#fffbe6;border-bottom:1px solid #f0d060;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.rp-cand-hdr-title{font-size:13px;font-weight:600;color:#7a5800;display:flex;align-items:center;gap:6px}
+.rp-cand-sub{font-size:11px;color:#a07030;margin-top:1px}
+.rp-cand-item{display:flex;align-items:flex-start;gap:10px;padding:9px 14px;border-bottom:.5px solid var(--bg2)}
+.rp-cand-item:last-child{border-bottom:none}
+.rp-cand-check{flex-shrink:0;margin-top:3px;width:15px;height:15px;cursor:pointer;accent-color:var(--accent)}
+.rp-cand-body{flex:1;min-width:0}
+.rp-cand-link{font-size:12px;font-weight:500;color:var(--text);text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rp-cand-link:hover{color:var(--accent);text-decoration:underline}
+.rp-cand-meta{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px}
+.rp-cand-ext{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rp-btn-validate{background:#f0c040;color:#7a5800;border:1px solid #d0a020;border-radius:6px;padding:5px 12px;font-size:12px;font-family:var(--sans);cursor:pointer;font-weight:500}
+.rp-btn-validate:hover{background:#d0a020;color:#fff}
+.rp-form-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden}
+.rp-form-hdr{padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.rp-form-hdr-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.rp-form-body{padding:12px 14px;display:none}
+.rp-form-body.open{display:block}
+.rp-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.rp-form-field{display:flex;flex-direction:column;gap:3px}
+.rp-form-field.full{grid-column:1/-1}
+.rp-flabel{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.rp-input{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;background:var(--bg3);color:var(--text);font-family:var(--sans);width:100%;box-sizing:border-box}
+.rp-input:focus{outline:none;border-color:#b0d0b8}
+.rp-textarea{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;background:var(--bg3);color:var(--text);font-family:var(--sans);width:100%;resize:vertical;min-height:60px;box-sizing:border-box}
+.rp-textarea:focus{outline:none;border-color:#b0d0b8}
+.rp-bassin-checkboxes{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:4px}
+.rp-bassin-lbl{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);cursor:pointer}
+.rp-bassin-lbl input{accent-color:var(--accent);width:14px;height:14px}
+.rp-form-actions{display:flex;gap:8px;margin-top:10px}
+.rp-filters{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.rp-filters input,.rp-filters select{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;background:var(--bg3);color:var(--text);font-family:var(--sans)}
+.rp-filters input{flex:1;min-width:150px;max-width:220px}
+.rp-count{font-size:11px;color:var(--text3);margin-left:auto}
+.rp-articles{display:flex;flex-direction:column;gap:8px}
+.rp-article{background:var(--bg3);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:8px;padding:11px 14px;display:flex;gap:12px;align-items:flex-start}
+.rp-article.niv-info{border-left-color:#2980b9}
+.rp-article.niv-vigilance{border-left-color:#c8b800}
+.rp-article.niv-alerte{border-left-color:#FF7F00}
+.rp-article.niv-crise{border-left-color:#FF0000}
+.rp-article-body{flex:1;min-width:0}
+.rp-article-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:3px;flex-wrap:wrap}
+.rp-article-title{font-size:13px;font-weight:500;color:var(--text);text-decoration:none;flex:1;min-width:0;line-height:1.4}
+.rp-article-title:hover{color:var(--accent);text-decoration:underline}
+.rp-niv-badge{display:inline-block;padding:1px 8px;border-radius:99px;font-size:10px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.rp-niv-info{background:#dbeafe;color:#1d4ed8}
+.rp-niv-vigilance{background:#fef9c3;color:#854d0e}
+.rp-niv-alerte{background:#ffedd5;color:#9a3412}
+.rp-niv-crise{background:#fee2e2;color:#991b1b}
+.rp-article-meta{font-size:11px;color:var(--text3);margin-bottom:5px;font-family:var(--mono)}
+.rp-source-badge{font-size:10px;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-family:var(--mono);color:var(--text2);margin-right:4px}
+.rp-article-extract{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rp-article-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.rp-bassin-tag{font-size:10px;background:var(--accent-light);color:var(--accent);border:1px solid #b0d0b8;border-radius:99px;padding:1px 7px;font-family:var(--mono)}
+.rp-rss-badge{font-size:9px;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:var(--text3);font-family:var(--mono)}
+.rp-del{background:transparent;border:1px solid transparent;border-radius:5px;width:22px;height:22px;cursor:pointer;color:var(--text3);font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;padding:0}
+.rp-del:hover{background:#fff5f5;border-color:#fca5a5;color:#c0392b}
+.rp-empty{text-align:center;padding:3rem;color:var(--text3);font-size:13px;font-style:italic}
+.rp-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.rp-sig-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden}
+.rp-sig-hdr{padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.rp-sig-map-wrap{display:flex;justify-content:center;padding:12px}
+#rp-sig-map{height:360px;width:66.66%;border-radius:8px;overflow:hidden}
+.rp-geo-tag{font-size:10px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:99px;padding:1px 7px;font-family:var(--mono)}
+.rp-coord-row{display:flex;gap:6px;align-items:center}
+.rp-coord-row input{flex:1}
+.rp-stat{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;text-align:center}
+.rp-stat-v{font-size:20px;font-weight:700;font-family:var(--mono);color:var(--text)}
+.rp-stat-l{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* ─── DARK MODE OVERRIDES ─── */
+@media(prefers-color-scheme:dark){
+  .mdl{box-shadow:0 8px 40px rgba(0,0,0,.6)}
+  .table-wrap,.t12-wrap{background:var(--bg3)}
+  th{background:var(--bg2)}
+  .meteo-alert-box{background:#2a2200;border-color:#7a5800}
+  .meteo-alert-text{color:#f0c84a}
+  .rp-fetch-box.ok{background:#0d2a14;border-color:#2a7a3a;color:#6adf8a}
+  .rp-fetch-box.err{background:#2a0d0d;border-color:#7a2a2a;color:#f08080}
+  .rp-candidates{border-color:#7a5800}
+  .rp-cand-hdr{background:#2a2200;border-color:#7a5800}
+  .rp-cand-hdr-title{color:#f0c84a}
+  .rp-cand-sub{color:#c09040}
+  .conv-item.ci-warn{background:#2a2200;border-left-color:#c8a000}
+  .conv-item.ci-danger{background:#2a1400;border-left-color:#c06000}
+  .conv-item.ci-high{background:#2a0a0a;border-left-color:#c03030}
+  .conv-item.ci-ok{background:#0d2014;border-left-color:#2a9040}
+  .em-postit{background:#3a3400;border-color:rgba(255,255,255,.2)}
+  .em-postit-title,.em-postit-note{color:#f0e890}
+  input,select,textarea{background:var(--bg3);color:var(--text);border-color:var(--border)}
+  input::placeholder{color:var(--text3)}
+}
+
+/* ─── RESPONSIVE MOBILE ─── */
+@media(max-width:768px){
+  header{height:auto;padding:10px 14px;flex-wrap:wrap;gap:6px}
+  .logo-sub{display:none}
+  .hdr-right{gap:6px}
+  .ts{font-size:10px}
+  #refresh-countdown{display:none}
+  .tabs-bar-wrap{background:var(--bg3)}
+  .tabs-bar{padding:0 8px}
+  .tab{padding:11px 10px 9px;font-size:12px;gap:4px}
+  .tab-ico{font-size:12px}
+  .tab-group+.tab-group{margin-left:4px;padding-left:4px}
+
+  /* Grilles rigides → 2 colonnes sur mobile */
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .sol-risk-grid{grid-template-columns:repeat(2,1fr)}
+  .rp-stats{grid-template-columns:repeat(2,1fr)}
+
+  /* Panneaux avec padding réduit */
+  .t1,.t3,.t4,.t5,.t6,.t7,.t8,.t9,.t10{padding:10px 12px}
+
+  /* Tableaux : réduire les colonnes secondaires */
+  .ce,.ce2,.ref-chip,.ext{display:none}
+  td,th{padding:6px 8px}
+
+  /* Filtres en colonne */
+  .filters,.j-filters,.rp-filters{flex-direction:column;gap:6px}
+  .filters input,.filters select{max-width:100%;width:100%}
+  .rp-filters input,.rp-filters select,.j-filters select,.j-filters input{width:100%}
+  .cnt,.j-cnt,.rp-count{margin-left:0}
+
+  /* Modal plein écran */
+  .mdl{width:100%;max-width:100vw;max-height:92vh;border-radius:10px 10px 0 0;position:fixed;bottom:0;left:0;top:auto;margin:0}
+  .mbg.open{align-items:flex-end}
+
+  /* Synthèse */
+  .brief-grid,.basin-score-grid,.fav-grid{grid-template-columns:1fr}
+  .alerte-globale{padding:12px 14px;gap:10px}
+  .ag-titre{font-size:15px}
+
+  /* Météo */
+  .meteo-grid{grid-template-columns:1fr}
+  .daily-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
+
+  /* Sols */
+  .sol-grid{grid-template-columns:1fr}
+
+  /* Bassins */
+  .bv-bar-wrap{display:none}
+  .bv-h{min-width:55px}
+
+  /* Revue presse */
+  .rp-form-grid{grid-template-columns:1fr}
+
+  /* Carte état-major : barre de recherche full-width */
+  .em-search{top:8px;left:8px;width:calc(100% - 16px)}
+  .em-info{width:160px;font-size:11px}
+}
+
+@media(max-width:480px){
+  .metrics{grid-template-columns:1fr 1fr}
+  .mc-v{font-size:18px}
+  .logo-title{font-size:14px}
+  .tab{padding:9px 8px 7px;font-size:11px}
+  .tab-ico{display:none}
+}
+
+/* ====== RESPONSIVE MOBILE — item 5.4 ====== */
+@media(max-width:768px){
+  /* Carte état-major : hauteur adaptée */
+  .t-em,#em-map{min-height:260px;max-height:70vh}
+  /* Popup Leaflet : width max sur mobile */
+  .leaflet-popup-content{min-width:unset !important;max-width:calc(100vw - 40px)}
+  /* Tableau synth 12h : scroll horizontal garanti */
+  .t12-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  /* Grille seuils station : 2 colonnes au lieu de 3 */
+  .slg{grid-template-columns:1fr 1fr}
+  /* Grille seuils popup carte : 2 colonnes */
+  .pu-seuils{grid-template-columns:1fr 1fr}
+  /* Barre outils carte état-major : icônes plus grandes pour le tactile */
+  .em-btn{width:40px;height:40px;font-size:16px}
+  /* Bouton mobile-home : visible sur mobile */
+  #btn-mobile-home{display:flex !important;align-items:center;justify-content:center}
+}
+
+@media(max-width:480px){
+  .t-em,#em-map{min-height:220px}
+  /* Modal station : padding réduit */
+  .mdl{padding:.75rem}
+  /* Barre outils carte état-major : masquer les sections secondaires */
+  .em-section+.em-section+.em-section{display:none}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous"></script>
+<script type="importmap">
+{
+  "imports": {
+    "./src/config.js": "./src/config.js?v=13",
+    "./src/state.js": "./src/state.js?v=13",
+    "./src/utils.js": "./src/utils.js?v=13",
+    "./src/vigi.js": "./src/vigi.js?v=13",
+    "./src/cache.js": "./src/cache.js?v=13",
+    "./src/notif.js": "./src/notif.js?v=13",
+    "./src/journal.js": "./src/journal.js?v=13",
+    "./src/tabs.js": "./src/tabs.js?v=13",
+    "./src/map.js": "./src/map.js?v=13",
+    "./src/render.js": "./src/render.js?v=13",
+    "./src/meteo.js": "./src/meteo.js?v=13",
+    "./src/modal.js": "./src/modal.js?v=13",
+    "./src/data.js": "./src/data.js?v=13",
+    "./src/em-map.js": "./src/em-map.js?v=13",
+    "./src/pdf.js": "./src/pdf.js?v=13",
+    "./src/rp.js": "./src/rp.js?v=13",
+    "./src/globals.js": "./src/globals.js?v=13"
+  }
+}
+</script>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Aller au contenu principal</a>
+<div class="offline-banner" id="offline-banner" role="alert" aria-live="assertive">
+  <span class="offline-banner-icon" aria-hidden="true">📦</span>
+  <span class="offline-banner-text">Mode hors-ligne — affichage des dernières données en cache : <span id="offline-banner-ts"></span></span>
+  <button class="offline-banner-close" onclick="document.getElementById('offline-banner').classList.remove('visible')" aria-label="Fermer la notification hors-ligne">×</button>
+</div>
+<div class="shell">
+
+<header>
+  <div class="logo">
+    <span class="logo-icon">🌊</span>
+    <div>
+      <div class="logo-title">Vigilance 22 — Côtes-d'Armor</div>
+      <div class="logo-sub">Surveillance hydrométrique temps réel • 27 stations • Département 22</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <span class="spin" id="spin"></span>
+    <span class="ts" id="ts">—</span>
+    <span class="ts" id="refresh-countdown" title="Prochain rafraîchissement automatique" style="opacity:.6;font-size:10px"></span>
+    <button class="btn-hdr" id="btnTz" aria-label="Basculer entre heure Paris et UTC" onclick="toggleTz()" title="Basculer entre heure Paris et UTC">🕐 Heure Paris</button>
+    <button class="btn-hdr" id="btnRefresh" aria-label="Actualiser les données" onclick="loadAll()">↺ Actualiser</button>
+    <button id="btn-notif" onclick="toggleNotif()" aria-label="Activer ou désactiver les alertes navigateur" title="Activer/désactiver les alertes navigateur" style="background:none;border:1px solid rgba(255,255,255,.35);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:13px;color:#fff;">🔔</button>
+    <span id="online-indicator" title="Statut réseau" aria-label="Statut réseau : en ligne" aria-live="polite" style="font-size:14px;cursor:default;">🟢</span>
+  </div>
+</header>
+
+<div class="tabs-bar-wrap">
+<div class="tabs-bar" role="tablist" aria-label="Sections de surveillance">
+  <div class="tab-group" role="group" aria-label="Pilotage">
+    <div class="tab active" onclick="switchTab(9)" id="tab9" role="tab" tabindex="0" aria-selected="true" aria-controls="panel9" title="Carte état-major — outils de tracé opérationnels"><span class="tab-ico">🗺️</span> Carte</div>
+  </div>
+  <div class="tab-group" role="group" aria-label="Cartes et réseau">
+    <div class="tab" onclick="switchTab(5)" id="tab5" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel5" title="Bassins versants et stations"><span class="tab-ico">🏞️</span> Bassins &amp; stations</div>
+    <div class="tab" onclick="switchTab(3)" id="tab3" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel3" title="Historique des hauteurs sur 12 h"><span class="tab-ico">📈</span> Historique</div>
+  </div>
+  <div class="tab-group" role="group" aria-label="Facteurs aggravants">
+    <div class="tab" onclick="switchTab(6)" id="tab6" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel6" title="Météo et précipitations"><span class="tab-ico">🌧️</span> Météo</div>
+    <div class="tab" onclick="switchTab(7)" id="tab7" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel7" title="Saturation des sols"><span class="tab-ico">🌱</span> Sols</div>
+    <div class="tab" onclick="switchTab(11)" id="tab11" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel11" title="Nappes phréatiques"><span class="tab-ico">💧</span> Nappes</div>
+  </div>
+  <div class="tab-group" role="group" aria-label="Suivi et veille">
+    <div class="tab" onclick="switchTab(4)" id="tab4" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel4" title="Journal des événements"><span class="tab-ico">📋</span> Journal</div>
+    <div class="tab" onclick="switchTab(10)" id="tab10" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel10" title="Revue de presse"><span class="tab-ico">📰</span> Presse</div>
+    <div class="tab" onclick="switchTab(12)" id="tab12" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel12" title="Prévention des inondations — sources officielles"><span class="tab-ico">🛟</span> Prévention</div>
+    <div class="tab" onclick="switchTab(13)" id="tab13" role="tab" tabindex="-1" aria-selected="false" aria-controls="panel13" title="Webcams en direct — littoral des Côtes-d'Armor"><span class="tab-ico">📷</span> Webcams</div>
+  </div>
+</div>
+</div><!-- /tabs-bar-wrap -->
+
+<!-- Bouton mobile : retour à la carte état-major — item 5.4 -->
+<button id="btn-mobile-home"
+  onclick="switchTab(9)"
+  aria-label="Retour à la carte"
+  title="Retour à la carte état-major"
+  style="display:none;position:fixed;bottom:16px;right:16px;z-index:9999;background:#185FA5;color:#fff;border:none;border-radius:50%;width:52px;height:52px;font-size:24px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.35);-webkit-tap-highlight-color:transparent;">🗺️</button>
+
+<div class="panels" id="main-content" role="region" aria-label="Contenu principal">
+
+<!-- ═══ TAB 3 ═══ -->
+<div class="panel" id="panel3" role="tabpanel" aria-labelledby="tab3" tabindex="-1">
+<div class="t3">
+  <div class="t3-bar">
+    <h3>Hauteurs d'eau (m) — relevés horaires sur 12h</h3>
+    <button class="btn-export" id="btnCsv" aria-label="Exporter l'historique en CSV" onclick="exportCSV()" disabled>⬇ Télécharger CSV</button>
+  </div>
+  <div class="t12-wrap">
+    <table class="t12" id="t12"><tr><td style="padding:2rem;color:#8a9b8a;font-style:italic">Chargement…</td></tr></table>
+  </div>
+  <p class="note">Données Hub'Eau — obs. la plus proche du top de chaque heure. « — » = données non disponibles. Coloration selon seuils estimés.</p>
+</div>
+</div>
+
+<!-- ═══ TAB 4 : JOURNAL ═══ -->
+<div class="panel" id="panel4" role="tabpanel" aria-labelledby="tab4" tabindex="-1">
+<div class="t4">
+  <div class="t4-bar">
+    <h3>Journal des événements <span id="j-count-badge" style="font-size:12px;font-weight:400;color:var(--text3)"></span></h3>
+    <select id="j-ftype" onchange="renderJournal()">
+      <option value="">Tous les types</option>
+      <option value="franchissement">Franchissements de seuil</option>
+      <option value="pic">Pics de crue</option>
+      <option value="speed">Montées rapides</option>
+      <option value="desc">Baisses significatives</option>
+    </select>
+    <select id="j-fstation" onchange="renderJournal()">
+      <option value="">Toutes les stations</option>
+    </select>
+    <button aria-label="Vider le journal des événements" class="btn-clr" onclick="clearJournal()" title="Vider le journal">🗑 Vider</button>
+    <button aria-label="Exporter le journal en CSV" class="btn-export" onclick="exportJournalCSV()">⬇ CSV</button>
+  </div>
+  <div id="j-list-wrap"></div>
+</div>
+</div>
+
+<!-- ═══ TAB 5 : BASSINS VERSANTS & STATIONS ═══ -->
+<div class="panel" id="panel5" role="tabpanel" aria-labelledby="tab5" tabindex="-1">
+<div class="t5">
+  <div class="metrics">
+    <div class="mc"><div class="mc-l">Stations</div><div class="mc-v">27</div></div>
+    <div class="mc"><div class="mc-l">Données reçues</div><div class="mc-v" id="m-data">—</div></div>
+    <div class="mc"><div class="mc-l" style="color:#FF0000">⬤ Rouge</div><div class="mc-v" id="m-r">—</div></div>
+    <div class="mc"><div class="mc-l" style="color:#FF7F00">⬤ Orange</div><div class="mc-v" id="m-o">—</div></div>
+    <div class="mc"><div class="mc-l" style="color:#999900">⬤ Jaune</div><div class="mc-v" id="m-j">—</div></div>
+  </div>
+  <div class="legend">
+    <span class="li"><span class="ld" style="background:#00A000"></span>Vert Vigicrues</span>
+    <span class="li"><span class="ld" style="background:#FFFF00;border:1px solid #bbb"></span>Jaune Vigicrues</span>
+    <span class="li"><span class="ld" style="background:#FF7F00"></span>Orange Vigicrues</span>
+    <span class="li"><span class="ld" style="background:#FF0000"></span>Rouge Vigicrues</span>
+  </div>
+  <div class="note" id="vigi-source-status" style="margin:4px 0 8px">Couleurs vigilance : chargement du flux officiel Vigicrues…</div>
+  <div class="filters">
+    <input type="text" id="srch" placeholder="Station, cours d'eau, code, bassin…" oninput="renderBassins()">
+    <select id="fv" onchange="renderBassins()">
+      <option value="">Toute vigilance</option>
+      <option value="3">Rouge</option><option value="2">Orange</option>
+      <option value="1">Jaune</option><option value="0">Vert</option>
+    </select>
+    <select id="fs" onchange="renderBassins()">
+      <option value="v">Tri : vigilance ↓</option>
+      <option value="n">Tri : nom A→Z</option>
+      <option value="h">Tri : hauteur ↓</option>
+    </select>
+    <select id="fseuil" onchange="renderBassins()" title="Repère historique de référence pour la barre de progression">
+      <option value="s3">Barre / S3 — crue historique haute</option>
+      <option value="s2">Barre / S2 — crue historique médiane</option>
+      <option value="s1">Barre / S1 — crue historique basse</option>
+    </select>
+    <span class="cnt" id="cnt"></span>
+  </div>
+  <div class="bv-grid" id="bv-grid">
+    <div style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Chargement…</div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ TAB 6 : MÉTÉO ═══ -->
+<div class="panel" id="panel6" role="tabpanel" aria-labelledby="tab6" tabindex="-1">
+<div class="t6">
+  <div id="meteo-alert" class="meteo-alert-box">
+    <span class="meteo-alert-icon">⚠️</span>
+    <div class="meteo-alert-text" id="meteo-alert-text"></div>
+  </div>
+  <div class="meteo-section">
+    <div class="meteo-section-title">🌧️ Précipitations temps réel &amp; prévisions 48h — 5 points du département 22</div>
+    <div class="meteo-grid" id="meteo-grid">
+      <div class="meteo-loading">Chargement des données Météo-France AROME…</div>
+    </div>
+  </div>
+  <div class="meteo-section">
+    <div class="meteo-section-title">📅 Cumuls journaliers — 3 prochains jours</div>
+    <div class="daily-grid" id="daily-grid">
+      <div class="meteo-loading">Chargement…</div>
+    </div>
+  </div>
+  <div class="meteo-source">Source : Open-Meteo — modèle Météo-France AROME (résolution 1.3 km) · Données horaires · CORS libre</div>
+</div>
+</div>
+
+<!-- ═══ TAB 7 : SATURATION DES SOLS ═══ -->
+<div class="panel" id="panel7" role="tabpanel" aria-labelledby="tab7" tabindex="-1">
+<div class="t7">
+  <div class="sol-intro">
+    <strong>Indice de saturation des sols</strong> — Un sol saturé transforme une pluie ordinaire en crue : l'eau ne s'infiltre plus et ruisselle directement vers les cours d'eau. Cet outil calcule l'humidité volumétrique par couche (0–81 cm) et la compare aux seuils de référence des sols argileux-limoneux bretons (θ<sub>wp</sub>=0,10 · θ<sub>fc</sub>=0,28 · θ<sub>sat</sub>=0,44 m³/m³).
+  </div>
+  <div class="sol-legend">
+    <span class="sol-legend-item"><span class="sol-legend-dot" style="background:#7ec87e"></span>Sec (&lt;40%)</span>
+    <span class="sol-legend-item"><span class="sol-legend-dot" style="background:#b8d460"></span>Normal (40–60%)</span>
+    <span class="sol-legend-item"><span class="sol-legend-dot" style="background:#f0c040"></span>Humide (60–75%)</span>
+    <span class="sol-legend-item"><span class="sol-legend-dot" style="background:#e67e22"></span>Très humide (75–90%)</span>
+    <span class="sol-legend-item"><span class="sol-legend-dot" style="background:#c0392b"></span>Saturé (&gt;90%)</span>
+  </div>
+  <div class="sol-risk-panel">
+    <div class="sol-risk-title">🗺️ Synthèse départementale — indice de saturation par zone</div>
+    <div class="sol-risk-grid" id="sol-risk-grid">
+      <div style="grid-column:1/-1;text-align:center;color:var(--text3);font-style:italic;font-size:12px">Chargement…</div>
+    </div>
+  </div>
+  <div class="sol-grid" id="sol-grid">
+    <div style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Chargement des données INRAE/Open-Meteo…</div>
+  </div>
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-top:10px">
+    <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">🔗 Références officielles</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <a href="https://www.eaufrance.fr/publications/bsh" target="_blank" style="display:flex;align-items:flex-start;gap:8px;text-decoration:none;color:var(--text)">
+        <span style="font-size:16px;flex-shrink:0">📊</span>
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--accent)">Bulletins de Situation Hydrologique (BSH) — Eaufrance</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px">Publication mensuelle OFB/Météo-France/BRGM : cartes d'humidité des sols, débits, nappes. Référence nationale officielle.</div>
+        </div>
+      </a>
+      <a href="https://donneespubliques.meteofrance.fr/?fond=produit&id_produit=301&id_rubrique=40" target="_blank" style="display:flex;align-items:flex-start;gap:8px;text-decoration:none;color:var(--text)">
+        <span style="font-size:16px;flex-shrink:0">🌦️</span>
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--accent)">Indice SWI mensuel catnat — Météo-France Open Data</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px">Soil Wetness Index uniforme sur 50 ans, maille 8 km. Utilisé pour les dossiers catastrophes naturelles (sécheresse/inondation).</div>
+        </div>
+      </a>
+      <a href="https://www.eaufrance.fr/glossaire/indice-dhumidite-des-sols" target="_blank" style="display:flex;align-items:flex-start;gap:8px;text-decoration:none;color:var(--text)">
+        <span style="font-size:16px;flex-shrink:0">📖</span>
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--accent)">Définition SWI — Eaufrance glossaire</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px">SWI ≈ 1 : sol humide/saturé · SWI → 0 : stress hydrique. Modèle SIM (Safran-Isba-Modcou), résolution 8 km, pas de temps quotidien.</div>
+        </div>
+      </a>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
+      Données de calcul : Open-Meteo ERA5-Land / ECMWF — humidité volumétrique par couche · Référence sols INRAE/BDAT (limon-argile Bretagne) · θ<sub>wp</sub>=0,10 · θ<sub>fc</sub>=0,28 · θ<sub>sat</sub>=0,44 m³/m³
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ SYNTHÈSE ═══ -->
+
+
+<!-- ═══ CARTE ÉTAT-MAJOR ═══ -->
+<div class="panel" id="panel9" role="tabpanel" aria-labelledby="tab9" tabindex="-1">
+  <div class="t-em">
+    <div id="surge-alert" class="meteo-alert-box">
+      <span class="meteo-alert-icon">⚠️</span>
+      <div class="meteo-alert-text" id="surge-alert-text"></div>
+    </div>
+    <div id="em-map"></div>
+
+    <!-- Barre de recherche géocodage -->
+    <div class="em-search" id="em-search-wrap">
+      <input class="em-search-input" id="em-search-input"
+             type="text" placeholder="🔎 Adresse / commune — ex : mairie Saint-Brieuc"
+             autocomplete="off"
+             oninput="emSearchDebounce(this.value)"
+             onkeydown="if(event.key==='Enter')emSearchGo()"
+             onfocus="document.getElementById('em-search-results').classList.toggle('open', document.getElementById('em-search-results').children.length>0)">
+      <button aria-label="Rechercher une localisation sur la carte" class="em-search-btn" onclick="emSearchGo()" title="Rechercher une adresse">🔎</button>
+      <div class="em-search-results" id="em-search-results"></div>
+    </div>
+
+    <!-- Barre outils gauche -->
+    <div class="em-toolbar" id="em-toolbar">
+
+      <!-- Outils de dessin -->
+      <div class="em-section">
+        <button aria-label="Outil sélection et déplacement" class="em-btn" id="em-tool-select"    onclick="emSetTool('select')"   title="Sélection / Déplacer">↖</button>
+        <button aria-label="Outil annotation post-it" class="em-btn" id="em-tool-note"      onclick="emSetTool('note')"     title="Post-it (note toujours visible)">📝</button>
+        <button aria-label="Outil tracé de ligne" class="em-btn" id="em-tool-polyline"  onclick="emSetTool('polyline')" title="Tracé (route, limite)">✏️</button>
+        <button aria-label="Outil tracé de zone" class="em-btn" id="em-tool-polygon"   onclick="emSetTool('polygon')"  title="Zone (inondée, danger)">⬡</button>
+        <button aria-label="Outil tracé de cercle" class="em-btn" id="em-tool-circle"    onclick="emSetTool('circle')"   title="Zone circulaire">⊙</button>
+      </div>
+
+      <!-- Palette couleurs -->
+      <div class="em-section" style="align-items:center;padding:6px 0">
+        <button aria-label="Couleur rouge — Danger" class="em-color-btn" style="background:#e63946" onclick="emSetColor('#e63946')" title="Danger / Urgent" id="emc-red"></button>
+        <button aria-label="Couleur orange — Vigilance" class="em-color-btn" style="background:#FF7F00" onclick="emSetColor('#FF7F00')" title="Vigilance / Alerte" id="emc-orange"></button>
+        <button aria-label="Couleur bleue — Eau / crue" class="em-color-btn" style="background:#2196F3" onclick="emSetColor('#2196F3')" title="Eau / Inondation" id="emc-blue"></button>
+        <button aria-label="Couleur verte — Ressources" class="em-color-btn" style="background:#4CAF50" onclick="emSetColor('#4CAF50')" title="Ressource / OK" id="emc-green"></button>
+        <button aria-label="Couleur violette — Infrastructures" class="em-color-btn" style="background:#9C27B0" onclick="emSetColor('#9C27B0')" title="Infrastructure" id="emc-purple"></button>
+        <button aria-label="Couleur blanche — Neutre" class="em-color-btn" style="background:#F5F5F5" onclick="emSetColor('#F5F5F5')" title="Neutre / Info" id="emc-white"></button>
+      </div>
+
+      <!-- Actions suppression -->
+      <div class="em-section">
+        <button class="em-btn" id="em-tool-erase" aria-label="Outil gomme" onclick="emSetTool('erase')" title="Supprimer un élément">🗑</button>
+        <button aria-label="Effacer toutes les annotations" class="em-btn" onclick="emClearConfirm()" title="Tout effacer">✕</button>
+      </div>
+
+      <!-- Fond de carte -->
+      <div class="em-section">
+        <button aria-label="Fond de carte OpenStreetMap" class="em-btn" onclick="emSetLayer('osm')"  title="Fond OSM">🗺</button>
+        <button aria-label="Fond de carte topographique IGN" class="em-btn" onclick="emSetLayer('topo')" title="Fond topographique">⛰</button>
+        <button aria-label="Afficher/masquer les stations hydrométriques" class="em-btn" onclick="emToggleStations()" id="em-btn-sta" title="Stations hydro (on/off)">🌊</button>
+        <button aria-label="Afficher/masquer le radar précipitations" class="em-btn" onclick="toggleRadar()" id="em-btn-radar" title="Radar pluie">🌧️</button>
+      </div>
+
+      <!-- Couches environnement -->
+      <div class="em-section">
+        <button aria-label="Afficher/masquer les points météo" class="em-btn" onclick="emToggleMeteo()" id="em-btn-meteo" title="Météo — pluie, vent, température">🌦️</button>
+        <button aria-label="Afficher/masquer la saturation des sols" class="em-btn" onclick="emToggleSol()" id="em-btn-sol" title="Saturation des sols">🌱</button>
+        <button aria-label="Afficher/masquer les piézomètres des nappes" class="em-btn" onclick="emToggleNappes()" id="em-btn-nappes" title="Nappes phréatiques (piézomètres)">💧</button>
+        <button aria-label="Afficher/masquer les marées aux ports" class="em-btn" onclick="emToggleMaree()" id="em-btn-maree" title="Marées — pleine/basse mer aux ports">⚓</button>
+      </div>
+
+      <!-- Établissements sensibles -->
+      <div class="em-section">
+        <button aria-label="Afficher/masquer les établissements scolaires" class="em-btn" onclick="emToggleSensitive('school')" id="em-btn-school" title="Établissements scolaires">🏫</button>
+        <button aria-label="Afficher/masquer les hôpitaux et cliniques" class="em-btn" onclick="emToggleSensitive('health')" id="em-btn-health" title="Hôpitaux / santé">🏥</button>
+        <button aria-label="Afficher/masquer les EHPAD" class="em-btn" onclick="emToggleSensitive('ehpad')"  id="em-btn-ehpad"  title="EHPAD">🧓</button>
+      </div>
+    </div>
+
+    <!-- Panneau légende / info -->
+    <div class="em-info">
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)">
+        <div class="em-info-title">Établissements sensibles</div>
+        <button class="em-layer-toggle" id="em-info-school" aria-label="Afficher/masquer établissements scolaires" onclick="emToggleSensitive('school')" title="Afficher / masquer les établissements scolaires">
+          <span class="em-legend-dot" style="background:#2563eb"></span> Scolaires <span class="em-layer-count" id="em-count-school">684</span>
+        </button>
+        <button class="em-layer-toggle" id="em-info-health" aria-label="Afficher/masquer établissements de santé" onclick="emToggleSensitive('health')" title="Afficher / masquer les hôpitaux et établissements de santé">
+          <span class="em-legend-dot" style="background:#dc2626"></span> Santé / hôpitaux <span class="em-layer-count" id="em-count-health">67</span>
+        </button>
+        <button class="em-layer-toggle" id="em-info-ehpad" aria-label="Afficher/masquer EHPAD" onclick="emToggleSensitive('ehpad')" title="Afficher / masquer les EHPAD">
+          <span class="em-legend-dot" style="background:#7c3aed"></span> EHPAD <span class="em-layer-count" id="em-count-ehpad">117</span>
+        </button>
+      </div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)">
+        <div class="em-info-title">Filtres</div>
+        <input type="text" id="em-filter-text" placeholder="Commune ou nom…" oninput="emApplyFilters()"
+          style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:4px;padding:5px 7px;font-size:11px;margin-bottom:6px;outline:none">
+        <select id="em-filter-school-kind" onchange="emApplyFilters()"
+          style="width:100%;background:rgba(30,40,30,.9);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:4px;padding:5px 7px;font-size:11px">
+          <option value="all">🏫 Toutes les écoles</option>
+          <option value="college-lycee">🏫 Collèges &amp; Lycées</option>
+          <option value="college">🏫 Collèges seulement</option>
+          <option value="lycee">🏫 Lycées seulement</option>
+          <option value="none">— Masquer les écoles</option>
+        </select>
+      </div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);font-size:10px;color:rgba(255,255,255,.4)" id="em-status">
+        Outil actif : Sélection
+      </div>
+    </div>
+
+    <!-- Barre flottante d'aide au dessin -->
+    <div class="em-draw-bar" id="em-draw-bar">
+      <span class="em-draw-info" id="em-draw-info">0 point</span>
+      <button aria-label="Valider le tracé" class="em-draw-ok" onclick="emFinishDraw()">✓ Terminer <span style="opacity:.7">(Entrée)</span></button>
+      <button aria-label="Annuler le tracé" class="em-draw-cancel" onclick="emCancelDraw()">✕ Annuler <span style="opacity:.7">(Échap)</span></button>
+    </div>
+
+    <!-- Barre bas : export/import -->
+    <div class="em-bottom">
+      <button aria-label="Imprimer / exporter la carte" class="em-action-btn" onclick="emPrint()" title="Imprimer la carte ou enregistrer en PDF">🖨 Imprimer</button>
+      <button aria-label="Exporter les annotations en GeoJSON" class="em-action-btn" onclick="emExportGeoJSON()" title="Exporter les annotations en GeoJSON">📤 GeoJSON</button>
+      <label class="em-action-btn" style="cursor:pointer" title="Importer des annotations GeoJSON">
+        📥 Importer
+        <input type="file" accept=".geojson,.json" onchange="emImportGeoJSON(event)" style="display:none">
+      </label>
+      <button aria-label="Sauvegarder les annotations localement" class="em-action-btn" onclick="emSaveLocal()"     title="Sauvegarder dans le navigateur">💾 Sauvegarder</button>
+      <button aria-label="Ajouter un horodatage sur la carte" class="em-action-btn" onclick="emAddTimestamp()"  title="Horodater la carte">🕐 Horodatage</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB 10 : REVUE DE PRESSE ═══ -->
+<div class="panel" id="panel10" role="tabpanel" aria-labelledby="tab10" tabindex="-1">
+<div class="t10">
+
+  <!-- Barre d'actions -->
+  <div class="rp-bar">
+    <h3>📰 Revue de presse — Inondations Côtes-d'Armor</h3>
+    <button aria-label="Rechercher des articles de presse" class="btn-hdr" style="background:var(--accent)" onclick="rpFetchAll()">↺ Actualiser RSS</button>
+    <button aria-label="Exporter la revue de presse" class="btn-hdr" style="background:#2980b9" onclick="rpExport()">📤 Exporter JSON</button>
+    <label class="btn-hdr" style="background:#6c3483;cursor:pointer">
+      📥 Importer JSON
+      <input type="file" accept=".json" onchange="rpImport(event)" style="display:none">
+    </label>
+  </div>
+
+  <!-- Statut fetch -->
+  <div class="rp-fetch-box" id="rp-fetch-box">
+    Cliquez sur <strong>Actualiser RSS</strong> pour récupérer les derniers articles de Google News.
+    Le formulaire ci-dessous permet d'ajouter des articles manuellement.
+  </div>
+
+  <!-- Statistiques -->
+  <div class="rp-stats" id="rp-stats" style="display:none">
+    <div class="rp-stat"><div class="rp-stat-v" id="rps-total">0</div><div class="rp-stat-l">Articles</div></div>
+    <div class="rp-stat"><div class="rp-stat-v" id="rps-crise" style="color:#FF0000">0</div><div class="rp-stat-l">Crise</div></div>
+    <div class="rp-stat"><div class="rp-stat-v" id="rps-alerte" style="color:#FF7F00">0</div><div class="rp-stat-l">Alerte</div></div>
+    <div class="rp-stat"><div class="rp-stat-v" id="rps-7j">0</div><div class="rp-stat-l">7 derniers jours</div></div>
+    <div class="rp-stat"><div class="rp-stat-v" id="rps-geo" style="color:#2e7d32">0</div><div class="rp-stat-l">📍 Localisés</div></div>
+  </div>
+
+  <!-- Carte SIG -->
+  <div class="rp-sig-wrap">
+    <div class="rp-sig-hdr" onclick="rpToggleSIG()">
+      <span style="font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px">
+        🗺 Carte SIG — Événements inondation
+        <span id="rp-sig-count" style="font-size:11px;font-weight:400;color:var(--text3)"></span>
+      </span>
+      <span id="rp-sig-toggle" style="font-size:12px;color:var(--text3)">▼</span>
+    </div>
+    <div id="rp-sig-body" style="display:none">
+      <div class="rp-sig-map-wrap">
+        <div id="rp-sig-map"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Candidats RSS à valider -->
+  <div class="rp-candidates" id="rp-candidates">
+    <div class="rp-cand-hdr">
+      <div>
+        <div class="rp-cand-hdr-title">⏳ Articles trouvés — à valider</div>
+        <div class="rp-cand-sub" id="rp-cand-sub">Sélectionnez les articles pertinents puis validez</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button class="rp-btn-secondary btn-export" style="font-size:11px;padding:4px 10px" aria-label="Sélectionner tous les articles" onclick="rpSelectAllCandidates(true)">Tout cocher</button>
+        <button class="rp-btn-secondary btn-export" style="font-size:11px;padding:4px 10px;background:transparent;color:var(--text2);border:1px solid var(--border)" aria-label="Désélectionner tous les articles" onclick="rpSelectAllCandidates(false)">Tout décocher</button>
+        <button aria-label="Valider les articles sélectionnés" class="rp-btn-validate" onclick="rpValidateCandidates()">✓ Valider la sélection</button>
+      </div>
+    </div>
+    <div id="rp-cand-list"></div>
+  </div>
+
+  <!-- Formulaire ajout manuel -->
+  <div class="rp-form-wrap">
+    <div class="rp-form-hdr" onclick="rpToggleForm()">
+      <span class="rp-form-hdr-title">✏️ Ajouter un article manuellement</span>
+      <span id="rp-form-toggle" style="font-size:12px;color:var(--text3)">▼</span>
+    </div>
+    <div class="rp-form-body" id="rp-form-body">
+      <div class="rp-form-grid">
+        <div class="rp-form-field full">
+          <span class="rp-flabel">URL de l'article</span>
+          <input class="rp-input" id="rpf-url" type="url" placeholder="https://…">
+        </div>
+        <div class="rp-form-field full">
+          <span class="rp-flabel">Titre</span>
+          <input class="rp-input" id="rpf-title" type="text" placeholder="Titre de l'article">
+        </div>
+        <div class="rp-form-field">
+          <span class="rp-flabel">Source</span>
+          <select class="rp-input" id="rpf-source">
+            <option value="Ouest-France">Ouest-France</option>
+            <option value="Le Télégramme">Le Télégramme</option>
+            <option value="Actu.fr">Actu.fr / Le Penthièvre</option>
+            <option value="France Bleu">France Bleu Armorique</option>
+            <option value="Préfecture 22">Préfecture 22</option>
+            <option value="Vigicrues">Vigicrues / DREAL</option>
+            <option value="Météo-France">Météo-France</option>
+            <option value="Autre">Autre</option>
+          </select>
+        </div>
+        <div class="rp-form-field">
+          <span class="rp-flabel">Date de publication</span>
+          <input class="rp-input" id="rpf-date" type="date">
+        </div>
+        <div class="rp-form-field full">
+          <span class="rp-flabel">Commune touchée</span>
+          <div style="display:flex;gap:6px">
+            <input class="rp-input" id="rpf-commune" type="text" placeholder="Ex: Guingamp, Lannion, Saint-Brieuc…" style="flex:1">
+            <button class="btn-export" onclick="rpGeocodeForm()" style="white-space:nowrap;padding:6px 10px;font-size:11px;flex-shrink:0" title="Géocoder la commune via Nominatim">📍 Localiser</button>
+          </div>
+        </div>
+        <div class="rp-form-field">
+          <span class="rp-flabel">Latitude</span>
+          <input class="rp-input" id="rpf-lat" type="number" step="0.00001" placeholder="48.56…">
+        </div>
+        <div class="rp-form-field">
+          <span class="rp-flabel">Longitude</span>
+          <input class="rp-input" id="rpf-lon" type="number" step="0.00001" placeholder="-3.15…">
+        </div>
+        <div class="rp-form-field full">
+          <span class="rp-flabel">Extrait / résumé</span>
+          <textarea class="rp-textarea" id="rpf-extract" placeholder="Premier paragraphe ou résumé de l'article…"></textarea>
+        </div>
+        <div class="rp-form-field full">
+          <span class="rp-flabel">Bassins versants concernés</span>
+          <div class="rp-bassin-checkboxes" id="rpf-bassins-wrap"></div>
+        </div>
+        <div class="rp-form-field">
+          <span class="rp-flabel">Niveau de gravité</span>
+          <select class="rp-input" id="rpf-niveau">
+            <option value="info">Information</option>
+            <option value="vigilance">Vigilance</option>
+            <option value="alerte">Alerte</option>
+            <option value="crise">Crise</option>
+          </select>
+        </div>
+      </div>
+      <div class="rp-form-actions">
+        <button aria-label="Ajouter l'article" class="btn-export" onclick="rpSubmitForm()">+ Ajouter</button>
+        <button aria-label="Afficher/masquer le formulaire d'ajout" class="btn-clr" onclick="rpToggleForm()">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="rp-filters">
+    <input type="text" id="rp-search" placeholder="Titre, source, extrait…" oninput="rpRender()">
+    <select id="rp-fperiod" onchange="rpRender()">
+      <option value="">Toute période</option>
+      <option value="1">Aujourd'hui</option>
+      <option value="7">7 derniers jours</option>
+      <option value="30">30 derniers jours</option>
+    </select>
+    <select id="rp-fsource" onchange="rpRender()">
+      <option value="">Toutes sources</option>
+      <option>Ouest-France</option>
+      <option>Le Télégramme</option>
+      <option>Actu.fr</option>
+      <option>France Bleu</option>
+      <option>Préfecture 22</option>
+      <option>Vigicrues</option>
+      <option>Météo-France</option>
+      <option>Autre</option>
+    </select>
+    <select id="rp-fbassin" onchange="rpRender()">
+      <option value="">Tous bassins</option>
+      <option>Rance</option>
+      <option>Frémur</option>
+      <option>Arguenon</option>
+      <option>Quiloury</option>
+      <option>Rosette</option>
+      <option>Gouessant</option>
+      <option>Evron</option>
+      <option>Urne</option>
+      <option>Gouët</option>
+      <option>Ic</option>
+      <option>Trieux</option>
+      <option>Leff</option>
+      <option>Jaudy / Guindy</option>
+      <option>Léguer</option>
+      <option>Hyère</option>
+      <option>Blavet</option>
+      <option>Sulon</option>
+      <option>Oust</option>
+      <option>Lié</option>
+    </select>
+    <select id="rp-fniveau" onchange="rpRender()">
+      <option value="">Tous niveaux</option>
+      <option value="info">Information</option>
+      <option value="vigilance">Vigilance</option>
+      <option value="alerte">Alerte</option>
+      <option value="crise">Crise</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer;white-space:nowrap">
+      <input type="checkbox" id="rp-fgeo" onchange="rpRender()" style="accent-color:var(--accent);width:14px;height:14px"> 📍 Localisés
+    </label>
+    <span class="rp-count" id="rp-count"></span>
+  </div>
+
+  <!-- Liste articles -->
+  <div id="rp-list" class="rp-articles">
+    <div class="rp-empty">Aucun article enregistré. Actualisez via RSS ou ajoutez manuellement.</div>
+  </div>
+
+  <p class="note" style="margin-top:10px">Sources RSS : Google News (requêtes « inondation côtes-d'armor », « crue côtes-d'armor ») via proxy CORS. Les articles récupérés automatiquement sont à valider avant enregistrement. Les données sont stockées dans le navigateur (localStorage) ; utilisez Exporter JSON pour sauvegarder entre sessions.</p>
+
+</div>
+</div>
+
+<!-- ═══ TAB 11 : NAPPES PHRÉATIQUES ═══ -->
+<div class="panel" id="panel11" role="tabpanel" aria-labelledby="tab11" tabindex="-1">
+<div class="t7">
+  <div class="sol-intro">
+    <strong>Nappes phréatiques — Côtes-d'Armor (22)</strong> — Chaque piézomètre est comparé à <strong>sa propre chronique historique pour le même mois</strong> (percentile, approche BRGM) : une nappe au 90ᵉ centile est exceptionnellement haute pour la saison, quelle que soit sa profondeur absolue. Nappe très haute = bassin sans capacité d'absorption, crues amplifiées et risque de remontée de nappe. Source : Hub'Eau API v1 niveaux nappes.
+  </div>
+  <div class="sol-risk-panel">
+    <div class="sol-risk-title">💧 Synthèse départementale — nappes</div>
+    <div id="nappes-synth" style="font-size:12px;color:var(--text3);font-style:italic;padding:8px 0">Chargement…</div>
+  </div>
+  <div class="sol-grid" id="nappes-grid">
+    <div style="text-align:center;padding:2rem;color:var(--text3);font-style:italic">Chargement des données Hub'Eau ADES…</div>
+  </div>
+  <div class="sol-source" style="margin-top:10px">Source : Hub'Eau — API Niveaux des nappes d'eau souterraine · BRGM/OFB · Réseau piézométrique ADES</div>
+</div>
+</div>
+
+<!-- ═══ TAB 12 : PRÉVENTION ═══ -->
+<div class="panel" id="panel12" role="tabpanel" aria-labelledby="tab12" tabindex="-1">
+<div class="t12p">
+  <div class="prev-intro">
+    <strong>Se préparer et réagir face au risque inondation</strong> — sélection de ressources officielles (État, opérateurs publics, préfecture des Côtes-d'Armor). Cet onglet ne remplace pas les consignes officielles diffusées en cas d'alerte : suivre en priorité les messages de la préfecture et de votre mairie.
+  </div>
+
+  <div class="prev-group">
+    <div class="prev-group-title">🚨 Numéros d'urgence</div>
+    <div class="prev-numeros">
+      <div class="prev-num"><div class="prev-num-v">18</div><div class="prev-num-l">Pompiers</div></div>
+      <div class="prev-num"><div class="prev-num-v">112</div><div class="prev-num-l">Urgence UE</div></div>
+      <div class="prev-num"><div class="prev-num-v">15</div><div class="prev-num-l">SAMU</div></div>
+      <div class="prev-num"><div class="prev-num-v">17</div><div class="prev-num-l">Police / Gendarmerie</div></div>
+    </div>
+  </div>
+
+  <div class="prev-group">
+    <div class="prev-group-title">📡 Vigilance et alertes officielles</div>
+    <div class="prev-grid">
+      <a class="prev-card" href="https://www.vigicrues.gouv.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">🌊 Vigicrues</div>
+        <div class="prev-card-desc">Vigilance crues officielle par tronçon de cours d'eau — source des couleurs affichées dans cette application.</div>
+        <div class="prev-card-link">↗ vigicrues.gouv.fr</div>
+      </a>
+      <a class="prev-card" href="https://vigilance.meteofrance.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">🌦️ Vigilance Météo-France</div>
+        <div class="prev-card-desc">Carte de vigilance météorologique départementale (pluie-inondation, vent, orages...).</div>
+        <div class="prev-card-link">↗ vigilance.meteofrance.fr</div>
+      </a>
+      <a class="prev-card" href="https://www.cotes-darmor.gouv.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">🏛️ Préfecture des Côtes-d'Armor</div>
+        <div class="prev-card-desc">Arrêtés, consignes de sécurité et communiqués en période de crise sur le département.</div>
+        <div class="prev-card-link">↗ cotes-darmor.gouv.fr</div>
+      </a>
+      <a class="prev-card" href="https://apic.meteofrance.fr/" target="_blank" rel="noopener">
+        <div class="prev-card-title">⛈️ APIC — Météo-France</div>
+        <div class="prev-card-desc">Avertissement Pluies Intenses à l'échelle Communale — alerte gratuite par SMS/e-mail dès qu'un épisode intense est détecté sur votre commune.</div>
+        <div class="prev-card-link">↗ apic.meteofrance.fr</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="prev-group">
+    <div class="prev-group-title">📘 Connaître et anticiper le risque</div>
+    <div class="prev-grid">
+      <a class="prev-card" href="https://www.georisques.gouv.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">📍 Géorisques</div>
+        <div class="prev-card-desc">Portail officiel des risques naturels et technologiques — consulter le risque inondation à une adresse précise.</div>
+        <div class="prev-card-link">↗ georisques.gouv.fr</div>
+      </a>
+      <a class="prev-card" href="https://www.service-public.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">📄 Service-public.fr</div>
+        <div class="prev-card-desc">Démarches et fiches pratiques officielles : que faire avant, pendant et après une inondation.</div>
+        <div class="prev-card-link">↗ service-public.fr</div>
+      </a>
+      <a class="prev-card" href="https://hydro.eaufrance.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">💧 HydroPortail</div>
+        <div class="prev-card-desc">Banque nationale des données hydrométriques — historique complet des stations, au-delà des 12h affichées ici.</div>
+        <div class="prev-card-link">↗ hydro.eaufrance.fr</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="prev-group">
+    <div class="prev-group-title">🎒 Bons gestes et plan familial</div>
+    <div class="prev-grid">
+      <a class="prev-card" href="https://www.ecologie.gouv.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">🌱 Ministère de la Transition écologique</div>
+        <div class="prev-card-desc">Dossiers de prévention des risques naturels et politique nationale de gestion du risque inondation.</div>
+        <div class="prev-card-link">↗ ecologie.gouv.fr</div>
+      </a>
+      <a class="prev-card" href="https://www.gouvernement.fr" target="_blank" rel="noopener">
+        <div class="prev-card-title">🇫🇷 Info catastrophes naturelles</div>
+        <div class="prev-card-desc">Information gouvernementale en cas de crise majeure et consignes de sécurité civile.</div>
+        <div class="prev-card-link">↗ gouvernement.fr</div>
+      </a>
+    </div>
+  </div>
+
+  <p class="note">Cette liste est une sélection manuelle de portails officiels stables, sans flux automatisé. Suggestions d'ajout bienvenues.</p>
+
+  <div class="prev-group">
+    <div class="prev-group-title">🔓 Code source & licence</div>
+    <div class="prev-grid">
+      <a class="prev-card" href="https://github.com/p-philippe/site-vigilance-crues" target="_blank" rel="noopener">
+        <div class="prev-card-title">💻 Dépôt GitHub</div>
+        <div class="prev-card-desc">Code source complet, librement téléchargeable et réutilisable — application 100% front-end, sans backend.</div>
+        <div class="prev-card-link">↗ github.com/p-philippe/site-vigilance-crues</div>
+      </a>
+      <a class="prev-card" href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">
+        <div class="prev-card-title">📜 Licence GNU GPL v3</div>
+        <div class="prev-card-desc">Logiciel libre : utilisation, étude, modification et redistribution libres, à condition que toute version dérivée reste elle aussi sous licence GPL.</div>
+        <div class="prev-card-link">↗ gnu.org/licenses/gpl-3.0.html</div>
+      </a>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ TAB 13 : WEBCAMS ═══ -->
+<div class="panel" id="panel13" role="tabpanel" aria-labelledby="tab13" tabindex="-1">
+<div class="t12p">
+  <div class="prev-intro">
+    <strong>Webcams du littoral des Côtes-d'Armor</strong> — vues en direct sur les ports et plages du département, de Perros-Guirec à Lancieux, gérées par les offices de tourisme et mairies. Utile pour visualiser l'état de la mer et les conditions locales en complément des données hydrométriques.
+    <br><a class="prev-card-link" href="https://www.cotesdarmor.com/infos-pratiques/webcams-et-meteo/" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px">↗ Portail officiel — Comité départemental du tourisme des Côtes-d'Armor</a>
+  </div>
+
+  <div class="prev-group">
+    <div class="prev-grid">
+      <a class="prev-card" href="https://www.perros-guirec.com/accueil/haut-de-page/webcams/" target="_blank" rel="noopener">
+        <div class="prev-card-title">📷 Perros-Guirec</div>
+        <div class="prev-card-desc">Vues en direct sur la ville et le littoral — office de tourisme de Perros-Guirec.</div>
+        <div class="prev-card-link">↗ perros-guirec.com</div>
+      </a>
+      <a class="prev-card" href="https://trevou-treguignec.bzh/trestel-en-webcam/" target="_blank" rel="noopener">
+        <div class="prev-card-title">📷 Plage de Trestel</div>
+        <div class="prev-card-desc">Trévou-Tréguignec — image mise à jour chaque minute, mairie de Trévou-Tréguignec.</div>
+        <div class="prev-card-link">↗ trevou-treguignec.bzh</div>
+      </a>
+      <a class="prev-card" href="https://www.vision-environnement.com/livecams/webcam.php?webcam=loguivy" target="_blank" rel="noopener">
+        <div class="prev-card-title">📷 Port de Loguivy-de-la-Mer</div>
+        <div class="prev-card-desc">Ploubazlanec — webcam Vision-Environnement, en ligne depuis 2011.</div>
+        <div class="prev-card-link">↗ vision-environnement.com</div>
+      </a>
+      <a class="prev-card" href="https://www.saintquayportrieux.com/webcam/" target="_blank" rel="noopener">
+        <div class="prev-card-title">📷 Saint-Quay-Portrieux</div>
+        <div class="prev-card-desc">Plage du Casino et Port d'Armor — office de tourisme.</div>
+        <div class="prev-card-link">↗ saintquayportrieux.com</div>
+      </a>
+      <a class="prev-card" href="https://www.binicetablessurmer.com/webcam/" target="_blank" rel="noopener">
+        <div class="prev-card-title">📷 Port de Binic</div>
+        <div class="prev-card-desc">Binic-Étables-sur-Mer — vue sur le port.</div>
+        <div class="prev-card-link">↗ binicetablessurmer.com</div>
+      </a>
+      <a class="prev-card" href="https://www.baiedesaintbrieuc.com/webcams/" target="_blank" rel="noopener">
+        <div class="prev-card-title">📷 Port du Légué</div>
+        <div class="prev-card-desc">Saint-Brieuc — baie de Saint-Brieuc, embouchure du Gouët.</div>
+        <div class="prev-card-link">↗ baiedesaintbrieuc.com</div>
+      </a>
+      <a class="prev-card" href="https://www.pleneufvalandretourisme.fr/webcams-pleneuf-val-andre/" target="_blank" rel="noopener">
+        <div class="prev-card-title">📷 Pléneuf-Val-André</div>
+        <div class="prev-card-desc">Vue sur la plage et le front de mer — office de tourisme.</div>
+        <div class="prev-card-link">↗ pleneufvalandretourisme.fr</div>
+      </a>
+      <a class="prev-card" href="https://www.capderquy-valandre.com/webcams/live-sur-le-port-d-erquy" target="_blank" rel="noopener">
+        <div class="prev-card-title">📷 Port d'Erquy</div>
+        <div class="prev-card-desc">Vue en direct sur le port de pêche — office de tourisme Cap d'Erquy - Val André.</div>
+        <div class="prev-card-link">↗ capderquy-valandre.com</div>
+      </a>
+      <a class="prev-card" href="https://www.mairie-lancieux.fr/webcam-lancieux.html" target="_blank" rel="noopener">
+        <div class="prev-card-title">📷 Lancieux</div>
+        <div class="prev-card-desc">Vue sur la plage — mairie de Lancieux.</div>
+        <div class="prev-card-link">↗ mairie-lancieux.fr</div>
+      </a>
+    </div>
+  </div>
+
+  <p class="note">Liens vers des sites tiers (offices de tourisme, mairies) — disponibilité et horaires de diffusion non garantis par cette application. Source : portail webcams du Comité départemental du tourisme des Côtes-d'Armor.</p>
+</div>
+</div>
+
+
+<!-- MODAL STATION -->
+<div class="mbg" id="mbg" onclick="if(event.target===this)closeMod()">
+<div class="mdl">
+  <div class="mhdr">
+    <div><div class="mt" id="m-title">—</div><div class="ms" id="m-sub">—</div><div id="m-schapi-badge" style="margin-top:3px;display:none"></div></div>
+    <button class="xbtn" onclick="closeMod()" aria-label="Fermer">×</button>
+  </div>
+  <div id="m-vigi" style="margin-bottom:.6rem"></div>
+  <div class="mchips" id="m-chips"></div>
+  <div class="msect">Seuils des crues historiques de référence</div>
+  <div class="slg" id="m-seuils"></div>
+  <div id="m-crues" style="display:none"></div>
+  <div class="msect" id="m-prev-sect">Prévisions Vigicrues</div>
+  <div id="m-prev"></div>
+  <div class="msect">Tendance 6 heures</div>
+  <div class="trend-box" id="m-trend-box">
+    <div>
+      <div class="trend-val" id="m-trend-val">—</div>
+      <div class="trend-label">Hauteur actuelle</div>
+    </div>
+    <div>
+      <div class="trend-speed" id="m-trend-speed">—</div>
+      <div class="trend-label">Vitesse (cm/h)</div>
+    </div>
+    <div>
+      <div class="trend-speed" id="m-trend-delta">—</div>
+      <div class="trend-label">Variation sur 6h</div>
+    </div>
+    <div style="margin-left:auto">
+      <div class="trend-speed" id="m-trend-dir" style="font-size:20px">—</div>
+      <div class="trend-label">Tendance</div>
+    </div>
+  </div>
+  <div id="m-chart-loading" class="chart-loading">Chargement du graphique…</div>
+  <div class="chart-wrap" id="m-chart-wrap" style="display:none">
+    <canvas id="m-chart" role="img" aria-label="Graphique de tendance 6h"></canvas>
+  </div>
+  <!-- Graphique débit -->
+  <div class="msect" id="m-debit-sect" style="display:none">Débit Q (m³/s) — 6 heures</div>
+  <div id="m-q-chart-loading" class="chart-loading" style="display:none">Chargement du débit…</div>
+  <div class="chart-wrap" id="m-q-chart-wrap" style="display:none;height:130px">
+    <canvas id="m-q-chart" role="img" aria-label="Graphique de débit 6h"></canvas>
+  </div>
+  <!-- Prévisions graphique -->
+  <div class="msect" id="m-prev-graph-sect" style="display:none">Prévisions Vigicrues — graphique</div>
+  <div class="chart-wrap" id="m-prev-chart-wrap" style="display:none;height:160px">
+    <canvas id="m-prev-chart" role="img" aria-label="Graphique de prévisions"></canvas>
+  </div>
+  <div class="msect">Liens officiels</div>
+  <div class="mlinks" id="m-links"></div>
+  <div class="mnote">Les trois crues historiques de référence de la station sont indiquées en dégradé bleu clair → violet (basse → haute). Les couleurs vert/jaune/orange/rouge restent celles de la vigilance Vigicrues.</div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="src/init.js?v=13"></script>
+</body>
+</html>
