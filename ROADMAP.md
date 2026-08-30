@@ -2,7 +2,7 @@
 
 > Outil de surveillance hydrométrique temps réel — Côtes-d'Armor (22)
 > Production : https://vigilance-des-crues.vercel.app
-> Dernière mise à jour : 2026-08-30 — 9.1 livré
+> Dernière mise à jour : 2026-08-30 — 9.1, 9.2, 9.3, 9.11 livrés
 
 ---
 
@@ -14,7 +14,7 @@ Le backlog fonctionnel est **entièrement livré**. Les deux seuls items fonctio
 
 **Le projet change de phase.** L'audit du 2026-08-30 montre que la croissance par ajout a produit un décalage net entre le poids du code et sa valeur opérationnelle : 54 % du HTML et 10 % du JS servent trois onglets qui n'affichent aucune donnée hydrométrique, et quatre onglets présentent des données déjà visibles sur la carte. La **phase 9 est une phase de retrait** : ramener l'application à ce qu'elle fait vraiment, sans rien perdre de sa capacité de surveillance.
 
-**9.1 livré le 2026-08-30 — les sources sont versionnées.** Le dépôt git couvre désormais `src/`, `build.py`, `tests/`, `index.html` et ce document. Le dossier `vercel_deploy/` a disparu : son contenu est remonté à la racine, qui est aussi la racine du dépôt. Les chemins servis par Vercel sont inchangés, le Root Directory `public_html` n'a pas été touché. Le reste de la phase 9 peut être engagé.
+**9.1, 9.2, 9.3 et 9.11 livrés le 2026-08-30.** Les sources sont versionnées et le code mort a disparu (−1 610 lignes, bundle 554 → 529 Ko, 2 CDN inutilisés en moins). Le dépôt git couvre désormais `src/`, `build.py`, `tests/`, `index.html` et ce document. Le dossier `vercel_deploy/` a disparu : son contenu est remonté à la racine, qui est aussi la racine du dépôt. Les chemins servis par Vercel sont inchangés, le Root Directory `public_html` n'a pas été touché. Le reste de la phase 9 peut être engagé.
 
 ---
 
@@ -85,14 +85,14 @@ Un push sur `main` déclenche également un déploiement Vercel automatique (ite
 
 ### Constat chiffré
 
-| Mesure | Aujourd'hui |
-|---|---|
-| Onglets | 10 |
-| Corps HTML | 780 lignes |
-| `src/*.js` | 5 134 lignes (19 modules) |
-| Bundle production | 554 Ko (dont 227 Ko de JSON établissements sensibles) |
-| Scripts CDN tiers | 4 — dont 2 jamais utilisés |
-| Code strictement mort | ~540 lignes, livrées en production |
+| Mesure | Au constat (2026-08-30) | Après 9.1–9.3, 9.11 | Cible phase 9 |
+|---|---|---|---|
+| Onglets | 10 | 10 | 4 (+ 1 modale) |
+| Corps HTML | 780 lignes | 780 | ~450 |
+| `src/*.js` | 5 134 l. (19 modules) | **4 592 l. (18)** | ~3 400 |
+| Bundle production | 554 Ko | **529 Ko** | ~505 Ko, puis ~275 avec 8.5 |
+| Scripts CDN tiers | 4 — dont 2 morts | **2** | 2 |
+| Code strictement mort | ~540 lignes | **0** | 0 |
 
 **Trois onglets sans données hydrométriques** — Presse (200 lignes HTML + 513 JS), Prévention (100 lignes, 11 liens), Webcams (118 lignes, 10 liens) — pèsent **54 % du corps HTML et 10 % du JS**.
 
@@ -121,7 +121,7 @@ Un push sur `main` déclenche également un déploiement Vercel automatique (ite
 | Onglets | 10 | 4 (+ 1 modale) |
 | Corps HTML | 780 lignes | ~450 |
 | `src/*.js` | 5 134 lignes | ~3 900 |
-| Bundle | 554 Ko | ~505 Ko — puis **~275 Ko** avec 8.5 |
+| Bundle | 554 Ko | ~505 Ko — puis **~275 Ko** avec 8.5 (529 Ko atteints) |
 | Scripts CDN tiers | 4 | 2 (−215 Ko téléchargés à chaque visite) |
 
 À 4 onglets la barre tient sans défilement sur un écran de téléphone : `.tabs-bar-wrap`, le dégradé `at-end` et l'un des deux gestionnaires clavier disparaissent **sans avoir à être corrigés**.
@@ -132,14 +132,8 @@ Un push sur `main` déclenche également un déploiement Vercel automatique (ite
 
 > Un seul tableau, items **ouverts uniquement**. Tout ce qui est livré part dans [Historique des versions](#historique-des-versions).
 
-### 🔴 Priorité haute
-
-> **9.1 est livré** (2026-08-30) — plus rien ne bloque les suppressions.
-
-| # | Item | Effort | Dépend de | Critère de succès |
-|---|---|---|---|---|
-| **9.2** | **Supprimer le code mort** — `synth.js` (351 l., orphelin), `generatePdfReport` + `exportSituationGeoJSON` (151 l., `pdf.js:9-159`, aucun appelant), `makePopup`/`rainBarClass`/`renderTable`/`safeErrorMessage` (35 l.), 30+ imports inutilisés, 13 expositions `window` inutiles | ~1 h | ✅ 9.1 | 12/12 tests ; aucune régression visuelle sur les 10 onglets actuels |
-| **9.3** | **Retirer les 2 CDN morts** — `html2canvas` (~200 Ko) et `leaflet.heat` : aucune occurrence dans `src/`. Nettoyer CSP et `sw.js` en conséquence | ~20 min | 9.2 | Chargement sans erreur console ; CSP et cache PWA alignés |
+> **9.1, 9.2, 9.3 et 9.11 sont livrés** (2026-08-30) — plus aucun item en priorité haute.
+> Prochaine étape : 9.4, puis la fusion des onglets.
 
 ### 🟡 Priorité moyenne
 
@@ -157,8 +151,7 @@ Un push sur `main` déclenche également un déploiement Vercel automatique (ite
 | # | Item | Effort | Dépend de | Critère de succès |
 |---|---|---|---|---|
 | **9.9** | **Remplacer le bundler maison** — `build.py` contient ~100 lignes de regex (`strip_imports`/`strip_exports`) pour désassembler les modules ES, plus 2 tests dédiés à vérifier ce désassemblage. **Décision en attente** : esbuild (garde les modules ES, ajoute une dépendance Node) ou concaténation de scripts plats (zéro Node, perte de l'analyse statique) | ~2 h | ✅ 9.1 | `build.py` < 60 lignes ; tests 6 et 9 supprimés ou triviaux ; bundle identique fonctionnellement |
-| **9.10** | **`state.js` : 19 setters → un objet muté** — les setters n'existent que parce que les bindings ES sont en lecture seule ; `export const S = {}` les supprime tous et allège les imports de 8 modules | ~1 h | 9.9 | `state.js` < 30 lignes ; aucun `set*(` résiduel |
-| **9.11** | **Supprimer `vps/`** — 5 fichiers pour un VPS jamais déployé : `deploy.sh` référence `update_shom.py` qui n'existe plus, avec `VPS_IP="TON_IP_VPS"`. Vercel est l'hébergement exclusif depuis le 2026-06-30 | ~10 min | ✅ 9.1 | Dossier supprimé, aucune référence résiduelle |
+| **9.10** | **`state.js` : 18 setters → un objet muté** — les setters n'existent que parce que les bindings ES sont en lecture seule ; `export const S = {}` les supprime tous et allège les imports de 8 modules | ~1 h | 9.9 | `state.js` < 30 lignes ; aucun `set*(` résiduel |
 
 ### ⏳ Bloqués — en attente d'un épisode ≥ Jaune
 
@@ -169,9 +162,9 @@ Un push sur `main` déclenche également un déploiement Vercel automatique (ite
 
 ### Séquencement recommandé
 
-~~9.1~~ ✅ → **9.2 + 9.3 + 9.11** (suppressions prouvées, sans arbitrage) → **9.4** → **9.5 + 9.6** → **9.7 + 9.8** → **8.5** → **9.9 → 9.10**.
+~~9.1~~ ✅ → ~~9.2 + 9.3 + 9.11~~ ✅ → **9.4** → **9.5 + 9.6** → **9.7 + 9.8** → **8.5** → **9.9 → 9.10**.
 
-> ✅ **9.1 est terminé** (2026-08-30) : les sources sont sous git, toute suppression est désormais réversible. Les suppressions 9.2, 9.4 et 9.5 peuvent être engagées.
+> ✅ Les sources sont sous git depuis 9.1 : toute suppression est réversible. Le code mort est éliminé (9.2), il ne reste que les retraits fonctionnels — 9.4 (revue de presse) puis 9.5 (fusion des onglets), qui relèvent d'une décision produit et non d'un constat technique.
 
 ---
 
@@ -318,4 +311,5 @@ Après chaque épisode ≥ Jaune, **dans les 72 h suivant le pic** :
 | 2026-08-29 | — | **Sécurité** (8.1, 8.2) : jeton GitHub exposé révoqué, `origin` passé en SSH ; déploiement Vercel automatique depuis `main` | — |
 | 2026-08-30 | v6.27 | **Fiabilisation API** (8.3 partiel) — `fetchJson()` sur Hub'Eau/Open-Meteo/SHOM : timeout 10 s, contrôle HTTP, une relance sur 429/5xx. Proxys CORS publics retirés | 554 Ko |
 | 2026-08-30 | v7.0 | **9.1 — Sources versionnées, `vercel_deploy/` supprimé** : le dépôt git ne suivait que le fichier généré ; `src/` (5 134 l.), `build.py`, `tests/`, `index.html` de dev et ROADMAP.md n'existaient que sur un disque. Plutôt que de remonter le `.git` d'un niveau — ce qui aurait renommé tous les chemins suivis et imposé de changer le Root Directory Vercel (impossible via la CLI) — c'est le **contenu** de `vercel_deploy/` qui est remonté à la racine, `.git` compris. Les chemins suivis restent identiques (`public_html/index.html`), le Root Directory `public_html` n'est pas touché, et le commit est une pure addition sans un seul renommage. Chemins mis à jour dans `build.py`, `tests/check.py`, `serve.py`, `.claude/launch.json`, `README_DEPLOIEMENT.md`. `public_html/index.html` régénéré **bit pour bit identique** à la version déployée. 12/12 tests. **Incident révélateur au moment du push** : deux commits distants (`9228cd1`, `8085eda`, poussés le matin même) modifiaient `public_html/index.html` sans que les sources correspondantes existent dans le dépôt — reconstruire depuis `src/` les aurait purement et simplement écrasés. Changements rapatriés à la main dans `index.html` (CSS nappes + barre d'outils carte), `src/meteo.js` (`renderNappes` réécrite, `nappeFloodHint`, `nappeCardClass`), `src/globals.js`, `src/em-map.js` et `src/synth.js` (fond CARTO → OSM). Vérifié par reproduction **bit pour bit** de la prod distante depuis les sources. Déploiement automatique confirmé Ready en 7 s, production HTTP 200. | 556 Ko |
+| 2026-08-30 | v7.1 | **9.2 + 9.3 + 9.11 — 1 610 lignes supprimées** : `synth.js` entier (module orphelin, `renderSynthese` jamais appelée) ; `generatePdfReport` et `exportSituationGeoJSON` (exposées sur `window`, aucun bouton ne les appelait) ; `makePopup`, `rainBarClass`, `renderTable`, `safeErrorMessage`, `refBadge`, `emRemoveLayer` ; 12 expositions `window` sans appelant sur 67 ; 42 imports inutilisés nettoyés jusqu'à point fixe ; CDN `html2canvas` (~200 Ko) et `leaflet.heat`, absents des sources, retirés d'`index.html` et du préchargement `sw.js` ; dossier `vps/` (5 fichiers, VPS jamais déployé). **Découverte** : `toggleFav`/`toggleFavorite` étaient injoignables — la fonctionnalité favoris était déjà morte, `FAVORITES` et `DEFAULT_FAVORITES` retirées avec elles. Conservées `toggleBV` et `rpDeleteArticle` (appelées depuis des `onclick` générés) et `loadMaree` (`window.loadMaree?.()`) — le piège étant qu'un `onclick` généré s'exécute en portée globale même quand la chaîne vit dans le module qui définit la fonction. 18/18 modules de syntaxe ES valide, 12/12 tests, zéro référence résiduelle. 554 → 529 Ko | 529 Ko |
 | 2026-08-30 | — | **Audit complet code + contenu** → ouverture de la [phase 9](#phase-9--simplification-2026-08-30). Constats : sources non versionnées (9.1), ~540 lignes mortes en production, 2 CDN inutilisés, 54 % du HTML sans donnée hydrométrique, 4 jeux de données affichés deux fois. ROADMAP consolidée : 445 → 271 lignes, 8 sections de backlog fusionnées en une, 28 items livrés déplacés dans cet historique | 554 Ko |
