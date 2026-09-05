@@ -16,7 +16,8 @@ build.
 | Fonctions serverless | `public_html/api/*.js` |
 | Service worker, manifest, robots | `public_html/sw.js`, etc. |
 | **Application assemblée** | **aucun — c'est une sortie de build** |
-| Serveur MCP (outil d'exploitation, hors bundle) | `mcp/vigilance_mcp.py` |
+| Serveur MCP stdio, poste local (hors bundle) | `mcp/vigilance_mcp.py` |
+| Serveur MCP HTTP, clients distants | `public_html/api/mcp.js` |
 
 ## Workflow
 
@@ -71,12 +72,16 @@ sources n'étaient pas versionnées. Un agent travaillant sur ce dépôt n'avait
 donc pas d'autre choix que d'éditer le bundle. L'item 9.1 de `ROADMAP.md` a
 corrigé cela — les sources sont désormais la référence.
 
-## Le MCP n'est pas l'application
+## Les deux MCP ne sont pas l'application
 
-`mcp/` expose les mêmes sources qu'elle à un assistant (item 10.1). Il vit à
+Ce dépôt porte **deux** serveurs MCP, aux transports différents et non
+substituables : `public_html/api/mcp.js` (HTTP, clients distants, item 10.0) et
+`mcp/vigilance_mcp.py` (stdio, poste local, item 10.1). Avant d'en modifier un,
+vérifier si l'autre porte la même donnée. Le second vit à
 côté : `build.py` ne le lit pas, rien n'en entre dans le bundle, et il lit
 `src/config.js` plutôt que de recopier les stations — ne jamais dupliquer
-seuils ou codes de station dans `mcp/`. Après toute modification de la forme
+seuils ou codes de station dans `mcp/`. `api/mcp.js`, lui, les recopie encore —
+c'est la dette de l'item 10.3, ne pas l'aggraver. Après toute modification de la forme
 de `config.js` :
 
 ```bash
