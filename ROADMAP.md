@@ -2,7 +2,7 @@
 
 > Outil de surveillance hydrométrique temps réel — Côtes-d'Armor (22)
 > Production : https://vigilance-des-crues.vercel.app
-> Dernière mise à jour : 2026-09-05 — phase 10 : deux MCP, HTTP (10.0) et stdio (10.1)
+> Dernière mise à jour : 2026-09-05 — phase 10 : un seul MCP, stdio (10.1) ; le MCP HTTP (10.0) est retiré
 
 ---
 
@@ -16,7 +16,7 @@ Le backlog fonctionnel est **entièrement livré**. Les deux seuls items fonctio
 
 **Phase 9 terminée le 2026-08-30.** Sources versionnées, code mort éliminé, revue de presse retirée, onglets 10 → 4, réseau fiabilisé et JSON des établissements sensibles différé. **Bundle 554 → 256 Ko** (−54 %), `src/` 5 134 → 4 045 lignes, 4 → 2 scripts CDN tiers. Les deux seuls items ouverts (3.3, 7.5) attendent un épisode de vigilance ≥ Jaune. Le dépôt git couvre désormais `src/`, `build.py`, `tests/`, `index.html` et ce document. Le dossier `vercel_deploy/` a disparu : son contenu est remonté à la racine, qui est aussi la racine du dépôt. Les chemins servis par Vercel sont inchangés, le Root Directory `public_html` n'a pas été touché. Le reste de la phase 9 peut être engagé.
 
-**Phase 10 ouverte le 2026-09-05 : exploitation par assistant.** L'application répond à « quel est l'état du réseau ? » pour un humain devant un écran ; elle ne répond à personne entre deux épisodes, quand nul ne l'ouvre. La phase compte **deux serveurs MCP aux transports différents**, et c'est délibéré : 10.0 (`api/mcp.js`, HTTP, déployé le 2026-09-02) rend les données joignables par n'importe quel client distant — Grok Bot, un téléphone ; 10.1 (`mcp/vigilance_mcp.py`, stdio, 2026-09-05) sert le poste de travail, sans hébergement et avec les outils qu'un transport HTTP sans état rend coûteux (séries, tendances, propagation, marée). Aucun des deux n'entre dans le bundle : le critère de tri fonctionnel de la Vision n'est pas contourné. **Leur seul vrai défaut est commun** : `api/mcp.js` recopie les 27 stations et leurs 81 seuils au lieu de les lire — item 10.3.
+**Phase 10 ouverte le 2026-09-05 : exploitation par assistant.** L'application répond à « quel est l'état du réseau ? » pour un humain devant un écran ; elle ne répond à personne entre deux épisodes, quand nul ne l'ouvre. La phase a d'abord compté **deux serveurs MCP**, avant de n'en garder qu'un. **10.0** (`api/mcp.js`, HTTP, déployé le 2026-09-02 pour Grok Bot) a été **retiré le 2026-09-05** : il recopiait les 27 stations et leurs 81 seuils au lieu de les lire, et exposait publiquement un endpoint sans jeton. **10.1** (`mcp/vigilance_mcp.py`, stdio, 2026-09-05) reste seul en place : il sert le poste de travail, sans hébergement, avec sept outils — séries, tendances, propagation, marée — qu'un transport HTTP sans état rendait coûteux. Il n'entre pas dans le bundle : le critère de tri fonctionnel de la Vision n'est pas contourné. **La duplication de configuration disparaît avec 10.0** : `config.js` redevient l'unique source, et l'item 10.3 est clos sans objet.
 
 ---
 
@@ -64,8 +64,6 @@ Fournir aux acteurs de la gestion de crise des **Côtes-d'Armor** un tableau de 
 | `maintenance/calibrer_propagation.py` | Script de calibration (Hub'Eau + cross-corrélation) |
 | `tests/check.py` | 12 contrôles d'intégrité, lancés automatiquement par `build.py` |
 | `ROADMAP.md` | Ce document — pilotage du projet |
-| `public_html/api/mcp.js` | **Serveur MCP HTTP** (10.0) — 5 outils, serverless Vercel |
-| `MCP.md` | Mode d'emploi du MCP HTTP (déclaration dans Grok Bot) |
 | `mcp/vigilance_mcp.py` | **Serveur MCP stdio** (10.1) — 7 outils, stdlib seule ; hors bundle |
 | `mcp/test_mcp.py` | Test d'intégration du MCP sur données réelles |
 | `.mcp.json` | Déclaration du serveur pour Claude Code (racine du dépôt) |
@@ -157,14 +155,29 @@ personne — or c'est là que se prépare la crue suivante : arcs non recalibré
 liens morts, seuils jamais rejoués. Un assistant capable d'interroger les mêmes
 sources peut faire cette veille sans qu'on ouvre le tableau de bord.
 
-### 10.0 — Serveur MCP HTTP pour Grok Bot ✅ livré le 2026-09-02
+### 10.0 — Serveur MCP HTTP pour Grok Bot ❌ livré le 2026-09-02, **retiré le 2026-09-05**
 
 `public_html/api/mcp.js` (257 l.) — fonction serverless Vercel, MCP Streamable
-HTTP, protocole `2025-03-26`. Cinq outils : `get_summary`, `get_vigilance`,
-`list_stations`, `get_station`, `get_observations`. Endpoint public :
-`https://vigilance-des-crues.vercel.app/api/mcp`, authentification optionnelle
-par `MCP_TOKEN`. Documenté dans `MCP.md`. Vérifié en production le 2026-09-05 :
-`tools/list` et `get_summary` répondent, vigilance verte sur les 6 tronçons.
+HTTP, protocole `2025-03-26`, cinq outils, endpoint public
+`https://vigilance-des-crues.vercel.app/api/mcp`, documenté dans `MCP.md`.
+Fonctionnel et vérifié en production le 2026-09-05.
+
+**Supprimé le jour même, sur décision de l'auteur** — le fichier et `MCP.md`
+sont retirés du dépôt et de la production. Trois raisons, la première suffisant :
+
+1. **Il recopiait la configuration.** 27 stations, 81 seuils et leurs tronçons
+   en dur, quand `config.js` et le serveur stdio les tiennent d'une seule
+   source. Une divergence était déjà apparue en trois jours (le ★ de Plélauff).
+   C'était l'item 10.3 — qui disparaît avec lui.
+2. **Il exposait un endpoint public sans jeton**, dont la consommation
+   serverless était imputée au compte Vercel.
+3. **Il faisait doublon** : le transport stdio couvre le besoin réel — le poste
+   de travail — avec sept outils au lieu de cinq et sans hébergement.
+
+Le besoin auquel il répondait — joindre les données depuis un client distant —
+n'a pas été démontré : aucun usage n'en a été fait hors des tests. S'il devait
+revenir, la règle est écrite dans `AGENTS.md` : lire `config.js`, ne pas le
+recopier.
 
 ### 10.1 — Serveur MCP stdio Vigilance 22 ✅ livré le 2026-09-05
 
@@ -181,19 +194,21 @@ stdio, JSON-RPC 2.0. Sept outils :
 | `coefficient_maree` | Coefficients SHOM — surcote aux exutoires |
 | `synthese_departement` | Les quatre premiers en un appel, avec verdict |
 
-**Pourquoi un second MCP et non une extension du premier.** Les deux transports
-ne servent pas le même usage : HTTP est joignable de partout mais sans état, à
+**Pourquoi celui-ci et pas l'autre.** Écrit d'abord comme un second MCP à côté
+du transport HTTP, il lui a survécu de trois jours. Les deux transports ne
+servaient pas le même usage : HTTP est joignable de partout mais sans état, à
 la merci de l'hébergement, et facturé à l'appel ; stdio ne sort pas du poste
 mais lit le dépôt, donc `config.js` et `propagation.json`, et supporte sans
 coût les réponses lourdes (série 12 h, balayage des 27 stations). Les quatre
 outils que 10.1 ajoute — tendance, seuils approchés, propagation, marée — sont
-précisément ceux qu'un transport sans état rendait coûteux.
+précisément ceux qu'un transport sans état rendait coûteux. Le besoin distant
+n'ayant jamais été exercé, c'est le transport local qui est resté.
 
-| | 10.0 — HTTP | 10.1 — stdio |
+| | 10.0 — HTTP (retiré) | 10.1 — stdio |
 |---|---|---|
 | Portée | N'importe quel client distant | Poste local |
-| Hébergement | Vercel — tombe avec lui | Aucun |
-| Configuration | **Recopiée** (défaut, item 10.3) | Lue dans `src/config.js` |
+| Hébergement | Vercel — tombait avec lui | Aucun |
+| Configuration | **Recopiée** — cause du retrait | Lue dans `src/config.js` |
 | Outils | 5 | 7 |
 | Test | — | `mcp/test_mcp.py`, 7/7 |
 
@@ -218,16 +233,18 @@ Kerien [Kerlouët], −29 cm), coefficient de marée 43 — étiage franc.
 
 `tests/check.py` reste à 12/12 et le bundle à 227 Ko : le MCP ne touche à rien.
 
-### 10.3 — Source unique de stations pour les deux MCP — ouvert
+### 10.3 — Source unique de stations ✅ clos sans objet le 2026-09-05
 
-`api/mcp.js` recopie les 27 stations, leurs 81 seuils et leurs tronçons ; `config.js`
-et `vigilance_mcp.py` les tiennent d'une seule source. Écart constaté au 2026-09-05 :
-un seul, le ★ de Plélauff [Bon-Repos] absent de la copie — bénin aujourd'hui, mais
-c'est la première divergence en trois jours d'existence, et un seuil faux en crue ne
-se voit pas. **Correctif retenu** : `build.py` émet `public_html/stations.json` depuis
-`config.js`, `api/mcp.js` le lit au lieu de son bloc `ST`, un contrôle `tests/check.py`
-vérifie l'égalité. Le serveur stdio peut lire le même JSON et abandonner son parsing
-par regex — une source, trois consommateurs.
+Ouvert le matin même contre la recopie des 27 stations et 81 seuils dans
+`api/mcp.js`, l'item **disparaît avec son objet** : le fichier retiré, il ne
+reste qu'un consommateur — `mcp/vigilance_mcp.py` — et il lit `src/config.js`.
+Le correctif envisagé (`build.py` émettant `public_html/stations.json`, plus un
+13ᵉ contrôle d'égalité) n'a pas lieu d'être tant qu'il n'y a qu'une source et
+qu'un lecteur.
+
+**À rouvrir si** un second consommateur des stations apparaît — réexposition
+HTTP, script de maintenance, export. La règle vaudra alors d'emblée : lire, ne
+pas recopier.
 
 ---
 
@@ -244,7 +261,6 @@ par regex — une source, trois consommateurs.
 
 | # | Item | Statut |
 |---|---|---|
-| **10.3** | Source unique de stations : `build.py` émet `public_html/stations.json`, `api/mcp.js` le lit, un 13e contrôle vérifie l'égalité | **À faire** — avant la saison hydrologique ; c'est la seule dette réelle de la phase 10 |
 | **10.2** | Surveillance planifiée : appel périodique de `synthese_departement`, notification uniquement si vigilance ≥ Jaune ou station à moins de 20 cm du seuil 1. Suppose un ordonnanceur — poste local ou VPS | **Non planifié** — à décider après un premier épisode observé au travers du MCP |
 | **9.10** | `state.js` : 18 setters → un objet muté | **Déclassé** — 324 références sur 15 fichiers pour un gain purement esthétique, sur un outil où la justesse prime. À ne reprendre que si `state.js` doit évoluer pour une autre raison |
 
@@ -302,8 +318,6 @@ Script `calibrer_propagation.py` — cross-corrélation sur données Hub'Eau. De
 | Webcams et liens tiers morts | Élevée | Très faible | Portails officiels privilégiés aux flux YouTube (leçon v6.18) | Contrôle annuel des liens de la modale Ressources |
 | Bundle > 800 Ko | Faible | Moyen — chargement lent en crise | 41 % du poids est le JSON établissements sensibles → item 8.5 | `ls -lh` avant chaque déploiement |
 | Indisponibilité Vercel | Très faible | Élevé — outil inaccessible en crise | Copie locale servie par `python3 -m http.server` ; **depuis 10.1, le MCP interroge les API amont sans passer par l'hébergement** | Ping mensuel de l'URL |
-| Endpoint `/api/mcp` ouvert sans jeton | Certaine — c'est l'état actuel | Faible : données publiques, mais consommation serverless imputée au compte Vercel | Définir `MCP_TOKEN` dans les variables d'environnement Vercel — le code le gère déjà, il suffit de le renseigner | Tableau de bord Vercel : invocations de `api/mcp` |
-| Dérive entre les 27 stations de `config.js` et leur copie dans `api/mcp.js` | Certaine à terme — déjà 1 écart en 3 jours | Élevé — un seuil faux en crue ne se voit pas | Item 10.3 : source unique générée au build | Comparer les deux listes avant chaque saison |
 | Rupture de contrat d'une API amont appelée en direct par le MCP (Vigicrues GeoJSON, Hub'Eau, SHOM) | Moyenne | Faible — le tableau de bord reste servi par ses proxys, seul le MCP tombe | Les 7 outils remontent l'erreur en clair au lieu de retourner un état vide ; `mcp/test_mcp.py` la révèle en un appel | `python3 mcp/test_mcp.py` avant chaque saison hydrologique |
 | Dérive entre `src/config.js` et la vue du MCP | Faible par construction (lecture directe) | Élevé — seuils faux en crue | Aucune recopie : le serveur lit `config.js` au démarrage et échoue bruyamment si le format change | `mcp/test_mcp.py` compte les stations extraites |
 
@@ -346,7 +360,7 @@ Script `calibrer_propagation.py` — cross-corrélation sur données Hub'Eau. De
 | **Prévention + Webcams** | **Fusionnés en modale Ressources (9.5)** | Contenu conservé intégralement (21 liens), mais 218 lignes et 2 onglets pour du statique ne se justifient pas. Ne remet pas en cause 7.6/7.7, seulement leur emplacement | 2026-08-30 | — |
 | **Météo / Sols / Nappes** | **Fusionnés en un onglet Contexte, pas supprimés** | Les couches carte montrent l'instantané, les graphiques la prévision 7 j — l'anticipation est la raison d'être de l'outil | 2026-08-30 | Si les couches carte absorbent la prévision |
 | **9.9 — remplacer le bundler** | **Abandonné** | La ROADMAP annonçait « ~100 lignes de regex » : il y en a 44 sur 198, avec des motifs ancrés (`^import`, `^export`), aucun cas piégeux dans ce code, et **deux contrôles dédiés** (aucun résidu import/export + synchronisation bit-à-bit sources/build). Passer à esbuild ajouterait npm, package.json et une dépendance réseau au build d'un projet qui n'a **aucune dépendance JS** — l'inverse de « le plus simple possible » | 2026-08-30 | Si le bundler casse réellement, ou si le projet acquiert un toolchain Node pour une autre raison |
-| **Un MCP ou deux** | **Deux — HTTP et stdio** | Transports non substituables : HTTP porte loin mais sans état et dépend de l'hébergement ; stdio lit le dépôt et absorbe les réponses lourdes. Fusionner obligerait à choisir un usage et à en sacrifier un | 2026-09-05 | Si les deux dérivent fonctionnellement — alors trancher, pas maintenir deux vérités |
+| **Un MCP ou deux** | **Un seul — stdio.** Décision révisée le jour même : le MCP HTTP est retiré | Le matin, deux transports jugés non substituables. L'après-midi, le constat l'emporte : le transport HTTP recopiait 27 stations et 81 seuils (une divergence en 3 jours), exposait un endpoint public sans jeton, et son usage distant n'a jamais été exercé. Maintenir deux vérités pour un besoin non démontré coûte plus que la portée gagnée | 2026-09-05 | Si un besoin distant réel apparaît — alors le rebâtir en lisant `config.js`, jamais en le recopiant |
 | **MCP : SDK officiel ou stdlib** | **stdlib seule** | Le SDK `mcp` impose pip, un environnement virtuel et une chaîne de dépendances à un projet qui n'en a aucune. Le protocole utilisé ici (initialize, tools/list, tools/call sur stdio) tient en ~120 lignes vérifiables | 2026-09-05 | Si le MCP doit servir ressources, prompts ou notifications serveur → le SDK devient rentable |
 | **MCP : configuration recopiée ou lue** | **Lue dans `src/config.js`** | Recopier 27 stations et 81 seuils dans un second fichier, c'est garantir qu'ils divergeront. Le parsing par regex est fragile mais bruyant : il échoue au démarrage, pas silencieusement en crue | 2026-09-05 | Si `config.js` change de forme → extraire les données en JSON lu par les deux |
 | **MCP dans l'application ou à côté** | **À côté — `mcp/`, hors bundle** | Le critère de tri de la Vision porte sur ce qui entre dans l'application. Le MCP n'est pas une fonctionnalité offerte à l'utilisateur du tableau de bord : c'est un outil d'exploitation, au même titre que `maintenance/` | 2026-09-05 | Jamais — un MCP embarqué dans le front n'aurait aucun sens |
@@ -436,5 +450,6 @@ Après chaque épisode ≥ Jaune, **dans les 72 h suivant le pic** :
 
 | Date | Version | Description | Taille |
 |---|---|---|---|
-| 2026-09-02 | — | **10.0 — Serveur MCP HTTP pour Grok Bot** : `public_html/api/mcp.js` (257 l.), fonction serverless Vercel parlant MCP Streamable HTTP (protocole `2025-03-26`), 5 outils, jeton `MCP_TOKEN` optionnel, `MCP.md` en mode d'emploi. Vérifié en production le 2026-09-05. *Réserve : les 27 stations et leurs 81 seuils y sont recopiés en dur — item 10.3.* | 227 Ko (inchangé) |
-| 2026-09-05 | v7.6 | **10.1 — Serveur MCP stdio Vigilance 22** : `mcp/vigilance_mcp.py` (434 l.), 7 outils exposant Vigicrues, Hub'Eau, SHOM et la calibration de propagation à un assistant, par stdio et JSON-RPC 2.0. **Bibliothèque standard seule** — le SDK `mcp` aurait imposé pip et un venv à un projet sans aucune dépendance. **Aucune recopie de configuration** : les 27 stations, leurs 81 seuils et leurs tronçons sont extraits de `src/config.js` au démarrage, ce qui rend impossible la dérive entre l'application et le MCP. **Aucun passage par Vercel** : appels directs aux API amont, ce qui couvre au passage le risque « Indisponibilité Vercel » que rien ne couvrait. `mcp/test_mcp.py` rejoue la poignée de main, le catalogue et les 7 outils sur données de production : 7/7. Relevé de recette — vigilance verte sur les 6 tronçons, 27/27 stations répondantes, aucune à moins de 20 cm du premier seuil, coefficient 43. *Point de vigilance : l'extraction par regex de `config.js` échoue bruyamment au démarrage si le format change — c'est délibéré, un MCP muet en crue serait pire.* `tests/check.py` 12/12 et bundle 227 Ko inchangés : rien de cette phase n'entre dans l'application. **Écrit sans connaissance de 10.0** — `git fetch` échouait depuis l'environnement de travail, la vue du dépôt datait du 30/08 ; les deux serveurs se sont révélés complémentaires plutôt que redondants (voir Arbitrages), mais la leçon tient : *ne pas ouvrir un item sans un `git fetch` qui aboutit.* | 227 Ko (inchangé) |
+| 2026-09-02 | — | **10.0 — Serveur MCP HTTP pour Grok Bot** : `public_html/api/mcp.js` (257 l.), fonction serverless Vercel parlant MCP Streamable HTTP (protocole `2025-03-26`), 5 outils, jeton `MCP_TOKEN` optionnel, `MCP.md` en mode d'emploi. Vérifié en production le 2026-09-05. *Réserve : les 27 stations et leurs 81 seuils y sont recopiés en dur — item 10.3.* **Retiré le 2026-09-05.** | 227 Ko (inchangé) |
+| 2026-09-05 | v7.6 | **10.1 — Serveur MCP stdio Vigilance 22** : `mcp/vigilance_mcp.py` (434 l.), 7 outils exposant Vigicrues, Hub'Eau, SHOM et la calibration de propagation à un assistant, par stdio et JSON-RPC 2.0. **Bibliothèque standard seule** — le SDK `mcp` aurait imposé pip et un venv à un projet sans aucune dépendance. **Aucune recopie de configuration** : les 27 stations, leurs 81 seuils et leurs tronçons sont extraits de `src/config.js` au démarrage, ce qui rend impossible la dérive entre l'application et le MCP. **Aucun passage par Vercel** : appels directs aux API amont, ce qui couvre au passage le risque « Indisponibilité Vercel » que rien ne couvrait. `mcp/test_mcp.py` rejoue la poignée de main, le catalogue et les 7 outils sur données de production : 7/7. Relevé de recette — vigilance verte sur les 6 tronçons, 27/27 stations répondantes, aucune à moins de 20 cm du premier seuil, coefficient 43. *Point de vigilance : l'extraction par regex de `config.js` échoue bruyamment au démarrage si le format change — c'est délibéré, un MCP muet en crue serait pire.* `tests/check.py` 12/12 et bundle 227 Ko inchangés : rien de cette phase n'entre dans l'application. **Écrit sans connaissance de 10.0** — `git fetch` échouait depuis l'environnement de travail, la vue du dépôt datait du 30/08 ; les deux serveurs ont d'abord été jugés complémentaires (voir Arbitrages), avant que 10.0 ne soit retiré le jour même. La leçon tient : *ne pas ouvrir un item sans un `git fetch` qui aboutit.* | 227 Ko (inchangé) |
+| 2026-09-05 | v7.6 | **Retrait de 10.0 — le MCP HTTP est supprimé.** `public_html/api/mcp.js` (257 l.) et `MCP.md` sortent du dépôt et de la production. Motif principal : il **recopiait** les 27 stations, leurs 81 seuils et leurs tronçons, là où `config.js` et le serveur stdio n'ont qu'une source — une divergence était déjà apparue en trois jours (le ★ de Plélauff). S'y ajoutent un endpoint public sans jeton facturé au compte Vercel, et un doublon fonctionnel avec le transport stdio (7 outils contre 5, sans hébergement). L'usage distant n'avait jamais été exercé hors tests. **Effet de bord favorable : l'item 10.3 est clos sans objet** — une source, un lecteur. Vérifié après suppression : `tests/check.py` 12/12, `mcp/test_mcp.py` 7/7, bundle 227 Ko inchangé, `/api/mcp` ne répond plus en production, les 3 autres fonctions serverless (`coefficient`, `vigicrues`, `vigicrues-obs`) intactes. | 227 Ko (inchangé) |

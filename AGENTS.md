@@ -17,7 +17,6 @@ build.
 | Service worker, manifest, robots | `public_html/sw.js`, etc. |
 | **Application assemblée** | **aucun — c'est une sortie de build** |
 | Serveur MCP stdio, poste local (hors bundle) | `mcp/vigilance_mcp.py` |
-| Serveur MCP HTTP, clients distants | `public_html/api/mcp.js` |
 
 ## Workflow
 
@@ -72,17 +71,21 @@ sources n'étaient pas versionnées. Un agent travaillant sur ce dépôt n'avait
 donc pas d'autre choix que d'éditer le bundle. L'item 9.1 de `ROADMAP.md` a
 corrigé cela — les sources sont désormais la référence.
 
-## Les deux MCP ne sont pas l'application
+## Le MCP n'est pas l'application
 
-Ce dépôt porte **deux** serveurs MCP, aux transports différents et non
-substituables : `public_html/api/mcp.js` (HTTP, clients distants, item 10.0) et
-`mcp/vigilance_mcp.py` (stdio, poste local, item 10.1). Avant d'en modifier un,
-vérifier si l'autre porte la même donnée. Le second vit à
-côté : `build.py` ne le lit pas, rien n'en entre dans le bundle, et il lit
-`src/config.js` plutôt que de recopier les stations — ne jamais dupliquer
-seuils ou codes de station dans `mcp/`. `api/mcp.js`, lui, les recopie encore —
-c'est la dette de l'item 10.3, ne pas l'aggraver. Après toute modification de la forme
-de `config.js` :
+Ce dépôt porte **un** serveur MCP : `mcp/vigilance_mcp.py` (stdio, poste local,
+item 10.1). Il vit à côté de l'application : `build.py` ne le lit pas, rien
+n'en entre dans le bundle, et il lit `src/config.js` plutôt que de recopier les
+stations — **ne jamais dupliquer seuils ou codes de station dans `mcp/`**.
+
+Un second serveur a existé — `public_html/api/mcp.js`, transport HTTP, exposé
+publiquement pour Grok Bot (item 10.0, 2026-09-02). Il a été **retiré le
+2026-09-05** : il recopiait les 27 stations et leurs 81 seuils au lieu de les
+lire. Ne pas le réintroduire sans lire l'arbitrage correspondant dans
+`ROADMAP.md`. Toute réexposition HTTP des données doit lire `config.js`, pas
+la recopier.
+
+Après toute modification de la forme de `config.js` :
 
 ```bash
 python3 mcp/test_mcp.py
