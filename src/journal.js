@@ -3,7 +3,7 @@
 import { CODES, ST, REF_COLORS, REF_TEXT } from './config.js';
 import { NOTIF_BATCHING, NOTIF_BATCH, setNOTIF_BATCH } from './state.js';
 import { refCrues } from './vigi.js';
-import { fmtTime, fmtDate } from './utils.js';
+import { fmtTime, fmtDate, escapeHtml } from './utils.js';
 import { sendNotif } from './notif.js';
 
 const JOURNAL_KEY = 'vigicrues22_journal_v1';
@@ -184,7 +184,7 @@ export function renderJournal() {
   for (const [day, evs] of Object.entries(byDay)) {
     html += `<div class="j-section-title">${day}</div><div class="j-list">`;
     for (const ev of evs) {
-      const tc = typeConf[ev.type] || {icon:'ℹ️', cls:'', label:ev.type};
+      const tc = typeConf[ev.type] || {icon:'ℹ️', cls:'', label:escapeHtml(ev.type)};
       const sc = ev.seuil ? seuilColors[ev.seuil] : null;
       const seuilBadge = sc
         ? `<span class="j-badge" style="background:${sc.bg};color:${sc.text}">${sc.label}</span>`
@@ -194,13 +194,16 @@ export function renderJournal() {
         : '';
       const timeStr = fmtTime(ev.date);
 
+      // Ces champs viennent aujourd'hui de config.js, mais ils transitent par
+      // localStorage : les échapper évite qu'un jour une source extérieure
+      // fasse exécuter du balisage ici.
       html += `<div class="j-item ${ev.seuil ? 'ev-'+ev.seuil : tc.cls}">
         <div class="j-icon">${tc.icon}</div>
         <div class="j-body">
-          <div class="j-title">${ev.nom}${seuilBadge}</div>
-          <div class="j-meta">${ev.cours} · ${ev.code}</div>
+          <div class="j-title">${escapeHtml(ev.nom)}${seuilBadge}</div>
+          <div class="j-meta">${escapeHtml(ev.cours)} · ${escapeHtml(ev.code)}</div>
           <div class="j-detail">
-            ${ev.message} · H=${ev.hauteur.toFixed(3)}m
+            ${escapeHtml(ev.message)} · H=${ev.hauteur.toFixed(3)}m
             ${speedStr ? '· ' + speedStr : ''}
             ${ev.delta != null ? '· Δ '+(ev.delta>0?'+':'')+ev.delta.toFixed(1)+' cm' : ''}
           </div>

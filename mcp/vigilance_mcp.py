@@ -30,10 +30,31 @@ from datetime import datetime, timedelta, timezone
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_JS = os.path.join(RACINE, "src", "config.js")
 PROPAGATION = os.path.join(RACINE, "maintenance", "propagation.json")
+ENV_LOCAL = os.path.join(RACINE, ".env.local")
+
+
+def _cle_shom():
+    """Clé de service SHOM — jamais dans le code, le dépôt étant public.
+
+    Cherchée dans l'environnement, puis dans `.env.local` (non versionné).
+    Absente, seul l'outil coefficient_maree est indisponible : les six autres
+    n'en dépendent pas et doivent continuer de répondre.
+    """
+    cle = os.environ.get("SHOM_KEY")
+    if cle:
+        return cle.strip()
+    try:
+        with open(ENV_LOCAL, encoding="utf-8") as f:
+            for ligne in f:
+                if ligne.startswith("SHOM_KEY="):
+                    return ligne.split("=", 1)[1].strip().strip("\"'")
+    except OSError:
+        pass
+    return None
+
 
 HUBEAU = "https://hubeau.eaufrance.fr/api/v2/hydrometrie"
 VIGICRUES_GEOJSON = "https://www.vigicrues.gouv.fr/services/1/InfoVigiCru.geojson/"
-SHOM = "https://services.data.shom.fr/b2q8lrcdl4s04cbabsj4nhcb/hdm/spm/coeff"
 SHOM_PORT = "PERROS-GUIREC_TRESTRAOU"
 UA = "Mozilla/5.0 (compatible; Vigicrues22-MCP/1.0)"
 
@@ -261,7 +282,12 @@ def outil_propagation_arcs(_=None):
 def outil_coefficient_maree(args):
     jours = max(1, min(30, int((args or {}).get("jours", 3))))
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    url = "%s?%s" % (SHOM, urllib.parse.urlencode({
+    cle = _cle_shom()
+    if not cle:
+        raise RuntimeError(
+            "Clé SHOM absente : définir SHOM_KEY dans l'environnement ou dans .env.local "
+            "à la racine du dépôt. Les six autres outils restent disponibles.")
+    url = "https://services.data.shom.fr/%s/hdm/spm/coeff?%s" % (cle, urllib.parse.urlencode({
         "harborName": SHOM_PORT, "duration": jours, "date": today,
         "utc": 1, "correlation": 1}))
     mois = _http(url, entetes={"Referer": "https://maree.shom.fr/"})
