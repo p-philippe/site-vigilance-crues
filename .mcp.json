@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "vigilance-22": {
+      "command": "python3",
+      "args": ["mcp/vigilance_mcp.py"],
+      "env": {}
+    }
+  }
+}

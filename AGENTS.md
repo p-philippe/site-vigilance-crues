@@ -16,6 +16,7 @@ build.
 | Fonctions serverless | `public_html/api/*.js` |
 | Service worker, manifest, robots | `public_html/sw.js`, etc. |
 | **Application assemblée** | **aucun — c'est une sortie de build** |
+| Serveur MCP (outil d'exploitation, hors bundle) | `mcp/vigilance_mcp.py` |
 
 ## Workflow
 
@@ -69,5 +70,17 @@ Jusqu'au 2026-08-30, le dépôt ne contenait **que** le fichier généré : les
 sources n'étaient pas versionnées. Un agent travaillant sur ce dépôt n'avait
 donc pas d'autre choix que d'éditer le bundle. L'item 9.1 de `ROADMAP.md` a
 corrigé cela — les sources sont désormais la référence.
+
+## Le MCP n'est pas l'application
+
+`mcp/` expose les mêmes sources qu'elle à un assistant (item 10.1). Il vit à
+côté : `build.py` ne le lit pas, rien n'en entre dans le bundle, et il lit
+`src/config.js` plutôt que de recopier les stations — ne jamais dupliquer
+seuils ou codes de station dans `mcp/`. Après toute modification de la forme
+de `config.js` :
+
+```bash
+python3 mcp/test_mcp.py
+```
 
 Voir `ROADMAP.md` pour l'état du projet et le backlog.

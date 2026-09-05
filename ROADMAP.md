@@ -2,7 +2,7 @@
 
 > Outil de surveillance hydrométrique temps réel — Côtes-d'Armor (22)
 > Production : https://vigilance-des-crues.vercel.app
-> Dernière mise à jour : 2026-08-30 — phase 9 terminée, retrait 9.13
+> Dernière mise à jour : 2026-09-05 — phase 10 ouverte, MCP Vigilance 22 livré (10.1)
 
 ---
 
@@ -15,6 +15,8 @@ Le backlog fonctionnel est **entièrement livré**. Les deux seuls items fonctio
 **Le projet change de phase.** L'audit du 2026-08-30 montre que la croissance par ajout a produit un décalage net entre le poids du code et sa valeur opérationnelle : 54 % du HTML et 10 % du JS servent trois onglets qui n'affichent aucune donnée hydrométrique, et quatre onglets présentent des données déjà visibles sur la carte. La **phase 9 est une phase de retrait** : ramener l'application à ce qu'elle fait vraiment, sans rien perdre de sa capacité de surveillance.
 
 **Phase 9 terminée le 2026-08-30.** Sources versionnées, code mort éliminé, revue de presse retirée, onglets 10 → 4, réseau fiabilisé et JSON des établissements sensibles différé. **Bundle 554 → 256 Ko** (−54 %), `src/` 5 134 → 4 045 lignes, 4 → 2 scripts CDN tiers. Les deux seuls items ouverts (3.3, 7.5) attendent un épisode de vigilance ≥ Jaune. Le dépôt git couvre désormais `src/`, `build.py`, `tests/`, `index.html` et ce document. Le dossier `vercel_deploy/` a disparu : son contenu est remonté à la racine, qui est aussi la racine du dépôt. Les chemins servis par Vercel sont inchangés, le Root Directory `public_html` n'a pas été touché. Le reste de la phase 9 peut être engagé.
+
+**Phase 10 ouverte le 2026-09-05 : exploitation par assistant.** L'application répond à « quel est l'état du réseau ? » pour un humain devant un écran ; elle ne répond à personne entre deux épisodes, quand nul ne l'ouvre. L'item 10.1 livre un **serveur MCP** exposant les mêmes sources (Vigicrues, Hub'Eau, SHOM, propagation) à un assistant, qui peut interroger, croiser et alerter sans tableau de bord ouvert. Le MCP est **hors application** : rien n'entre dans le bundle, `public_html/` est inchangé, le critère de tri fonctionnel de la Vision n'est pas contourné.
 
 ---
 
@@ -62,6 +64,9 @@ Fournir aux acteurs de la gestion de crise des **Côtes-d'Armor** un tableau de 
 | `maintenance/calibrer_propagation.py` | Script de calibration (Hub'Eau + cross-corrélation) |
 | `tests/check.py` | 12 contrôles d'intégrité, lancés automatiquement par `build.py` |
 | `ROADMAP.md` | Ce document — pilotage du projet |
+| `mcp/vigilance_mcp.py` | **Serveur MCP** — 7 outils, stdlib seule ; hors bundle |
+| `mcp/test_mcp.py` | Test d'intégration du MCP sur données réelles |
+| `.mcp.json` | Déclaration du serveur pour Claude Code (racine du dépôt) |
 
 ### Workflow de déploiement
 
@@ -138,6 +143,56 @@ Deux retraits demandés après usage réel, dans la ligne du critère de tri de 
 
 ---
 
+## Phase 10 — Exploitation par assistant (2026-09-05)
+
+> La phase 9 a retiré ce qui ne servait pas. La phase 10 n'ajoute rien à
+> l'application : elle ouvre une seconde voie d'accès aux mêmes données.
+
+### Constat
+
+L'outil est consulté pendant les épisodes. Entre deux, il n'est ouvert par
+personne — or c'est là que se prépare la crue suivante : arcs non recalibrés,
+liens morts, seuils jamais rejoués. Un assistant capable d'interroger les mêmes
+sources peut faire cette veille sans qu'on ouvre le tableau de bord.
+
+### 10.1 — Serveur MCP Vigilance 22 ✅ livré le 2026-09-05
+
+`mcp/vigilance_mcp.py` — 434 lignes, **bibliothèque standard seule**, transport
+stdio, JSON-RPC 2.0. Sept outils :
+
+| Outil | Réponse |
+|---|---|
+| `vigilance_troncons` | Niveau officiel Vigicrues des 6 tronçons couvrant le 22 |
+| `liste_stations` | Les 27 stations : codes, seuils, bassins, tronçons |
+| `observations_station` | Série H sur N heures, débit, tendance cm/h, seuil atteint |
+| `stations_en_alerte` | Balayage des 27 stations, tri par écart au premier seuil |
+| `propagation_arcs` | Arcs calibrés, transit, confiance, arcs exclus des alertes |
+| `coefficient_maree` | Coefficients SHOM — surcote aux exutoires |
+| `synthese_departement` | Les quatre premiers en un appel, avec verdict |
+
+**Trois décisions structurantes**, détaillées dans [Arbitrages](#arbitrages-et-décisions) :
+
+1. **Aucune duplication de configuration.** Les 27 stations, leurs seuils et
+   leurs tronçons sont lus dans `src/config.js` au démarrage du serveur, par
+   expression régulière. Modifier une station dans `config.js` la modifie dans
+   le MCP, sans intervention — le risque le plus probable d'un outil parallèle,
+   la dérive des deux listes, est écarté par construction.
+2. **Aucune dépendance.** Le SDK `mcp` aurait imposé pip et un environnement
+   virtuel à un projet qui n'en a aucune. Le protocole tient en ~120 lignes.
+3. **Aucun passage par Vercel.** Appels directs à Vigicrues, Hub'Eau et SHOM.
+   Le MCP répond même hébergement indisponible — il couvre le risque
+   « Indisponibilité Vercel » listé plus bas, que rien ne couvrait.
+
+**Vérification (2026-09-05)** : `python3 mcp/test_mcp.py` — poignée de main,
+catalogue, puis appel réel des 7 outils sur données de production. 7/7.
+Relevé du jour : vigilance **verte** sur les 6 tronçons, 27/27 stations
+répondent, aucune à moins de 20 cm de son premier seuil (plus haute :
+Kerien [Kerlouët], −29 cm), coefficient de marée 43 — étiage franc.
+
+`tests/check.py` reste à 12/12 et le bundle à 227 Ko : le MCP ne touche à rien.
+
+---
+
 ## Backlog
 
 > Un seul tableau, items **ouverts uniquement**. Tout ce qui est livré part dans [Historique des versions](#historique-des-versions).
@@ -151,6 +206,7 @@ Deux retraits demandés après usage réel, dans la ligne du critère de tri de 
 
 | # | Item | Statut |
 |---|---|---|
+| **10.2** | Surveillance planifiée : appel périodique de `synthese_departement`, notification uniquement si vigilance ≥ Jaune ou station à moins de 20 cm du seuil 1. Suppose un ordonnanceur — poste local ou VPS | **Non planifié** — à décider après un premier épisode observé au travers du MCP |
 | **9.10** | `state.js` : 18 setters → un objet muté | **Déclassé** — 324 références sur 15 fichiers pour un gain purement esthétique, sur un outil où la justesse prime. À ne reprendre que si `state.js` doit évoluer pour une autre raison |
 
 
@@ -206,7 +262,9 @@ Script `calibrer_propagation.py` — cross-corrélation sur données Hub'Eau. De
 | ~~Table Historique tronquée sous ~1100 px~~ — ✅ **corrigé le 2026-08-30** : `.t12{table-layout:auto;width:auto;min-width:100%}` + `overflow:visible` sur les cellules ; le tableau défile désormais dans `.t12-wrap` (970 px pour 508 de conteneur, valeurs complètes). Ancien libellé : — la règle globale `table{width:100%;table-layout:fixed}` (index.html:138) prime sur `.t12`, qui ne la surcharge pas : au lieu de défiler dans `.t12-wrap` (pourtant en `overflow-x:auto`), la table se comprime et `td{text-overflow:ellipsis}` tronque les valeurs en « 0… ». **Antérieur à la phase 9**, repéré en vérifiant 9.5 | Certaine sous ~1100 px | Moyen — relevés illisibles sur mobile, sur un outil de terrain | Correctif d'une ligne : `.t12{table-layout:auto;width:auto}`. Non appliqué — hors périmètre de 9.5, à arbitrer | Ouvrir l'onglet Stations en 375 px |
 | Webcams et liens tiers morts | Élevée | Très faible | Portails officiels privilégiés aux flux YouTube (leçon v6.18) | Contrôle annuel des liens de la modale Ressources |
 | Bundle > 800 Ko | Faible | Moyen — chargement lent en crise | 41 % du poids est le JSON établissements sensibles → item 8.5 | `ls -lh` avant chaque déploiement |
-| Indisponibilité Vercel | Très faible | Élevé — outil inaccessible en crise | Copie locale servie par `python3 -m http.server` | Ping mensuel de l'URL |
+| Indisponibilité Vercel | Très faible | Élevé — outil inaccessible en crise | Copie locale servie par `python3 -m http.server` ; **depuis 10.1, le MCP interroge les API amont sans passer par l'hébergement** | Ping mensuel de l'URL |
+| Rupture de contrat d'une API amont appelée en direct par le MCP (Vigicrues GeoJSON, Hub'Eau, SHOM) | Moyenne | Faible — le tableau de bord reste servi par ses proxys, seul le MCP tombe | Les 7 outils remontent l'erreur en clair au lieu de retourner un état vide ; `mcp/test_mcp.py` la révèle en un appel | `python3 mcp/test_mcp.py` avant chaque saison hydrologique |
+| Dérive entre `src/config.js` et la vue du MCP | Faible par construction (lecture directe) | Élevé — seuils faux en crue | Aucune recopie : le serveur lit `config.js` au démarrage et échoue bruyamment si le format change | `mcp/test_mcp.py` compte les stations extraites |
 
 ---
 
@@ -217,6 +275,7 @@ Script `calibrer_propagation.py` — cross-corrélation sur données Hub'Eau. De
 | Recalibration propagation | < 72 h après chaque crue ≥ Jaune | `python3 maintenance/calibrer_propagation.py` | Confiances mises à jour dans `propagation.json` |
 | Déploiement | Après chaque version | `vercel --prod` depuis la racine | URL de prod testée, taille vérifiée |
 | Audit de taille | Avant chaque déploiement | `ls -lh public_html/index.html` | Alerter si > 800 Ko |
+| Test du serveur MCP | Avant chaque saison hydrologique (septembre) | `python3 mcp/test_mcp.py` | 7/7 outils, 27 stations extraites de `config.js` |
 | Contrôle des liens Ressources | Annuel | Ouvrir les 21 liens de la modale | Aucun 404 ; remplacer les flux morts par des portails officiels |
 
 ---
@@ -246,6 +305,9 @@ Script `calibrer_propagation.py` — cross-corrélation sur données Hub'Eau. De
 | **Prévention + Webcams** | **Fusionnés en modale Ressources (9.5)** | Contenu conservé intégralement (21 liens), mais 218 lignes et 2 onglets pour du statique ne se justifient pas. Ne remet pas en cause 7.6/7.7, seulement leur emplacement | 2026-08-30 | — |
 | **Météo / Sols / Nappes** | **Fusionnés en un onglet Contexte, pas supprimés** | Les couches carte montrent l'instantané, les graphiques la prévision 7 j — l'anticipation est la raison d'être de l'outil | 2026-08-30 | Si les couches carte absorbent la prévision |
 | **9.9 — remplacer le bundler** | **Abandonné** | La ROADMAP annonçait « ~100 lignes de regex » : il y en a 44 sur 198, avec des motifs ancrés (`^import`, `^export`), aucun cas piégeux dans ce code, et **deux contrôles dédiés** (aucun résidu import/export + synchronisation bit-à-bit sources/build). Passer à esbuild ajouterait npm, package.json et une dépendance réseau au build d'un projet qui n'a **aucune dépendance JS** — l'inverse de « le plus simple possible » | 2026-08-30 | Si le bundler casse réellement, ou si le projet acquiert un toolchain Node pour une autre raison |
+| **MCP : SDK officiel ou stdlib** | **stdlib seule** | Le SDK `mcp` impose pip, un environnement virtuel et une chaîne de dépendances à un projet qui n'en a aucune. Le protocole utilisé ici (initialize, tools/list, tools/call sur stdio) tient en ~120 lignes vérifiables | 2026-09-05 | Si le MCP doit servir ressources, prompts ou notifications serveur → le SDK devient rentable |
+| **MCP : configuration recopiée ou lue** | **Lue dans `src/config.js`** | Recopier 27 stations et 81 seuils dans un second fichier, c'est garantir qu'ils divergeront. Le parsing par regex est fragile mais bruyant : il échoue au démarrage, pas silencieusement en crue | 2026-09-05 | Si `config.js` change de forme → extraire les données en JSON lu par les deux |
+| **MCP dans l'application ou à côté** | **À côté — `mcp/`, hors bundle** | Le critère de tri de la Vision porte sur ce qui entre dans l'application. Le MCP n'est pas une fonctionnalité offerte à l'utilisateur du tableau de bord : c'est un outil d'exploitation, au même titre que `maintenance/` | 2026-09-05 | Jamais — un MCP embarqué dans le front n'aurait aucun sens |
 | **Critère d'entrée fonctionnel** | Tout ajout doit aider à **anticiper ou décider pendant une crue** | La phase 9 corrige dix mois de croissance par ajout ; le critère existe pour éviter la récidive | 2026-08-30 | Jamais |
 
 ---
@@ -327,3 +389,9 @@ Après chaque épisode ≥ Jaune, **dans les 72 h suivant le pic** :
 | 2026-08-30 | v7.4 | **9.6 + 8.5 + 9.7 + 9.8 — fin de la phase 9.** *9.6* : `data-tab` remplace les 3 regex lisant l'attribut `onclick`, un seul gestionnaire (clic délégué + clavier) au lieu de deux sur le même `role="tablist"`. *8.5* : les sources chargeaient déjà le JSON des établissements sensibles à la demande — c'est `build.py` qui cassait la paresse en l'inlinant ; l'item revenait donc à **retirer** du code. Le fichier (227 Ko) est servi à part et mis en cache par le service worker au premier accès. **Bundle 483 → 256 Ko.** *9.7* : les 7 derniers `fetch` bruts passent par `fetchJson` (dont 4 réimplémentaient l'AbortController sans contrôle HTTP ni relance) ; le test échoue désormais si un `fetch` brut réapparaît. *9.8* : `/api/vigicrues` était appelé deux fois par cycle — mémoïsation de la **promesse en vol** (la première tentative, qui ne mémoïsait que le résultat, laissait les deux appels concurrents rater le cache vide ; corrigé après vérification en production). Au passage, la table Historique ne tronque plus ses valeurs sous 1100 px. 12/12 tests | 256 Ko |
 | 2026-08-30 | v7.5 | **9.13 — Annotation de la carte et chapitre nappes retirés** : 25 fonctions d'`em-map.js` (dessin, post-it, cercles, gomme, horodatage, export/import GeoJSON, sauvegarde), la barre d'outils de dessin, la palette, la barre flottante de tracé, 9 expositions `window` et les 4 gestionnaires de souris de la carte ; côté Contexte, `renderNappes` et ses trois auxiliaires, le CSS `.nappe-*` et le chapitre HTML. **🖨 Imprimer conservé** — le seul export qui servait. *Constat au passage* : la « sauvegarde » d'annotations écrivait dans une variable de module (`EM_MEMORY`), pas dans `localStorage` — elle ne survivait pas au rechargement, donc rien à migrer. `loadNappes` et `nappePctClass` restent : la couche 💧 de la carte en dépend. L'onglet Contexte économise 30 requêtes Hub'Eau à l'ouverture. 12/12 tests, syntaxe du bundle validée, comportement vérifié sur la production déployée. 256 → 227 Ko | 227 Ko |
 | 2026-08-30 | — | **Audit complet code + contenu** → ouverture de la [phase 9](#phase-9--simplification-2026-08-30). Constats : sources non versionnées (9.1), ~540 lignes mortes en production, 2 CDN inutilisés, 54 % du HTML sans donnée hydrométrique, 4 jeux de données affichés deux fois. ROADMAP consolidée : 445 → 271 lignes, 8 sections de backlog fusionnées en une, 28 items livrés déplacés dans cet historique | 554 Ko |
+
+### Phase 10 — Exploitation par assistant (2026-09-05 → )
+
+| Date | Version | Description | Taille |
+|---|---|---|---|
+| 2026-09-05 | v7.6 | **10.1 — Serveur MCP Vigilance 22** : `mcp/vigilance_mcp.py` (434 l.), 7 outils exposant Vigicrues, Hub'Eau, SHOM et la calibration de propagation à un assistant, par stdio et JSON-RPC 2.0. **Bibliothèque standard seule** — le SDK `mcp` aurait imposé pip et un venv à un projet sans aucune dépendance. **Aucune recopie de configuration** : les 27 stations, leurs 81 seuils et leurs tronçons sont extraits de `src/config.js` au démarrage, ce qui rend impossible la dérive entre l'application et le MCP. **Aucun passage par Vercel** : appels directs aux API amont, ce qui couvre au passage le risque « Indisponibilité Vercel » que rien ne couvrait. `mcp/test_mcp.py` rejoue la poignée de main, le catalogue et les 7 outils sur données de production : 7/7. Relevé de recette — vigilance verte sur les 6 tronçons, 27/27 stations répondantes, aucune à moins de 20 cm du premier seuil, coefficient 43. *Point de vigilance : l'extraction par regex de `config.js` échoue bruyamment au démarrage si le format change — c'est délibéré, un MCP muet en crue serait pire.* `tests/check.py` 12/12 et bundle 227 Ko inchangés : rien de cette phase n'entre dans l'application | 227 Ko (inchangé) |
